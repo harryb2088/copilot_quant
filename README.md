@@ -8,6 +8,7 @@ A comprehensive algorithmic trading platform for strategy development, backtesti
 - **Backtesting Engine**: Test strategies against historical market data
 - **Performance Analytics**: Comprehensive metrics, charts, and visualizations
 - **Paper Trading**: Safe testing environment with real market data
+- **Risk Management**: Comprehensive risk controls with circuit breaker protection
 - **Multi-Page UI**: Clean, intuitive Streamlit web interface
 
 ## 📋 Prerequisites
@@ -48,20 +49,25 @@ The application will launch in your default web browser at `http://localhost:850
 ## 📱 Application Structure
 
 ```
-src/ui/
-├── app.py                      # Main entry point (Home page)
-├── pages/                      # Multi-page application
-│   ├── 1_📊_Strategies.py     # Strategy management
-│   ├── 2_🔬_Backtests.py      # Backtest configuration
-│   ├── 3_📈_Results.py        # Results analysis
-│   └── 4_🔴_Live_Trading.py   # Paper trading interface
-├── components/                 # Shared UI components
-│   ├── sidebar.py             # Navigation sidebar
-│   ├── charts.py              # Chart components
-│   └── tables.py              # Table components
-└── utils/                      # Utility functions
-    ├── session.py             # Session state management
-    └── mock_data.py           # Mock data generators
+src/
+├── ui/
+│   ├── app.py                      # Main entry point (Home page)
+│   ├── pages/                      # Multi-page application
+│   │   ├── 1_📊_Strategies.py     # Strategy management
+│   │   ├── 2_🔬_Backtests.py      # Backtest configuration
+│   │   ├── 3_📈_Results.py        # Results analysis
+│   │   ├── 4_🔴_Live_Trading.py   # Paper trading interface
+│   │   └── 5_🛡️_Risk_Management.py # Risk controls configuration
+│   ├── components/                 # Shared UI components
+│   │   ├── sidebar.py             # Navigation sidebar
+│   │   ├── charts.py              # Chart components
+│   │   └── tables.py              # Table components
+│   └── utils/                      # Utility functions
+│       ├── session.py             # Session state management
+│       └── mock_data.py           # Mock data generators
+└── risk/                           # Risk management framework
+    ├── settings.py                 # Risk settings configuration
+    └── portfolio_risk.py           # RiskManager class
 ```
 
 ## 🎯 Quick Start Guide
@@ -71,6 +77,7 @@ src/ui/
 3. **Backtests**: Configure and run historical simulations
 4. **Results**: Analyze performance metrics and charts
 5. **Live Trading**: Deploy strategies in paper trading mode
+6. **Risk Management**: Configure risk controls and circuit breakers
 
 ## ⚠️ Safety Notice
 
@@ -438,6 +445,112 @@ Market data is cached locally to minimize API calls and improve performance:
 
 See `copilot_quant/data/` module for implementation details.
 
+## 🛡️ Risk Management Framework
+
+The platform includes a comprehensive risk management system designed to protect capital and prevent catastrophic losses.
+
+### Key Features
+
+**Portfolio-Level Controls:**
+- Maximum portfolio drawdown cap (default: 12%)
+- Minimum/maximum cash allocation (default: 20% min, 80% max)
+- Circuit breaker - automatic liquidation if drawdown threshold exceeded
+- Volatility targeting - auto-scale position sizes to target portfolio volatility
+
+**Position-Level Controls:**
+- Maximum position size as % of portfolio (default: 10%)
+- Per-position stop loss (default: 5%)
+- Correlation filter - prevent >2 positions with correlation > 0.8
+- Maximum number of concurrent positions (default: 10)
+
+### Quick Start
+
+```python
+from src.risk.portfolio_risk import RiskManager
+from src.risk.settings import RiskSettings
+
+# Use conservative defaults
+risk_manager = RiskManager()
+
+# Or customize settings
+settings = RiskSettings(
+    max_portfolio_drawdown=0.15,  # 15%
+    max_position_size=0.12,  # 12%
+    enable_circuit_breaker=True
+)
+risk_manager = RiskManager(settings)
+
+# Check portfolio risk
+result = risk_manager.check_portfolio_risk(
+    portfolio_value=95000,
+    peak_value=100000,
+    cash=25000
+)
+
+if result.approved:
+    print("✅ Portfolio risk acceptable")
+else:
+    print(f"❌ Risk check failed: {result.reason}")
+```
+
+### Risk Profiles
+
+Three built-in risk profiles are available:
+
+| Profile | Max Drawdown | Max Position | Min Cash | Stop Loss |
+|---------|--------------|--------------|----------|-----------|
+| Conservative | 12% | 10% | 20% | 5% |
+| Balanced | 15% | 15% | 15% | 7% |
+| Aggressive | 20% | 20% | 10% | 10% |
+
+```python
+# Load a preset profile
+conservative = RiskSettings.get_conservative_profile()
+balanced = RiskSettings.get_balanced_profile()
+aggressive = RiskSettings.get_aggressive_profile()
+```
+
+### Streamlit UI
+
+Configure risk parameters through the interactive UI:
+
+```bash
+streamlit run src/ui/app.py
+# Navigate to "Risk Management" page
+```
+
+Features:
+- Interactive sliders for all risk parameters
+- Real-time risk status dashboard
+- Quick profile switching (Conservative/Balanced/Aggressive)
+- Risk breach history log
+- Settings persistence across sessions
+
+### Demo Notebook
+
+Explore the risk framework with the interactive demo:
+
+```bash
+jupyter notebook notebooks/risk_framework_demo.ipynb
+```
+
+The notebook includes:
+- Portfolio and position risk checks
+- Volatility-based position sizing
+- Circuit breaker simulation
+- Strategy comparison with/without risk controls
+- Correlation filtering examples
+
+### Testing
+
+Run the comprehensive test suite:
+
+```bash
+pytest tests/test_risk/ -v --cov=src/risk
+```
+
+**Test Coverage: 97%** (51 tests covering all risk controls)
+
 ## 🛠️ Technology Stack
 
 - **Data Processing**: pandas, numpy
@@ -463,7 +576,13 @@ See `copilot_quant/data/` module for implementation details.
 - [ ] Streamlit UI for strategy configuration
 - [ ] Interactive Brokers integration (paper trading)
 - [ ] Live trading capabilities
-- [ ] Advanced risk management
+- [x] Advanced risk management
+  - [x] RiskManager class with portfolio and position-level controls
+  - [x] Circuit breaker for automatic liquidation
+  - [x] Volatility-based position sizing
+  - [x] Correlation filters for diversification
+  - [x] Streamlit UI for risk configuration
+  - [x] Comprehensive test suite (97% coverage)
 
 ## 📝 License
 
