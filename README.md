@@ -92,33 +92,33 @@ ruff check --fix src/ tests/
 
 *(Coming soon - backtesting functionality will be added in future releases)*
 
-Example usage:
+Example usage (pseudocode):
 ```python
-from src.backtest import BacktestEngine
-from src.strategies import SampleStrategy
+# PSEUDOCODE EXAMPLE – BacktestEngine and SampleStrategy are not yet implemented
+# from src.backtest import BacktestEngine
+# from src.strategies import SampleStrategy
 
 # Initialize backtest
-engine = BacktestEngine(
-    strategy=SampleStrategy(),
-    start_date='2023-01-01',
-    end_date='2024-01-01'
-)
+# engine = BacktestEngine(
+#     strategy=SampleStrategy(),
+#     start_date='2023-01-01',
+#     end_date='2024-01-01'
+# )
 
 # Run backtest
-results = engine.run()
-print(results.summary())
+# results = engine.run()
+# print(results.summary())
 ```
 
 ## 🖥️ Running the Streamlit UI
 
 *(Coming soon - UI functionality will be added in future releases)*
 
-Launch the web interface:
-```bash
-streamlit run src/ui/app.py
-```
+The Streamlit-based web interface is not yet available in this version of the project, and no UI entrypoint script is currently provided.
 
-The UI will provide:
+Once the UI is implemented, this section will be updated with the exact command (for example, a `streamlit run` invocation) and entrypoint path to launch the app.
+
+The planned UI will provide:
 - Strategy configuration
 - Backtest visualization
 - Live trading dashboard

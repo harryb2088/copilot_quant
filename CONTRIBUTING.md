@@ -23,7 +23,7 @@ Thank you for your interest in contributing to copilot_quant! This document prov
 
 ## Code Style Guidelines
 
-We use **ruff** for linting and code formatting to maintain consistency across the codebase.
+We use **ruff** as our Python linter to maintain consistency across the codebase.
 
 ### Running the Linter
 
