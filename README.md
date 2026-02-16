@@ -49,13 +49,12 @@ The application will launch in your default web browser at `http://localhost:850
 
 ```
 src/ui/
-├── app.py                      # Main entry point
+├── app.py                      # Main entry point (Home page)
 ├── pages/                      # Multi-page application
-│   ├── 1_🏠_Home.py           # Home dashboard
-│   ├── 2_📊_Strategies.py     # Strategy management
-│   ├── 3_🔬_Backtests.py      # Backtest configuration
-│   ├── 4_📈_Results.py        # Results analysis
-│   └── 5_🔴_Live_Trading.py   # Paper trading interface
+│   ├── 1_📊_Strategies.py     # Strategy management
+│   ├── 2_🔬_Backtests.py      # Backtest configuration
+│   ├── 3_📈_Results.py        # Results analysis
+│   └── 4_🔴_Live_Trading.py   # Paper trading interface
 ├── components/                 # Shared UI components
 │   ├── sidebar.py             # Navigation sidebar
 │   ├── charts.py              # Chart components
