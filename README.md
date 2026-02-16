@@ -212,6 +212,130 @@ Example usage (pseudocode):
 # print(results.summary())
 ```
 
+## 📊 Data Ingestion - S&P500 EOD Data Loader
+
+The platform includes a comprehensive End-of-Day (EOD) data loader for S&P500 equities using Yahoo Finance.
+
+### Features
+
+- **Flexible Symbol Input**: Load from list or CSV file
+- **Date Range Configuration**: Specify start and end dates
+- **Split/Dividend Handling**: Automatic adjustment via yfinance
+- **Multiple Storage Options**: Save to CSV files or SQLite database
+- **Robust Error Handling**: Continue on errors with detailed logging
+- **Rate Limiting**: Compliant with API usage guidelines
+
+### Quick Start
+
+**Example 1: Fetch Single Symbol to CSV**
+
+```python
+from copilot_quant.data.eod_loader import SP500EODLoader
+
+# Initialize loader
+loader = SP500EODLoader(
+    symbols=['AAPL'],
+    storage_type='csv',
+    data_dir='data/historical'
+)
+
+# Fetch and save data
+loader.fetch_and_save('AAPL', start_date='2023-01-01', end_date='2024-01-01')
+
+# Load data back
+df = loader.load_from_csv('AAPL')
+print(df.head())
+```
+
+**Example 2: Fetch Multiple Symbols from CSV File**
+
+```python
+# Load symbols from CSV file (must have 'Symbol' column)
+loader = SP500EODLoader(
+    symbols_file='data/sp500_symbols.csv',
+    storage_type='csv',
+    data_dir='data/historical',
+    rate_limit_delay=1.0  # 1 second delay between requests
+)
+
+# Fetch all symbols
+result = loader.fetch_all(
+    start_date='2023-01-01',
+    end_date='2024-01-01',
+    continue_on_error=True
+)
+
+print(f"Success: {len(result['success'])} symbols")
+print(f"Failed: {len(result['failed'])} symbols")
+```
+
+**Example 3: SQLite Database Storage**
+
+```python
+# Initialize with SQLite storage
+loader = SP500EODLoader(
+    symbols=['AAPL', 'MSFT', 'GOOGL'],
+    storage_type='sqlite',
+    db_path='data/market_data.db',
+    rate_limit_delay=1.0
+)
+
+# Fetch all symbols
+loader.fetch_all(start_date='2023-01-01', end_date='2024-01-01')
+
+# Query with date range filter
+df = loader.load_from_sqlite('AAPL', start_date='2023-06-01', end_date='2023-12-31')
+```
+
+### Sample Data Files
+
+A sample S&P500 symbols file is provided at `data/sp500_symbols.csv` containing 25 major stocks. You can expand this list or create your own.
+
+### CSV Output Format
+
+CSV files are saved as `data/historical/equity_<SYMBOL>.csv` with the following columns:
+
+- `Date`: Trading date
+- `open`: Opening price
+- `high`: High price
+- `low`: Low price
+- `close`: Closing price
+- `adj_close`: Adjusted closing price
+- `volume`: Trading volume
+- `dividends`: Dividend amount (if any)
+- `stock_splits`: Stock split ratio (if any)
+- `Symbol`: Stock ticker symbol
+
+### SQLite Schema
+
+The SQLite database uses the following schema:
+
+```sql
+CREATE TABLE equity_data (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    symbol TEXT NOT NULL,
+    date TEXT NOT NULL,
+    open REAL,
+    high REAL,
+    low REAL,
+    close REAL,
+    adj_close REAL,
+    volume INTEGER,
+    dividends REAL,
+    stock_splits REAL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(symbol, date)
+);
+```
+
+### Running the Examples
+
+Try the interactive example script:
+
+```bash
+python examples/eod_loader_example.py
+```
+
 ## 🖥️ Running the Streamlit UI
 
 *(Coming soon - UI functionality will be added in future releases)*
@@ -264,7 +388,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code style, a
 ## 📈 Features Roadmap
 
 - [x] Project structure and infrastructure
-- [ ] Data ingestion module (Yahoo Finance, CSV import)
+- [x] Data ingestion module (Yahoo Finance, CSV import)
+  - [x] S&P500 EOD data loader with yfinance
+  - [x] CSV and SQLite storage options
+  - [x] Rate limiting and error handling
 - [ ] Backtesting engine core
 - [ ] Basic trading strategies (Moving Average, Mean Reversion)
 - [ ] Performance metrics and reporting
