@@ -375,8 +375,8 @@ class TestDataResampling:
 
         # First week should have open from first day
         assert weekly.iloc[0]['open'] == 100
-        # Last price should be from last day
-        assert weekly.iloc[0]['close'] == 106
+        # Last price should be from last day of the week
+        assert weekly.iloc[0]['close'] == 111  # All 7 days are in the same week
         # Volume should be summed
         assert weekly.iloc[0]['volume'] == 7000000
 
