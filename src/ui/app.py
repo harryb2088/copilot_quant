@@ -96,12 +96,12 @@ st.markdown("### 🧭 Navigate to:")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.page_link("pages/2_📊_Strategies.py", label="📊 View Strategies", icon="📊")
-    st.page_link("pages/3_🔬_Backtests.py", label="🔬 Run Backtests", icon="🔬")
+    st.page_link("pages/1_📊_Strategies.py", label="📊 View Strategies", icon="📊")
+    st.page_link("pages/2_🔬_Backtests.py", label="🔬 Run Backtests", icon="🔬")
 
 with col2:
-    st.page_link("pages/4_📈_Results.py", label="📈 View Results", icon="📈")
-    st.page_link("pages/5_🔴_Live_Trading.py", label="🔴 Live Trading", icon="🔴")
+    st.page_link("pages/3_📈_Results.py", label="📈 View Results", icon="📈")
+    st.page_link("pages/4_🔴_Live_Trading.py", label="🔴 Live Trading", icon="🔴")
 
 with col3:
     st.info("**Getting Started**\n\n"

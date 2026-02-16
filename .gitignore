@@ -74,6 +74,7 @@ htmlcov/
 
 # Data files (CSV, SQLite, etc.)
 data/*.csv
+!data/sp500_symbols.csv
 data/*.db
 data/*.sqlite
 data/*.sqlite3
