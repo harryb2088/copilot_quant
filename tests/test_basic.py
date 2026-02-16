@@ -3,15 +3,15 @@
 
 def test_import_modules():
     """Test that all main modules can be imported."""
-    import src
-    import src.data
-    import src.backtest
-    import src.strategies
-    import src.brokers
-    import src.ui
-    import src.utils
+    import copilot_quant
+    import copilot_quant.data
+    import copilot_quant.backtest
+    import copilot_quant.strategies
+    import copilot_quant.brokers
+    import copilot_quant.ui
+    import copilot_quant.utils
 
-    assert src.__version__ == "0.1.0"
+    assert copilot_quant.__version__ == "0.1.0"
 
 
 def test_basic_math():

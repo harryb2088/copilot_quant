@@ -29,10 +29,10 @@ We use **ruff** as our Python linter to maintain consistency across the codebase
 
 ```bash
 # Check for issues
-ruff check src/ tests/
+ruff check copilot_quant/ tests/
 
 # Auto-fix issues where possible
-ruff check --fix src/ tests/
+ruff check --fix copilot_quant/ tests/
 ```
 
 ### Style Rules
@@ -53,7 +53,7 @@ pytest tests/
 
 ### Run tests with coverage
 ```bash
-pytest tests/ -v --cov=src --cov-report=term-missing
+pytest tests/ -v --cov=copilot_quant --cov-report=term-missing
 ```
 
 ### Run specific test file
@@ -102,14 +102,14 @@ pytest tests/test_data/test_example.py -v
 
 ```
 copilot_quant/
-├── src/                # Source code
-│   ├── data/          # Data ingestion & storage
-│   ├── backtest/      # Backtesting engine
-│   ├── strategies/    # Trading strategies
-│   ├── brokers/       # Broker connectors
-│   ├── ui/            # Streamlit UI components
-│   └── utils/         # Shared utilities
-├── tests/             # Test suite (mirrors src structure)
+├── copilot_quant/         # Source code
+│   ├── data/             # Data ingestion & storage
+│   ├── backtest/         # Backtesting engine
+│   ├── strategies/       # Trading strategies
+│   ├── brokers/          # Broker connectors
+│   ├── ui/               # Streamlit UI components
+│   └── utils/            # Shared utilities
+├── tests/                # Test suite (mirrors copilot_quant structure)
 ├── data/              # Local data storage
 ├── notebooks/         # Jupyter notebooks
 └── docs/              # Documentation

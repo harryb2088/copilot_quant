@@ -47,21 +47,21 @@ copilot_quant aims to provide a comprehensive, modular platform for:
 
 ```
 copilot_quant/
-├── src/                    # Source code
-│   ├── data/              # Data ingestion & storage
-│   ├── backtest/          # Backtesting engine
-│   ├── strategies/        # Trading strategies
-│   ├── brokers/           # Broker connectors (IBKR, etc.)
-│   ├── ui/                # Streamlit UI components
-│   └── utils/             # Shared utilities
-├── tests/                 # Test suite (mirrors src structure)
-├── data/                  # Local data storage (CSV/SQLite)
-├── notebooks/             # Jupyter notebooks for analysis
-├── docs/                  # Documentation
-├── .github/workflows/     # CI/CD pipelines
-├── requirements.in        # Dependency specification
-├── requirements.txt       # Pinned dependencies (pip-tools)
-└── README.md             # This file
+├── copilot_quant/           # Source code
+│   ├── data/               # Data ingestion & storage
+│   ├── backtest/           # Backtesting engine
+│   ├── strategies/         # Trading strategies
+│   ├── brokers/            # Broker connectors (IBKR, etc.)
+│   ├── ui/                 # Streamlit UI components
+│   └── utils/              # Shared utilities
+├── tests/                  # Test suite (mirrors copilot_quant structure)
+├── data/                   # Local data storage (CSV/SQLite)
+├── notebooks/              # Jupyter notebooks for analysis
+├── docs/                   # Documentation
+├── .github/workflows/      # CI/CD pipelines
+├── requirements.in         # Dependency specification
+├── requirements.txt        # Pinned dependencies (pip-tools)
+└── README.md              # This file
 ```
 
 ## 🧪 Running Tests
@@ -95,8 +95,8 @@ ruff check --fix src/ tests/
 Example usage (pseudocode):
 ```python
 # PSEUDOCODE EXAMPLE – BacktestEngine and SampleStrategy are not yet implemented
-# from src.backtest import BacktestEngine
-# from src.strategies import SampleStrategy
+# from copilot_quant.backtest import BacktestEngine
+# from copilot_quant.strategies import SampleStrategy
 
 # Initialize backtest
 # engine = BacktestEngine(
