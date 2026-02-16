@@ -23,7 +23,7 @@ class TestYFinanceProvider:
         """Test that provider initializes correctly."""
         assert provider.name == "Yahoo Finance (yfinance)"
 
-    @patch('yfinance.Ticker')
+    @patch('copilot_quant.data.providers.yf.Ticker')
     def test_get_historical_data_returns_dataframe(self, mock_ticker, provider):
         """Test that get_historical_data returns a DataFrame."""
         # Mock the yfinance response
@@ -46,7 +46,7 @@ class TestYFinanceProvider:
         assert isinstance(data, pd.DataFrame)
         assert len(data) == 3
 
-    @patch('yfinance.Ticker')
+    @patch('copilot_quant.data.providers.yf.Ticker')
     def test_get_historical_data_has_expected_columns(self, mock_ticker, provider):
         """Test that historical data contains expected columns."""
         # Mock the yfinance response with expected columns
@@ -73,7 +73,7 @@ class TestYFinanceProvider:
         for col in expected_columns:
             assert col in data.columns, f"Missing column: {col}"
 
-    @patch('yfinance.Ticker')
+    @patch('copilot_quant.data.providers.yf.Ticker')
     def test_get_historical_data_with_datetime_index(self, mock_ticker, provider):
         """Test that historical data has DatetimeIndex."""
         mock_data = pd.DataFrame({
@@ -94,7 +94,7 @@ class TestYFinanceProvider:
 
         assert isinstance(data.index, pd.DatetimeIndex)
 
-    @patch('yfinance.download')
+    @patch('copilot_quant.data.providers.yf.download')
     def test_get_multiple_symbols(self, mock_download, provider):
         """Test downloading multiple symbols at once."""
         # Create mock multi-index DataFrame
@@ -119,7 +119,7 @@ class TestYFinanceProvider:
         assert isinstance(data, pd.DataFrame)
         assert not data.empty
 
-    @patch('yfinance.Ticker')
+    @patch('copilot_quant.data.providers.yf.Ticker')
     def test_get_ticker_info(self, mock_ticker, provider):
         """Test getting ticker information."""
         mock_ticker.return_value.info = {
@@ -134,7 +134,7 @@ class TestYFinanceProvider:
         assert len(info) > 0
         assert info['longName'] == 'Apple Inc.'
 
-    @patch('yfinance.Ticker')
+    @patch('copilot_quant.data.providers.yf.Ticker')
     def test_get_sp500_index(self, mock_ticker, provider):
         """Test getting S&P500 index data."""
         mock_data = pd.DataFrame({

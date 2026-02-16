@@ -162,7 +162,7 @@ def example_save_to_csv():
     print(f"\nSaved data to: {output_file}")
 
     # Load it back to verify
-    loaded_data = pd.read_csv(output_file, index_col=0, parse_dates=True)
+    loaded_data = pd.read_csv(output_file, index_col=0, header=[0, 1], parse_dates=True)
     print(f"Loaded {len(loaded_data)} rows from CSV")
     print(loaded_data.head())
 

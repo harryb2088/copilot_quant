@@ -67,7 +67,8 @@ def _get_sp500_from_wikipedia(include_index: bool = False) -> List[str]:
         tickers = sp500_table["Symbol"].tolist()
 
         # Clean up tickers (some may have special formatting)
-        tickers = [ticker.replace(".", "-") for ticker in tickers]  # Handle BRK.B -> BRK-B
+        # Use list comprehension to avoid pandas FutureWarning
+        tickers = [str(ticker).replace(".", "-") for ticker in tickers]  # Handle BRK.B -> BRK-B
 
         logger.info(f"Retrieved {len(tickers)} S&P500 tickers from Wikipedia")
 
@@ -139,18 +140,30 @@ def get_sp500_info() -> pd.DataFrame:
     """
     try:
         url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-        tables = pd.read_html(url)
+        tables = pd.read_html(url, flavor='lxml')
         sp500_info = tables[0]
 
-        # Clean up ticker symbols
-        sp500_info["Symbol"] = sp500_info["Symbol"].str.replace(".", "-")
+        # Clean up ticker symbols (avoid FutureWarning with regex=False)
+        sp500_info["Symbol"] = sp500_info["Symbol"].str.replace(".", "-", regex=False)
 
         logger.info(f"Retrieved detailed info for {len(sp500_info)} S&P500 companies")
         return sp500_info
 
     except Exception as e:
         logger.error(f"Error fetching S&P500 info: {e}")
-        raise
+        logger.warning("Falling back to manual list for get_sp500_info")
+        
+        # Fallback: Create a basic DataFrame from manual list
+        tickers = _get_sp500_manual_list(include_index=False)
+        # Create minimal DataFrame with Symbol column
+        fallback_info = pd.DataFrame({
+            'Symbol': tickers,
+            'Security': ['N/A'] * len(tickers),
+            'GICS Sector': ['N/A'] * len(tickers),
+            'GICS Sub-Industry': ['N/A'] * len(tickers),
+        })
+        logger.info(f"Using manual fallback with {len(fallback_info)} stocks")
+        return fallback_info
 
 
 def get_sp500_by_sector() -> dict:
