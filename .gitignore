@@ -24,6 +24,11 @@ share/python-wheels/
 MANIFEST
 
 # Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
 .venv/
 venv/
 ENV/
@@ -42,6 +47,26 @@ htmlcov/
 *.swp
 *.swo
 *~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Streamlit
+.streamlit/
+
+# Logs
+*.log
+/tmp/
+
+# Environment variables
+.env
+.env.local
 
 # Environment variables
 .env
