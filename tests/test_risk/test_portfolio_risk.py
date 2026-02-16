@@ -294,7 +294,7 @@ class TestRiskManager:
         """Test correlation check with acceptable correlation."""
         manager = RiskManager()
         
-        # Create uncorrelated price data
+        # Create uncorrelated price data with fixed seed for deterministic results
         import numpy as np
         np.random.seed(42)
         
@@ -309,9 +309,9 @@ class TestRiskManager:
             price_data=price_data
         )
         
-        # With random uncorrelated data, should be approved
-        # (might fail occasionally due to randomness, but unlikely)
-        assert result.approved or "correlation" in result.reason.lower()
+        # With fixed seed and uncorrelated data, should be approved
+        assert result.approved
+        assert "correlation within acceptable limits" in result.reason.lower()
     
     def test_check_correlation_high_correlation(self):
         """Test correlation check with high correlation."""
@@ -472,5 +472,7 @@ class TestRiskManager:
             cash=25000
         )
         
-        # Should handle gracefully (drawdown = 0 when peak = 0)
-        assert result.approved or not result.approved  # Either is acceptable
+        # With zero peak, drawdown should be 0, and cash checks should pass
+        assert result.approved
+        assert result.details["current_drawdown"] == 0.0
+        assert result.details["cash_pct"] == 0.25
