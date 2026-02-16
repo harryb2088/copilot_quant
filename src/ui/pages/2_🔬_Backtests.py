@@ -155,7 +155,7 @@ if submit_button:
     """)
     
     if st.button("📈 View Results"):
-        st.switch_page("pages/4_📈_Results.py")
+        st.switch_page("pages/3_📈_Results.py")
 
 if save_config:
     st.success("💾 Configuration saved successfully!")
@@ -196,7 +196,7 @@ if backtests:
             if backtest['status'] == 'Completed':
                 if st.button(f"📈 View", key=f"view_{backtest['id']}", use_container_width=True):
                     st.session_state.selected_backtest = backtest['id']
-                    st.switch_page("pages/4_📈_Results.py")
+                    st.switch_page("pages/3_📈_Results.py")
             else:
                 st.button(f"⏳ Running", key=f"running_{backtest['id']}", disabled=True, use_container_width=True)
 else:

@@ -192,7 +192,7 @@ if completed_backtests:
     
     with col1:
         if st.button("🔬 Run New Backtest", use_container_width=True):
-            st.switch_page("pages/3_🔬_Backtests.py")
+            st.switch_page("pages/2_🔬_Backtests.py")
     
     with col2:
         if st.button("📊 Compare Strategies", use_container_width=True):
@@ -200,7 +200,7 @@ if completed_backtests:
     
     with col3:
         if st.button("🔴 Deploy to Paper Trading", use_container_width=True):
-            st.switch_page("pages/5_🔴_Live_Trading.py")
+            st.switch_page("pages/4_🔴_Live_Trading.py")
     
     with col4:
         if st.button("📄 Generate Report", use_container_width=True):
@@ -230,7 +230,7 @@ else:
     """)
     
     if st.button("🔬 Go to Backtests"):
-        st.switch_page("pages/3_🔬_Backtests.py")
+        st.switch_page("pages/2_🔬_Backtests.py")
 
 # Help section
 with st.expander("ℹ️ Understanding Your Results"):

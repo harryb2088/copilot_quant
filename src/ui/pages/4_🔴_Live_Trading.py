@@ -177,7 +177,7 @@ if st.session_state.get('broker_connected', False):
     
     with col2:
         if st.button("📊 Select Strategy to Deploy", type="primary", use_container_width=True):
-            st.switch_page("pages/2_📊_Strategies.py")
+            st.switch_page("pages/1_📊_Strategies.py")
     
     # Active strategies section
     with st.expander("🤖 Active Strategies"):
