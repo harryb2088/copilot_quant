@@ -374,6 +374,70 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code style, a
 - [Contributing Guidelines](CONTRIBUTING.md)
 - [License](LICENSE) - MIT License
 
+## 📊 Market Data Sources
+
+### Primary Data Source: yfinance (Yahoo Finance)
+
+We use **yfinance** as our primary source for S&P500 historical market data.
+
+**Why yfinance?**
+- ✅ **Free & Unlimited**: No API keys, no rate limits
+- ✅ **Complete Coverage**: All S&P500 stocks + index data
+- ✅ **Historical Depth**: 20+ years of data
+- ✅ **Corporate Actions**: Dividends, splits, and adjusted prices included
+- ✅ **Easy Setup**: No authentication required
+- ✅ **Well Maintained**: Active Python library with good community support
+- ✅ **Sufficient Quality**: Appropriate for backtesting and research
+
+**Data Available:**
+- OHLCV (Open, High, Low, Close, Volume)
+- Adjusted close prices
+- Dividends and stock splits
+- Historical data back to ~1970s for most stocks
+- S&P500 index (^GSPC)
+
+**Usage Example:**
+```python
+import yfinance as yf
+
+# Download single stock
+ticker = yf.Ticker("AAPL")
+hist = ticker.history(period="1y")  # 1 year of daily data
+
+# Download multiple stocks
+data = yf.download(["AAPL", "MSFT", "GOOGL"], start="2020-01-01", end="2024-01-01")
+
+# Get S&P500 index
+sp500 = yf.Ticker("^GSPC")
+sp500_data = sp500.history(period="max")
+```
+
+**Limitations:**
+- Not suitable for high-frequency trading (HFT)
+- Occasional API instability (Yahoo's infrastructure)
+- Limited to end-of-day data (no intraday on free tier)
+- Terms of use: personal/research/educational purposes
+
+### Alternative/Future Data Sources
+
+**For Production Trading:**
+- **Polygon.io** ($29-199/month): Excellent data quality, real-time feeds, production-grade
+- **IEX Cloud**: Good balance of cost and quality, 15 years of history
+
+**For Real-time Validation:**
+- **Alpha Vantage** (Free: 25 calls/day): Suitable for small-scale real-time needs
+- Can be added as secondary source for paper trading validation
+
+### Data Storage Strategy
+
+Market data is cached locally to minimize API calls and improve performance:
+- SQLite database for structured storage
+- CSV exports for backup and portability
+- Automatic update mechanism for recent data
+- S&P500 constituent list management
+
+See `copilot_quant/data/` module for implementation details.
+
 ## 🛠️ Technology Stack
 
 - **Data Processing**: pandas, numpy
@@ -387,6 +451,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code style, a
 ## 📈 Features Roadmap
 
 - [x] Project structure and infrastructure
+- [x] Data source research and selection (yfinance chosen)
+- [ ] Data ingestion module (Yahoo Finance, CSV import)
 - [x] Data ingestion module (Yahoo Finance, CSV import)
   - [x] S&P500 EOD data loader with yfinance
   - [x] CSV and SQLite storage options
