@@ -335,6 +335,209 @@ Try the interactive example script:
 python examples/eod_loader_example.py
 ```
 
+---
+
+## 📈 Prediction Market Data Fetchers
+
+Fetch, parse, and save time series data from major prediction markets including **Polymarket**, **Kalshi**, **PredictIt**, and **Metaculus**.
+
+### Supported Platforms
+
+| Platform | Markets Available | Historical Data | API Authentication | Notes |
+|----------|------------------|-----------------|-------------------|-------|
+| **Polymarket** | Yes/No contracts | Limited | Not required | Uses public CLOB API |
+| **Kalshi** | Binary events | Yes | Optional | Enhanced features with API key |
+| **PredictIt** | Political markets | No (snapshot only) | Not required | Public API limited to current prices |
+| **Metaculus** | Forecasting questions | Yes | Not required | Community predictions over time |
+
+### Quick Start
+
+**Example 1: List markets from Polymarket**
+
+```python
+from copilot_quant.data.prediction_markets import PolymarketProvider
+
+# Initialize provider
+provider = PolymarketProvider()
+
+# List available markets
+markets = provider.list_markets(limit=20)
+print(markets)
+
+# Get market details
+details = provider.get_market_details('market_id_here')
+print(f"Market: {details['title']}")
+print(f"Volume: ${details['volume']:,.2f}")
+```
+
+**Example 2: Fetch historical price data**
+
+```python
+from copilot_quant.data.prediction_markets import PolymarketProvider
+
+provider = PolymarketProvider()
+
+# Fetch price history for a specific market
+data = provider.get_market_data(
+    market_id='market_id_here',
+    start_date='2024-01-01',
+    end_date='2024-12-31'
+)
+
+print(data.tail())  # Show latest prices
+```
+
+**Example 3: Save data to CSV or SQLite**
+
+```python
+from copilot_quant.data.prediction_markets import (
+    PolymarketProvider,
+    PredictionMarketStorage
+)
+
+provider = PolymarketProvider()
+storage = PredictionMarketStorage(storage_type='sqlite', db_path='data/markets.db')
+
+# Fetch and save markets
+markets = provider.list_markets(limit=50)
+storage.save_markets('polymarket', markets)
+
+# Fetch and save price data
+data = provider.get_market_data('market_id_here')
+storage.save_market_data('polymarket', 'market_id_here', data)
+
+# Load data later
+loaded_markets = storage.load_markets('polymarket')
+loaded_data = storage.load_market_data('polymarket', 'market_id_here')
+```
+
+**Example 4: Using other providers**
+
+```python
+from copilot_quant.data.prediction_markets import (
+    KalshiProvider,
+    PredictItProvider,
+    MetaculusProvider,
+)
+
+# Kalshi (optionally with API key)
+kalshi = KalshiProvider(api_key=os.environ.get('KALSHI_API_KEY'))
+kalshi_markets = kalshi.list_markets(limit=10)
+
+# PredictIt
+predictit = PredictItProvider()
+predictit_markets = predictit.list_markets(limit=10)
+
+# Metaculus
+metaculus = MetaculusProvider()
+metaculus_questions = metaculus.list_markets(limit=10)
+```
+
+### CLI Tools
+
+Each platform has a dedicated CLI tool for easy data fetching:
+
+```bash
+# Polymarket
+python examples/prediction_markets/polymarket_cli.py list --limit 10
+python examples/prediction_markets/polymarket_cli.py fetch --market-id <ID> --output data.csv
+
+# Kalshi
+python examples/prediction_markets/kalshi_cli.py list --limit 10
+python examples/prediction_markets/kalshi_cli.py fetch --market-id <TICKER> --sqlite
+
+# PredictIt
+python examples/prediction_markets/predictit_cli.py list --limit 10
+python examples/prediction_markets/predictit_cli.py fetch --market-id <ID> --output data.csv
+
+# Metaculus
+python examples/prediction_markets/metaculus_cli.py list --limit 10
+python examples/prediction_markets/metaculus_cli.py fetch --market-id <ID> --sqlite
+```
+
+### Field Mappings
+
+The prediction market providers normalize data into a consistent format. Here's how platform-specific fields map to the standardized schema:
+
+#### Market List Fields
+
+| Standard Field | Polymarket | Kalshi | PredictIt | Metaculus |
+|---------------|-----------|--------|-----------|-----------|
+| `market_id` | `condition_id` | `ticker` | `id` | `id` |
+| `title` | `question` | `title` | `name` | `title` |
+| `category` | `category` | `category` | URL-derived | `category` |
+| `close_time` | `end_date_iso` | `close_time` | `dateEnd` | `close_time` |
+| `status` | `active` → "active"/"closed" | `status` | `status` | `status` |
+| `volume` | `volume` | `volume` | N/A | N/A |
+| `liquidity` | `liquidity` | `liquidity` | N/A | N/A |
+
+#### Price/Prediction Data Fields
+
+| Standard Field | Polymarket | Kalshi | PredictIt | Metaculus |
+|---------------|-----------|--------|-----------|-----------|
+| `timestamp` | Price time | History `ts` | Snapshot time | Prediction time `t` |
+| `price` | Token price (0-1) | `yes_price` / 100 | `lastTradePrice` | Community median `q2` |
+| `volume` | Trade volume | `volume` | N/A | N/A |
+
+**Notes:**
+- All prices are normalized to 0-1 range (0% to 100% probability)
+- Timestamps are converted to pandas DatetimeIndex
+- Missing fields are filled with appropriate defaults (0.0 for numeric, empty string for text)
+
+### Data Storage Formats
+
+**CSV Format:**
+- Markets: `data/prediction_markets/{provider}/markets.csv`
+- Price data: `data/prediction_markets/{provider}/{market_id}.csv`
+
+**SQLite Schema:**
+
+```sql
+-- Markets table
+CREATE TABLE markets (
+    provider TEXT NOT NULL,
+    market_id TEXT NOT NULL,
+    title TEXT,
+    category TEXT,
+    close_time TEXT,
+    status TEXT,
+    volume REAL,
+    liquidity REAL,
+    last_updated TEXT,
+    PRIMARY KEY (provider, market_id)
+);
+
+-- Price history table
+CREATE TABLE price_history (
+    provider TEXT NOT NULL,
+    market_id TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    price REAL,
+    volume REAL,
+    PRIMARY KEY (provider, market_id, timestamp)
+);
+```
+
+### Error Handling
+
+All providers gracefully handle:
+- Network failures (returns empty DataFrame with error log)
+- Missing data (fills with defaults)
+- API rate limits (providers use session management)
+- Invalid market IDs (logs error and returns empty result)
+
+### Running Tests
+
+```bash
+# Run all prediction market tests
+python -m pytest tests/test_data/test_prediction_markets.py -v
+
+# Run specific test class
+python -m pytest tests/test_data/test_prediction_markets.py::TestPolymarketProvider -v
+```
+
+---
+
 ## 🖥️ Running the Streamlit UI
 
 *(Coming soon - UI functionality will be added in future releases)*
