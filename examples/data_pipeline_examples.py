@@ -106,6 +106,10 @@ def example_sp500_index():
     print("\nRecent prices:")
     print(sp500.tail())
 
+    if sp500.empty:
+        print("No data available for S&P500 index")
+        return sp500
+
     # Calculate performance
     start_price = sp500['Close'].iloc[0]
     end_price = sp500['Close'].iloc[-1]
