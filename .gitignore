@@ -29,6 +29,17 @@ env/
 ENV/
 env.bak/
 venv.bak/
+.venv/
+venv/
+ENV/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
 
 # IDEs
 .vscode/
@@ -56,3 +67,29 @@ htmlcov/
 # Environment variables
 .env
 .env.local
+
+# Environment variables
+.env
+.env.local
+
+# Data files (CSV, SQLite, etc.)
+data/*.csv
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# pip-tools
+# Keep requirements.in and requirements.txt, but ignore backup files
+*.in~
+*.txt~
