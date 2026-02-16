@@ -60,7 +60,7 @@ def _get_sp500_from_wikipedia(include_index: bool = False) -> List[str]:
         url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 
         # Read the first table which contains current constituents
-        tables = pd.read_html(url)
+        tables = pd.read_html(url, flavor='lxml')
         sp500_table = tables[0]
 
         # Extract ticker symbols
@@ -80,7 +80,6 @@ def _get_sp500_from_wikipedia(include_index: bool = False) -> List[str]:
         logger.error(f"Error fetching S&P500 list from Wikipedia: {e}")
         logger.warning("Falling back to manual list")
         return _get_sp500_manual_list(include_index)
-
 
 def _get_sp500_manual_list(include_index: bool = False) -> List[str]:
     """
