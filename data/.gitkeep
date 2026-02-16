@@ -1,0 +1,6 @@
+# Data Directory
+
+This directory is used for local data storage (CSV files, SQLite databases, etc.)
+
+Data files are ignored by `.gitignore` to prevent committing large datasets.
+This placeholder file ensures the directory structure is maintained in version control.
