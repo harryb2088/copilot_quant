@@ -208,7 +208,11 @@ def normalize_timestamps(
         # Localize or convert to target timezone
         if df[timestamp_column].dt.tz is None:
             # Naive datetime - localize to target timezone
-            df[timestamp_column] = df[timestamp_column].dt.tz_localize(tz)
+            # Use 'infer' for ambiguous times during DST transitions
+            # Use 'shift_forward' for nonexistent times (e.g., spring forward)
+            df[timestamp_column] = df[timestamp_column].dt.tz_localize(
+                tz, ambiguous='infer', nonexistent='shift_forward'
+            )
         else:
             # Already timezone-aware - convert to target timezone
             df[timestamp_column] = df[timestamp_column].dt.tz_convert(tz)
@@ -218,7 +222,11 @@ def normalize_timestamps(
     elif isinstance(df.index, pd.DatetimeIndex):
         # Handle DatetimeIndex
         if df.index.tz is None:
-            df.index = df.index.tz_localize(tz)
+            # Use 'infer' for ambiguous times during DST transitions
+            # Use 'shift_forward' for nonexistent times (e.g., spring forward)
+            df.index = df.index.tz_localize(
+                tz, ambiguous='infer', nonexistent='shift_forward'
+            )
         else:
             df.index = df.index.tz_convert(tz)
             
