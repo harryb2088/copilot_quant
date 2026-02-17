@@ -585,13 +585,19 @@ See [Prediction Markets Guide](docs/prediction_markets_guide.md) for detailed do
 
 ## 🧹 Data Normalization & Quality
 
-Comprehensive utilities for cleaning, standardizing, and validating market data.
+Comprehensive utilities for cleaning, standardizing, and validating market data across different sources and asset types.
 
 ### Key Features
 
-- **Symbol Normalization**: Standardize ticker symbols across different data sources
+- **Symbol Normalization**: Standardize ticker symbols across different data sources (Yahoo, Quandl, IB, Polygon)
+- **Symbol Validation**: Verify symbol format and validity
+- **Timestamp Normalization**: Align timestamps to appropriate timezones
+  - Equities: NYSE timezone (US/Eastern)
+  - Prediction Markets: UTC
+  - Futures: Exchange-specific (e.g., CME uses US/Central)
 - **Column Standardization**: Consistent column naming (lowercase, underscores)
 - **Split/Dividend Adjustment**: Automatic price adjustment for corporate actions
+- **Contract Roll Adjustment**: Handle futures contract rolls with automatic or manual adjustments
 - **Missing Data Detection**: Identify gaps, NaN values, and anomalies
 - **Data Quality Validation**: Comprehensive validation checks
 - **Outlier Removal**: Statistical outlier detection and removal
@@ -602,30 +608,63 @@ Comprehensive utilities for cleaning, standardizing, and validating market data.
 ```python
 from copilot_quant.data.normalization import (
     normalize_symbol,
+    validate_symbol,
+    normalize_timestamps,
+    adjust_for_contract_roll,
     standardize_column_names,
+    adjust_for_splits,
     detect_missing_data,
     validate_data_quality,
     fill_missing_data,
     resample_data
 )
 
-# Normalize symbols
+# Normalize symbols for different data sources
 symbol = normalize_symbol('BRK.B', source='yahoo')  # Returns 'BRK-B'
+symbol = normalize_symbol('BRK-B', source='alpha_vantage')  # Returns 'BRK.B'
+symbol = normalize_symbol('BRK-B', source='ib')  # Returns 'BRK B'
+symbol = normalize_symbol('BRK/B', source='quandl')  # Returns 'BRK-B'
+
+# Validate symbols
+is_valid = validate_symbol('AAPL', source='yahoo')  # Returns True
+
+# Normalize timestamps to appropriate timezone
+df = normalize_timestamps(df, market_type='equity')  # NYSE timezone
+df = normalize_timestamps(df, market_type='prediction')  # UTC
+df = normalize_timestamps(df, market_type='futures')  # CME timezone
+
+# Adjust for futures contract rolls
+df = adjust_for_contract_roll(
+    df,
+    roll_date='2024-03-15',
+    adjustment=-0.25,  # Front contract was $0.25 cheaper
+    method='difference'
+)
 
 # Standardize column names
 df = standardize_column_names(df)
 
+# Adjust for stock splits
+df = adjust_for_splits(df, split_ratio=2.0, split_date='2024-01-15')
+
 # Detect issues
 issues = detect_missing_data(df)
 print(f"Found {len(issues['missing_values'])} missing values")
+print(f"Found {len(issues['date_gaps'])} date gaps")
+print(f"Found {len(issues['zero_volume'])} zero volume days")
 
 # Validate quality
 errors = validate_data_quality(df)
 if not errors:
     print("✓ Data is clean!")
+else:
+    print(f"Found {len(errors)} validation errors")
+    for error in errors:
+        print(f"  - {error}")
 
 # Fill missing data
-df = fill_missing_data(df, method='ffill')
+df = fill_missing_data(df, method='ffill')  # Forward fill
+df = fill_missing_data(df, method='interpolate')  # Linear interpolation
 
 # Resample to weekly
 weekly_df = resample_data(df, freq='W')
