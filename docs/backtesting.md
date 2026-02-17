@@ -250,7 +250,7 @@ cover_order = Order(symbol='AAPL', quantity=100, order_type='market', side='buy'
 ```python
 result = engine.run(...)
 
-# Performance metrics
+# Basic performance metrics
 print(f"Total Return: {result.total_return:.2%}")
 print(f"Final Capital: ${result.final_capital:,.2f}")
 
@@ -262,9 +262,94 @@ print(trade_log)
 equity_curve = result.get_equity_curve()
 equity_curve.plot(title='Portfolio Value Over Time')
 
-# Summary statistics
-stats = result.get_summary_stats()
-print(stats)
+# Comprehensive performance metrics
+metrics = result.get_performance_metrics(risk_free_rate=0.02)
+print(f"Sharpe Ratio: {metrics['sharpe_ratio']:.2f}")
+print(f"Max Drawdown: {metrics['max_drawdown']:.2%}")
+print(f"Win Rate: {metrics['win_rate']:.2%}")
+print(f"Sortino Ratio: {metrics['sortino_ratio']:.2f}")
+print(f"Calmar Ratio: {metrics['calmar_ratio']:.2f}")
+print(f"Profit Factor: {metrics['profit_factor']:.2f}")
+```
+
+### Performance Metrics
+
+The `get_performance_metrics()` method returns comprehensive statistics:
+
+**Return Metrics:**
+- `total_return`: Total return as decimal (e.g., 0.15 = 15%)
+- `total_return_pct`: Total return as percentage
+- `annualized_return`: Compound annual growth rate (CAGR)
+- `cagr`: Same as annualized_return
+
+**Risk Metrics:**
+- `volatility`: Annualized volatility (standard deviation of returns)
+- `max_drawdown`: Largest peak-to-trough decline (e.g., -0.20 = -20%)
+- `sharpe_ratio`: Risk-adjusted return (higher is better, typically 1-3 is good)
+- `sortino_ratio`: Similar to Sharpe but only penalizes downside volatility
+- `calmar_ratio`: Return divided by max drawdown (higher is better)
+
+**Trade Statistics:**
+- `total_trades`: Number of completed round-trip trades
+- `win_rate`: Percentage of profitable trades
+- `profit_factor`: Gross profit / Gross loss (>1 means profitable)
+- `avg_win`: Average profit from winning trades
+- `avg_loss`: Average loss from losing trades
+- `avg_trade`: Average profit/loss per trade
+
+**Time Metrics:**
+- `trading_days`: Number of trading days in backtest
+- `trading_years`: Trading period in years
+
+Example:
+```python
+# Get comprehensive metrics
+metrics = result.get_performance_metrics(risk_free_rate=0.02)
+
+# Display key metrics
+print(f"\n{'='*50}")
+print(f"Strategy: {metrics['strategy_name']}")
+print(f"Period: {metrics['start_date']} to {metrics['end_date']}")
+print(f"{'='*50}")
+print(f"\nReturns:")
+print(f"  Total Return: {metrics['total_return']:.2%}")
+print(f"  Annualized Return: {metrics['annualized_return']:.2%}")
+print(f"\nRisk Metrics:")
+print(f"  Sharpe Ratio: {metrics['sharpe_ratio']:.2f}")
+print(f"  Sortino Ratio: {metrics['sortino_ratio']:.2f}")
+print(f"  Max Drawdown: {metrics['max_drawdown']:.2%}")
+print(f"  Volatility: {metrics['volatility']:.2%}")
+print(f"\nTrade Statistics:")
+print(f"  Total Trades: {metrics['total_trades']}")
+print(f"  Win Rate: {metrics['win_rate']:.2%}")
+print(f"  Profit Factor: {metrics['profit_factor']:.2f}")
+print(f"  Avg Win: ${metrics['avg_win']:.2f}")
+print(f"  Avg Loss: ${metrics['avg_loss']:.2f}")
+```
+
+### Using the PerformanceAnalyzer Directly
+
+For advanced use cases, you can use the PerformanceAnalyzer class directly:
+
+```python
+from copilot_quant.backtest import PerformanceAnalyzer
+
+# Create analyzer with custom risk-free rate
+analyzer = PerformanceAnalyzer(risk_free_rate=0.03)
+
+# Get equity curve from backtest result
+equity_curve = result.get_equity_curve()
+
+# Calculate specific metrics
+sharpe = analyzer.calculate_sharpe_ratio(
+    analyzer.calculate_returns(equity_curve)
+)
+max_dd = analyzer.calculate_max_drawdown(equity_curve)
+win_rate = analyzer.calculate_win_rate(result.trades)
+
+print(f"Sharpe Ratio: {sharpe:.2f}")
+print(f"Max Drawdown: {max_dd:.2%}")
+print(f"Win Rate: {win_rate:.2%}")
 ```
 
 ### Portfolio History
@@ -503,8 +588,44 @@ class BacktestResult:
     
     def get_trade_log() -> pd.DataFrame
     def get_equity_curve() -> pd.Series
-    def get_summary_stats() -> dict
+    def get_summary_stats(risk_free_rate: float = 0.02) -> Dict
+    def get_performance_metrics(risk_free_rate: float = 0.02) -> Dict
 ```
+
+**Methods:**
+- `get_trade_log()`: Returns DataFrame of all trades with timestamps, symbols, sides, quantities, prices, commissions
+- `get_equity_curve()`: Returns time series of portfolio values
+- `get_summary_stats(risk_free_rate)`: Calculate comprehensive performance metrics (same as get_performance_metrics)
+- `get_performance_metrics(risk_free_rate)`: Calculate comprehensive performance metrics including Sharpe, Sortino, drawdown, win rate, etc.
+
+### PerformanceAnalyzer
+
+```python
+class PerformanceAnalyzer:
+    def __init__(self, risk_free_rate: float = 0.02)
+    
+    def calculate_metrics(
+        equity_curve: pd.Series,
+        trades: List[Fill],
+        initial_capital: float
+    ) -> Dict
+    
+    def calculate_returns(equity_curve: pd.Series) -> pd.Series
+    def calculate_total_return(initial: float, final: float) -> float
+    def calculate_sharpe_ratio(returns: pd.Series, risk_free_rate: float = None) -> float
+    def calculate_sortino_ratio(returns: pd.Series, risk_free_rate: float = None) -> float
+    def calculate_max_drawdown(equity_curve: pd.Series) -> float
+    def calculate_win_rate(trades: List[Fill]) -> float
+```
+
+**Methods:**
+- `calculate_metrics()`: Calculate all performance metrics in one call
+- `calculate_returns()`: Convert equity curve to period returns
+- `calculate_total_return()`: Calculate total return percentage
+- `calculate_sharpe_ratio()`: Calculate annualized Sharpe ratio (risk-adjusted returns)
+- `calculate_sortino_ratio()`: Calculate annualized Sortino ratio (downside risk-adjusted returns)
+- `calculate_max_drawdown()`: Calculate maximum peak-to-trough decline
+- `calculate_win_rate()`: Calculate percentage of profitable trades
 
 ## Support
 
