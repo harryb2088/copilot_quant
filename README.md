@@ -1,6 +1,18 @@
 # Copilot Quant Platform
 
+[![Deployment Status](https://img.shields.io/badge/deployment-live-success)](https://YOUR-DEPLOYMENT-URL)
+[![Vercel](https://img.shields.io/badge/deployed%20on-Vercel-000000?logo=vercel)](https://vercel.com)
+[![Streamlit](https://img.shields.io/badge/built%20with-Streamlit-FF4B4B?logo=streamlit)](https://streamlit.io)
+
 A comprehensive algorithmic trading platform for strategy development, backtesting, and paper trading.
+
+## 🌐 Live Demo
+
+> **🚀 [Access Live Platform](https://YOUR-DEPLOYMENT-URL)** *(Authentication Required)*
+
+**Note:** After deploying to Vercel, replace `YOUR-DEPLOYMENT-URL` above with your actual deployment URL (e.g., `https://copilot-quant.vercel.app`).
+
+The platform is protected with email/password authentication. Environment variables `AUTH_EMAIL`, `AUTH_PASSWORD`, and `AUTH_NAME` must be configured in Vercel (see [Cloud Deployment](#️-cloud-deployment-on-vercel) section).
 
 ## 🚀 Features
 
@@ -118,6 +130,34 @@ The Copilot Quant Platform can be deployed to Vercel with built-in authenticatio
    - `AUTH_PASSWORD`: Your desired password
    - `AUTH_NAME`: Display name (e.g., `Admin User`)
 6. Click "Deploy"
+
+### 📋 Post-Deployment Checklist
+
+After successfully deploying to Vercel, complete these steps:
+
+1. **✅ Verify Deployment**
+   - Visit your Vercel deployment URL (shown in the Vercel dashboard)
+   - Confirm the Streamlit app loads successfully
+   - Test the authentication login with your configured credentials
+
+2. **✅ Update README**
+   - Replace `YOUR-DEPLOYMENT-URL` in the [Live Demo](#-live-demo) section with your actual Vercel URL
+   - Update the deployment badge link at the top of this README
+
+3. **✅ Test Authentication**
+   - Verify login works with `AUTH_EMAIL` and `AUTH_PASSWORD`
+   - Confirm the welcome message shows `AUTH_NAME`
+   - Test the logout functionality
+
+4. **✅ Share with Team**
+   - Notify team members of the live platform URL
+   - Share authentication credentials securely (use a password manager)
+   - Document any custom domain setup if configured
+
+5. **✅ Monitor Deployment**
+   - Check Vercel dashboard for deployment status
+   - Review function logs for any errors
+   - Monitor usage and performance metrics
 
 ### Authentication Configuration
 
