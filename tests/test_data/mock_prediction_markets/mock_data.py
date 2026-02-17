@@ -1,7 +1,7 @@
 """Mock data generators for prediction market tests."""
 
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 def generate_mock_polymarket_markets():

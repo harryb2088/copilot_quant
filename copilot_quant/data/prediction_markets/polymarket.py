@@ -7,7 +7,7 @@ API Documentation: https://docs.polymarket.com/
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 import pandas as pd
 import requests

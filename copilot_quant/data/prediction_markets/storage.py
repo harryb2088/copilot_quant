@@ -7,7 +7,7 @@ Provides functions to save and load prediction market data to/from CSV and SQLit
 import logging
 import sqlite3
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 import pandas as pd
 

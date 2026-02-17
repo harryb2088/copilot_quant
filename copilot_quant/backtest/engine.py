@@ -7,7 +7,6 @@ against historical market data.
 
 import logging
 import uuid
-from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Optional
 
