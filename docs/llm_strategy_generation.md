@@ -4,7 +4,7 @@
 
 ## Overview
 
-This feature allows internal users to generate trading signal strategies using a Language Learning Model (LLM). Instead of selecting from a predefined list of strategies, users can describe their desired strategy in plain English, and the LLM will generate the signal logic, parameters, and risk management rules.
+This feature allows internal users to generate trading signal strategies using a Large Language Model (LLM). Instead of selecting from a predefined list of strategies, users can describe their desired strategy in plain English, and the LLM will generate the signal logic, parameters, and risk management rules.
 
 ## Features
 

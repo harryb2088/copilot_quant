@@ -2,7 +2,7 @@
 LLM-based Strategy Generator
 
 This module provides functionality to generate trading signal strategies using a 
-Language Learning Model (LLM). This is intended for INTERNAL USE ONLY.
+Large Language Model (LLM). This is intended for INTERNAL USE ONLY.
 
 Security Features:
 - API key validation
@@ -209,8 +209,10 @@ class LLMStrategyGenerator:
         # Take first few words or use strategy type
         words = description.split()[:4]
         name = " ".join(words).title()
-        if len(name) > 30:
-            name = name[:27] + "..."
+        # Account for ' Strategy' suffix (9 chars) in length check
+        max_name_length = 30 - 9  # 21 characters for name part
+        if len(name) > max_name_length:
+            name = name[:max_name_length - 3] + "..."
         return f"{name} Strategy"
     
     def _generate_signals_from_description(self, description: str, strategy_type: str) -> List[Dict]:
