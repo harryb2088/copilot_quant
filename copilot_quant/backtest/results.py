@@ -6,7 +6,7 @@ This module provides classes for storing and analyzing backtest results.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List
+from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -90,13 +90,26 @@ class BacktestResult:
         
         return pd.Series(dtype=float)
     
-    def get_summary_stats(self) -> dict:
+    def get_summary_stats(self, risk_free_rate: float = 0.02) -> Dict:
         """
-        Calculate summary statistics for the backtest.
+        Calculate comprehensive summary statistics for the backtest.
+        
+        This method computes all performance metrics including returns,
+        risk metrics (Sharpe, Sortino, drawdown), and trade statistics.
+        
+        Args:
+            risk_free_rate: Annual risk-free rate for Sharpe/Sortino (default: 2%)
         
         Returns:
-            Dictionary with key performance metrics
+            Dictionary with comprehensive performance metrics including:
+                - Basic stats (dates, capital, returns)
+                - Risk metrics (Sharpe, Sortino, volatility, max drawdown)
+                - Trade statistics (count, win rate, profit factor)
         """
+        # Import here to avoid circular dependency
+        from copilot_quant.backtest.metrics import PerformanceAnalyzer
+        
+        # Basic stats
         stats = {
             'strategy_name': self.strategy_name,
             'start_date': self.start_date,
@@ -109,16 +122,42 @@ class BacktestResult:
             'total_trades': len(self.trades),
         }
         
-        # Calculate additional metrics if we have trades
+        # Calculate commission totals if we have trades
         if self.trades:
             trade_log = self.get_trade_log()
             stats['total_commission'] = trade_log['commission'].sum()
-            
-            # Count buy and sell trades
             stats['buy_trades'] = len(trade_log[trade_log['side'] == 'buy'])
             stats['sell_trades'] = len(trade_log[trade_log['side'] == 'sell'])
         
+        # Calculate advanced metrics using PerformanceAnalyzer
+        equity_curve = self.get_equity_curve()
+        if not equity_curve.empty:
+            analyzer = PerformanceAnalyzer(risk_free_rate=risk_free_rate)
+            metrics = analyzer.calculate_metrics(
+                equity_curve=equity_curve,
+                trades=self.trades,
+                initial_capital=self.initial_capital
+            )
+            
+            # Merge advanced metrics into stats
+            stats.update(metrics)
+        
         return stats
+    
+    def get_performance_metrics(self, risk_free_rate: float = 0.02) -> Dict:
+        """
+        Get detailed performance metrics.
+        
+        This is a convenience method that returns the same metrics as
+        get_summary_stats() but with a more descriptive name.
+        
+        Args:
+            risk_free_rate: Annual risk-free rate for Sharpe/Sortino (default: 2%)
+        
+        Returns:
+            Dictionary with comprehensive performance metrics
+        """
+        return self.get_summary_stats(risk_free_rate=risk_free_rate)
     
     def __repr__(self) -> str:
         """String representation of backtest result."""

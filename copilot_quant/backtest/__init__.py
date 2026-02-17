@@ -6,6 +6,7 @@ for testing trading strategies against historical market data.
 """
 
 from copilot_quant.backtest.engine import BacktestEngine
+from copilot_quant.backtest.metrics import PerformanceAnalyzer
 from copilot_quant.backtest.orders import Fill, Order, Position
 from copilot_quant.backtest.results import BacktestResult
 from copilot_quant.backtest.strategy import Strategy
@@ -30,6 +31,7 @@ __all__ = [
     "Fill",
     "Position",
     "BacktestResult",
+    "PerformanceAnalyzer",
     # Interface definitions
     "IDataFeed",
     "IBroker",
