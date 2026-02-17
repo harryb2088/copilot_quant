@@ -1,0 +1,58 @@
+2026-02-17 08:00:01,123 - __main__ - INFO - Logging to data/logs/daily_update_prediction_markets_20260217_080001.log
+2026-02-17 08:00:01,234 - __main__ - INFO - Starting daily update for 2 providers
+2026-02-17 08:00:01,235 - __main__ - INFO - Storage: csv
+2026-02-17 08:00:01,236 - __main__ - INFO - Update prices: True
+2026-02-17 08:00:01,237 - __main__ - INFO - 
+================================================================================
+2026-02-17 08:00:01,238 - __main__ - INFO - Processing provider: polymarket
+2026-02-17 08:00:01,239 - __main__ - INFO - ================================================================================
+2026-02-17 08:00:01,240 - __main__ - INFO - Starting daily update for polymarket...
+2026-02-17 08:00:01,341 - copilot_quant.data.prediction_markets.polymarket - INFO - Initialized Polymarket provider
+2026-02-17 08:00:01,342 - __main__ - INFO - Fetching active markets from polymarket...
+2026-02-17 08:00:02,567 - copilot_quant.data.prediction_markets.polymarket - INFO - Retrieved 85 active markets from Polymarket
+2026-02-17 08:00:02,668 - copilot_quant.data.prediction_markets.storage - INFO - Saved 85 markets to data/prediction_markets/polymarket/markets.csv
+2026-02-17 08:00:02,669 - __main__ - INFO - Updated 85 markets from polymarket
+2026-02-17 08:00:02,670 - __main__ - INFO - Updating price data for 85 markets...
+2026-02-17 08:00:02,771 - __main__ - INFO - Progress: 10/85 markets
+2026-02-17 08:00:07,890 - __main__ - INFO - Progress: 20/85 markets
+2026-02-17 08:00:12,123 - __main__ - INFO - Progress: 30/85 markets
+2026-02-17 08:00:16,456 - __main__ - INFO - Progress: 40/85 markets
+2026-02-17 08:00:20,789 - __main__ - INFO - Progress: 50/85 markets
+2026-02-17 08:00:25,123 - __main__ - INFO - Progress: 60/85 markets
+2026-02-17 08:00:29,456 - __main__ - INFO - Progress: 70/85 markets
+2026-02-17 08:00:33,789 - __main__ - INFO - Progress: 80/85 markets
+2026-02-17 08:00:37,234 - __main__ - INFO - Updated prices for 83/85 markets
+2026-02-17 08:00:37,235 - __main__ - INFO - 
+================================================================================
+2026-02-17 08:00:37,236 - __main__ - INFO - Processing provider: kalshi
+2026-02-17 08:00:37,237 - __main__ - INFO - ================================================================================
+2026-02-17 08:00:37,238 - __main__ - INFO - Starting daily update for kalshi...
+2026-02-17 08:00:37,339 - copilot_quant.data.prediction_markets.kalshi - INFO - Initialized Kalshi provider
+2026-02-17 08:00:37,340 - __main__ - INFO - Fetching active markets from kalshi...
+2026-02-17 08:00:38,567 - copilot_quant.data.prediction_markets.kalshi - INFO - Retrieved 42 active markets from Kalshi
+2026-02-17 08:00:38,668 - copilot_quant.data.prediction_markets.storage - INFO - Saved 42 markets to data/prediction_markets/kalshi/markets.csv
+2026-02-17 08:00:38,669 - __main__ - INFO - Updated 42 markets from kalshi
+2026-02-17 08:00:38,670 - __main__ - INFO - Updating price data for 42 markets...
+2026-02-17 08:00:38,771 - __main__ - INFO - Progress: 10/42 markets
+2026-02-17 08:00:43,890 - __main__ - INFO - Progress: 20/42 markets
+2026-02-17 08:00:48,123 - __main__ - INFO - Progress: 30/42 markets
+2026-02-17 08:00:52,456 - __main__ - INFO - Progress: 40/42 markets
+2026-02-17 08:00:53,234 - __main__ - INFO - Updated prices for 41/42 markets
+2026-02-17 08:00:53,235 - __main__ - INFO - 
+================================================================================
+2026-02-17 08:00:53,236 - __main__ - INFO - DAILY UPDATE SUMMARY
+2026-02-17 08:00:53,237 - __main__ - INFO - ================================================================================
+2026-02-17 08:00:53,238 - __main__ - INFO - Update Time: 2026-02-17 08:00:53
+2026-02-17 08:00:53,239 - __main__ - INFO - Providers: polymarket, kalshi
+2026-02-17 08:00:53,240 - __main__ - INFO - Storage Type: csv
+2026-02-17 08:00:53,241 - __main__ - INFO - Markets Updated: 127
+2026-02-17 08:00:53,242 - __main__ - INFO - Prices Updated: 124
+2026-02-17 08:00:53,243 - __main__ - INFO - Failed: 3
+2026-02-17 08:00:53,244 - __main__ - INFO - Duration: 52.0 seconds (0.9 minutes)
+2026-02-17 08:00:53,245 - __main__ - INFO - 
+Per-Provider Results:
+2026-02-17 08:00:53,246 - __main__ - INFO -   polymarket: 85 markets, 83 prices, 2 failed
+2026-02-17 08:00:53,247 - __main__ - INFO -   kalshi: 42 markets, 41 prices, 1 failed
+2026-02-17 08:00:53,248 - __main__ - INFO - 
+Summary file: data/prediction_markets/update_summary.csv
+2026-02-17 08:00:53,249 - __main__ - INFO - ================================================================================

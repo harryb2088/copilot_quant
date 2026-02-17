@@ -89,6 +89,8 @@ Thumbs.db
 
 # Logs
 *.log
+# Keep sample logs
+!data/logs/sample_*.log
 
 # pip-tools
 # Keep requirements.in and requirements.txt, but ignore backup files

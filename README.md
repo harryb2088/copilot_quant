@@ -9,6 +9,7 @@ A comprehensive algorithmic trading platform for strategy development, backtesti
 - **Performance Analytics**: Comprehensive metrics, charts, and visualizations
 - **Paper Trading**: Safe testing environment with real market data
 - **Risk Management**: Comprehensive risk controls with circuit breaker protection
+- **Data Pipeline**: Automated backfill and incremental updates for S&P500 and prediction markets
 - **Multi-Page UI**: Clean, intuitive Streamlit web interface
 
 ## 📋 Prerequisites
@@ -278,6 +279,76 @@ src/
 4. **Results**: Analyze performance metrics and charts
 5. **Live Trading**: Deploy strategies in paper trading mode
 6. **Risk Management**: Configure risk controls and circuit breakers
+
+## 📊 Data Pipeline
+
+The platform includes comprehensive scripts for managing historical and real-time market data.
+
+### Available Scripts
+
+Located in `scripts/`:
+
+1. **`backfill_sp500.py`** - One-time historical S&P500 data backfill
+2. **`daily_update.py`** - Daily incremental S&P500 updates
+3. **`backfill_prediction_markets.py`** - Prediction market data backfill
+4. **`daily_update_prediction_markets.py`** - Daily prediction market updates
+
+### Quick Data Setup
+
+**Initial Data Backfill:**
+```bash
+# Backfill S&P500 data from 2020
+python scripts/backfill_sp500.py --start-date 2020-01-01
+
+# Backfill prediction markets (optional)
+python scripts/backfill_prediction_markets.py --provider polymarket
+```
+
+**Daily Updates:**
+```bash
+# Update S&P500 data (run daily)
+python scripts/daily_update.py
+
+# Update prediction markets (run multiple times daily)
+python scripts/daily_update_prediction_markets.py --provider polymarket
+```
+
+### Automated Scheduling
+
+Set up cron jobs (Linux/macOS) or Task Scheduler (Windows) for automated updates:
+
+```cron
+# Daily S&P500 update at 6 AM (after market close)
+0 6 * * 1-5 cd /path/to/copilot_quant && python scripts/daily_update.py
+
+# Prediction markets every 6 hours
+0 */6 * * * cd /path/to/copilot_quant && python scripts/daily_update_prediction_markets.py --provider polymarket
+```
+
+For complete scheduling instructions, see [`docs/SCHEDULING.md`](docs/SCHEDULING.md).
+
+### Data Storage
+
+The platform supports two storage backends:
+
+**CSV Storage (default):**
+```
+data/historical/
+├── AAPL.csv
+├── MSFT.csv
+└── ...
+```
+
+**SQLite Storage (recommended for large datasets):**
+```bash
+python scripts/daily_update.py --storage sqlite --db-path data/market_data.db
+```
+
+### Documentation
+
+- **Scripts Guide**: [`scripts/README.md`](scripts/README.md) - Detailed usage for all data scripts
+- **Scheduling Guide**: [`docs/SCHEDULING.md`](docs/SCHEDULING.md) - Automated execution setup
+- **Sample Logs**: [`data/logs/`](data/logs/) - Example log files from script execution
 
 ## ⚠️ Safety Notice
 
