@@ -26,8 +26,9 @@ def get_credentials():
         # This allows the app to run without authentication in development
         return None
     
-    # Hash the password
-    hashed_password = stauth.Hasher([auth_password]).generate()[0]
+    # Hash the password using the new API
+    hasher = stauth.Hasher()
+    hashed_password = hasher.hash(auth_password)
     
     credentials = {
         'usernames': {
