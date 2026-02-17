@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from components.sidebar import render_sidebar
 from utils.session import init_session_state
 from utils.mock_data import generate_mock_strategies, generate_mock_backtests
+from utils.llm_strategy_generator import LLMStrategyGenerator
 
 # Page configuration
 st.set_page_config(
@@ -41,18 +42,46 @@ st.markdown("---")
 # Backtest configuration form
 st.markdown("### 🎯 Configure New Backtest")
 
+# Initialize LLM strategy generator
+if 'llm_generator' not in st.session_state:
+    st.session_state.llm_generator = LLMStrategyGenerator()
+
+# Initialize generated strategy in session state
+if 'generated_strategy' not in st.session_state:
+    st.session_state.generated_strategy = None
+
+# Strategy mode selection - OUTSIDE the form so it updates immediately
+st.markdown("**Strategy Definition ***")
+
+# Choice between predefined and LLM-generated
+strategy_mode = st.radio(
+    "Strategy Source",
+    ["Use Predefined Strategy", "Generate with LLM (Beta - Internal Use Only)"],
+    help="Choose to use an existing strategy or generate a new one with AI"
+)
+
 with st.form("backtest_form"):
     col1, col2 = st.columns(2)
     
     with col1:
-        # Strategy selection
-        strategies = generate_mock_strategies()
-        strategy_names = [s['name'] for s in strategies]
-        selected_strategy = st.selectbox(
-            "Select Strategy *",
-            strategy_names,
-            help="Choose the trading strategy to backtest"
-        )
+        if strategy_mode == "Use Predefined Strategy":
+            strategies = generate_mock_strategies()
+            strategy_names = [s['name'] for s in strategies]
+            selected_strategy = st.selectbox(
+                "Select Strategy",
+                strategy_names,
+                help="Choose the trading strategy to backtest"
+            )
+            strategy_description = ""
+        else:
+            # Text box for LLM-based strategy generation
+            strategy_description = st.text_area(
+                "Describe Your Strategy",
+                placeholder="Example: A momentum strategy using 20-day and 50-day moving averages. Buy when short MA crosses above long MA, sell when it crosses below. Use RSI for confirmation.",
+                height=120,
+                help="Describe your trading strategy in plain English. The LLM will generate the signal logic."
+            )
+            selected_strategy = None
         
         # Date range
         st.markdown("**Date Range ***")
@@ -136,26 +165,93 @@ with st.form("backtest_form"):
     
     with col2:
         save_config = st.form_submit_button("💾 Save Config", use_container_width=True)
+    
+    # Add generate button for LLM mode
+    if strategy_mode == "Generate with LLM (Beta - Internal Use Only)":
+        with col3:
+            generate_button = st.form_submit_button("🤖 Generate Strategy", use_container_width=True)
+    else:
+        generate_button = False
+
+# Handle LLM strategy generation
+if strategy_mode == "Generate with LLM (Beta - Internal Use Only)" and generate_button:
+    if not strategy_description:
+        st.error("❌ Please provide a strategy description.")
+    else:
+        with st.spinner("🤖 Generating strategy with LLM... This may take a moment..."):
+            import time
+            time.sleep(1)  # Simulate processing
+            
+            result = st.session_state.llm_generator.generate_strategy(strategy_description)
+            
+            if result["success"]:
+                st.session_state.generated_strategy = result["strategy"]
+                st.success("✅ Strategy generated successfully!")
+                
+                # Display generated strategy
+                with st.expander("📋 Generated Strategy Details", expanded=True):
+                    strategy = result["strategy"]
+                    st.markdown(f"**Name:** {strategy['name']}")
+                    st.markdown(f"**Type:** {strategy['type']}")
+                    st.markdown(f"**Description:** {strategy['description']}")
+                    
+                    st.markdown("**Signals/Indicators:**")
+                    for signal in strategy['signals']:
+                        st.json(signal)
+                    
+                    st.markdown("**Parameters:**")
+                    st.json(strategy['parameters'])
+                    
+                    st.markdown("**Risk Management:**")
+                    st.json(strategy['risk_management'])
+                    
+                    st.info("💡 You can now run a backtest with this strategy or refine it further.")
+            else:
+                st.error(f"❌ {result['error']}")
 
 # Handle form submission
 if submit_button:
-    with st.spinner("Running backtest... This may take a few moments..."):
-        import time
-        time.sleep(2)  # Simulate backtest running
-    
-    st.success("✅ Backtest completed successfully!")
-    st.info(f"""
-    **Backtest Summary:**
-    - Strategy: {selected_strategy}
-    - Period: {start_date} to {end_date}
-    - Initial Capital: ${initial_capital:,}
-    - Universe: {selected_universe}
-    
-    View detailed results on the Results page.
-    """)
-    
-    if st.button("📈 View Results"):
-        st.switch_page("pages/3_📈_Results.py")
+    # Validate that we have a strategy
+    if strategy_mode == "Generate with LLM (Beta - Internal Use Only)":
+        if not st.session_state.generated_strategy:
+            st.error("❌ Please generate a strategy first using the 'Generate Strategy' button.")
+        else:
+            strategy_name = st.session_state.generated_strategy['name']
+            with st.spinner("Running backtest... This may take a few moments..."):
+                import time
+                time.sleep(2)  # Simulate backtest running
+            
+            st.success("✅ Backtest completed successfully!")
+            st.info(f"""
+            **Backtest Summary:**
+            - Strategy: {strategy_name}
+            - Period: {start_date} to {end_date}
+            - Initial Capital: ${initial_capital:,}
+            - Universe: {selected_universe}
+            
+            View detailed results on the Results page.
+            """)
+            
+            if st.button("📈 View Results"):
+                st.switch_page("pages/3_📈_Results.py")
+    else:
+        with st.spinner("Running backtest... This may take a few moments..."):
+            import time
+            time.sleep(2)  # Simulate backtest running
+        
+        st.success("✅ Backtest completed successfully!")
+        st.info(f"""
+        **Backtest Summary:**
+        - Strategy: {selected_strategy}
+        - Period: {start_date} to {end_date}
+        - Initial Capital: ${initial_capital:,}
+        - Universe: {selected_universe}
+        
+        View detailed results on the Results page.
+        """)
+        
+        if st.button("📈 View Results"):
+            st.switch_page("pages/3_📈_Results.py")
 
 if save_config:
     st.success("💾 Configuration saved successfully!")
@@ -204,6 +300,12 @@ else:
 
 st.markdown("---")
 
+# Security Notice for LLM Feature
+if st.session_state.get('llm_generator') and st.session_state.llm_generator.is_api_configured():
+    st.info("🔒 **LLM Integration Active** - For internal use only. API key configured.")
+else:
+    st.warning("⚠️ **LLM Integration Not Configured** - Set OPENAI_API_KEY environment variable to enable LLM features.")
+
 # Help section
 with st.expander("ℹ️ Backtesting Best Practices"):
     st.markdown("""
@@ -211,6 +313,26 @@ with st.expander("ℹ️ Backtesting Best Practices"):
     
     Backtesting simulates how a trading strategy would have performed using historical data.
     It helps evaluate strategy effectiveness before risking real capital.
+    
+    ### LLM Strategy Generation (Beta - Internal Use Only)
+    
+    **🤖 How to use LLM-generated strategies:**
+    1. Select "Generate with LLM" option
+    2. Describe your strategy in plain English
+    3. Click "Generate Strategy" to create the signal logic
+    4. Review the generated strategy details
+    5. Run backtest with the generated strategy
+    
+    **🔒 Security Features:**
+    - Input sanitization to prevent code injection
+    - Rate limiting (20 requests per hour)
+    - API key validation
+    - Internal use only - no external data transmission
+    
+    **⚠️ Important Notes:**
+    - LLM-generated strategies should be reviewed before use
+    - Always validate on historical data before live trading
+    - This feature requires OPENAI_API_KEY environment variable
     
     ### Important Considerations
     
