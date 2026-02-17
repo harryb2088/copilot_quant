@@ -53,7 +53,7 @@ def list_markets(args):
             db_path=args.db_path
         )
         storage.save_markets('metaculus', markets)
-        print(f"\nSaved questions to storage")
+        print("\nSaved questions to storage")
 
 
 def fetch_market(args):
@@ -73,7 +73,7 @@ def fetch_market(args):
     print(f"Community Prediction: {details.get('community_prediction', 'N/A')}")
     
     # Fetch prediction history
-    print(f"\nFetching prediction history...")
+    print("\nFetching prediction history...")
     data = provider.get_market_data(
         args.market_id,
         start_date=args.start_date,
@@ -85,7 +85,7 @@ def fetch_market(args):
         return
     
     print(f"\nFetched {len(data)} prediction points")
-    print(f"\nLatest predictions:")
+    print("\nLatest predictions:")
     print(data.tail(10).to_string())
     
     # Save data
@@ -99,7 +99,7 @@ def fetch_market(args):
             db_path=args.db_path
         )
         storage.save_market_data('metaculus', args.market_id, data)
-        print(f"\nSaved data to SQLite database")
+        print("\nSaved data to SQLite database")
 
 
 def main():

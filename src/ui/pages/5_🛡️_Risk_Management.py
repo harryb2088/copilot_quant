@@ -4,7 +4,9 @@ Risk Management Page - Configure and monitor risk controls
 
 import sys
 from pathlib import Path
+from datetime import datetime, timedelta
 
+import pandas as pd
 import streamlit as st
 
 # Add parent directory to path for imports
@@ -366,9 +368,6 @@ This log helps you understand when and why risk limits were triggered.
 """)
 
 # Mock breach log data
-import pandas as pd
-from datetime import datetime, timedelta
-
 breach_log_data = [
     {
         "Timestamp": datetime.now() - timedelta(days=5),
