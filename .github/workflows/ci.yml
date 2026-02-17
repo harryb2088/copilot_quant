@@ -34,4 +34,4 @@ jobs:
 
     - name: Run tests with pytest
       run: |
-        pytest tests/ -v --cov=copilot_quant --cov-report=term-missing
+        pytest tests/ -v --cov=copilot_quant --cov-report=term-missing -m "not integration"

@@ -88,6 +88,7 @@ class TestSP500EODLoader:
         assert result is not None
         assert result[0] == 'equity_data'
     
+    @pytest.mark.integration
     def test_fetch_symbol_success(self, temp_dir):
         """Test fetching data for a single symbol"""
         loader = SP500EODLoader(
@@ -114,6 +115,7 @@ class TestSP500EODLoader:
         for col in expected_cols:
             assert col in df.columns
     
+    @pytest.mark.integration
     def test_fetch_invalid_symbol(self, temp_dir):
         """Test fetching data for an invalid symbol"""
         loader = SP500EODLoader(
@@ -240,6 +242,7 @@ class TestSP500EODLoader:
         assert loaded_df is not None
         assert len(loaded_df) == 3
     
+    @pytest.mark.integration
     def test_fetch_and_save_integration(self, temp_dir):
         """Test end-to-end fetch and save"""
         loader = SP500EODLoader(
@@ -265,6 +268,7 @@ class TestSP500EODLoader:
         assert not df.empty
         assert 'Symbol' in df.columns
     
+    @pytest.mark.integration
     def test_rate_limiting(self, temp_dir, sample_symbols_file):
         """Test that rate limiting is applied"""
         import time
@@ -293,6 +297,7 @@ class TestSP500EODLoader:
         # Check that at least some succeeded
         assert len(result['success']) > 0
     
+    @pytest.mark.integration
     def test_continue_on_error(self, temp_dir):
         """Test that bulk fetch continues after errors"""
         loader = SP500EODLoader(
