@@ -1,6 +1,18 @@
 # Copilot Quant Platform
 
+[![Deployment Status](https://img.shields.io/badge/deployment-live-success)](https://YOUR-DEPLOYMENT-URL)
+[![Vercel](https://img.shields.io/badge/deployed%20on-Vercel-000000?logo=vercel)](https://vercel.com)
+[![Streamlit](https://img.shields.io/badge/built%20with-Streamlit-FF4B4B?logo=streamlit)](https://streamlit.io)
+
 A comprehensive algorithmic trading platform for strategy development, backtesting, and paper trading.
+
+## 🌐 Live Demo
+
+> **🚀 [Access Live Platform](https://YOUR-DEPLOYMENT-URL)** *(Authentication Required)*
+
+**Note:** After deploying to Vercel, replace `YOUR-DEPLOYMENT-URL` above with your actual deployment URL (e.g., `https://copilot-quant.vercel.app`).
+
+The platform is protected with email/password authentication. Environment variables `AUTH_EMAIL`, `AUTH_PASSWORD`, and `AUTH_NAME` must be configured in Vercel (see [Cloud Deployment](#️-cloud-deployment-on-vercel) section).
 
 ## 🚀 Features
 
@@ -51,12 +63,44 @@ The application will launch in your default web browser at `http://localhost:850
 
 The Copilot Quant Platform can be deployed to Vercel with built-in authentication to keep your trading platform private.
 
+> **📚 Quick Start**: See [DEPLOYMENT.md](DEPLOYMENT.md) for a streamlined deployment guide with step-by-step instructions.
+
 ### Prerequisites for Vercel Deployment
 
 1. A [Vercel account](https://vercel.com/signup) (free tier works)
 2. [Vercel CLI](https://vercel.com/docs/cli) installed (optional, but recommended)
    ```bash
    npm install -g vercel
+   ```
+
+### Before You Deploy
+
+Before deploying to Vercel, ensure your application works correctly locally:
+
+1. **Test the application locally**:
+   ```bash
+   # Set environment variables for testing
+   export AUTH_EMAIL="test@example.com"
+   export AUTH_PASSWORD="testpassword123"
+   export AUTH_NAME="Test User"
+   
+   # Run the application
+   streamlit run src/ui/app.py
+   ```
+
+2. **Verify authentication**:
+   - Navigate to `http://localhost:8501`
+   - Confirm the login screen appears
+   - Log in using your test credentials
+   - Verify all pages load correctly
+
+3. **Check dependencies**:
+   ```bash
+   # Ensure all requirements are installed
+   pip install -r requirements.txt
+   
+   # Verify critical packages
+   python -c "import streamlit; import streamlit_authenticator; print('Dependencies OK')"
    ```
 
 ### Deployment Steps
@@ -118,6 +162,34 @@ The Copilot Quant Platform can be deployed to Vercel with built-in authenticatio
    - `AUTH_PASSWORD`: Your desired password
    - `AUTH_NAME`: Display name (e.g., `Admin User`)
 6. Click "Deploy"
+
+### 📋 Post-Deployment Checklist
+
+After successfully deploying to Vercel, complete these steps:
+
+1. **✅ Verify Deployment**
+   - Visit your Vercel deployment URL (shown in the Vercel dashboard)
+   - Confirm the Streamlit app loads successfully
+   - Test the authentication login with your configured credentials
+
+2. **✅ Update README**
+   - Replace `YOUR-DEPLOYMENT-URL` in the [Live Demo](#live-demo) section with your actual Vercel URL
+   - Update the deployment badge link at the top of this README
+
+3. **✅ Test Authentication**
+   - Verify login works with `AUTH_EMAIL` and `AUTH_PASSWORD`
+   - Confirm the welcome message shows `AUTH_NAME`
+   - Test the logout functionality
+
+4. **✅ Share with Team**
+   - Notify team members of the live platform URL
+   - Share authentication credentials securely (use a password manager)
+   - Document any custom domain setup if configured
+
+5. **✅ Monitor Deployment**
+   - Check Vercel dashboard for deployment status
+   - Review function logs for any errors
+   - Monitor usage and performance metrics
 
 ### Authentication Configuration
 
@@ -200,14 +272,34 @@ The repository includes these Vercel-specific files:
 - Check Vercel build logs in the dashboard
 - Verify all required dependencies are in `requirements.txt`
 - Ensure Python version compatibility (configured in `vercel.json`)
+- Verify the entry point path is correct: `src/ui/app.py`
 
 **Authentication not working:**
 - Verify environment variables are set correctly
 - Check variable names match exactly: `AUTH_EMAIL`, `AUTH_PASSWORD`, `AUTH_NAME`
 - Ensure you've redeployed after setting environment variables
+- Test with the exact email/password combination you configured
 
 **Slow loading:**
 - Vercel cold starts can take a few seconds
+- First load after deployment may be slower
+- Consider using a custom domain for better caching
+
+**Page not found (404):**
+- Verify the `vercel.json` routes configuration is correct
+- Ensure the source file path matches your repository structure
+- Check Vercel deployment logs for routing issues
+
+**Import errors:**
+- Ensure all dependencies are listed in `requirements.txt`
+- Verify no local imports are missing from the deployment
+- Check that package versions are compatible
+
+**Need help?**
+- Review Vercel deployment logs: `vercel logs <deployment-url>`
+- Check [Vercel Documentation](https://vercel.com/docs)
+- Consult [Streamlit Documentation](https://docs.streamlit.io)
+- Open an issue in the repository with deployment logs
 - Consider upgrading to Vercel Pro for better performance
 - Large dependencies (like pandas, numpy) may increase initial load time
 
