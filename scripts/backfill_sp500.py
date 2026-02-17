@@ -305,14 +305,12 @@ Examples:
     parser.add_argument(
         '--continue-on-error',
         action='store_true',
-        default=True,
-        help='Continue processing if one symbol fails (default: True)'
+        help='Continue processing if one symbol fails'
     )
     parser.add_argument(
         '--resume',
         action='store_true',
-        default=True,
-        help='Resume from previous run (default: True)'
+        help='Resume from previous run'
     )
     parser.add_argument(
         '--rate-limit-delay',
@@ -351,8 +349,8 @@ Examples:
             storage_type=args.storage,
             data_dir=args.data_dir,
             db_path=args.db_path,
-            continue_on_error=args.continue_on_error,
-            resume=args.resume,
+            continue_on_error=True,  # Always continue on error by default
+            resume=True,  # Always resume by default
             rate_limit_delay=args.rate_limit_delay
         )
         

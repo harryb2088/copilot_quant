@@ -348,8 +348,7 @@ Cron Job Examples:
     parser.add_argument(
         '--continue-on-error',
         action='store_true',
-        default=True,
-        help='Continue processing if one symbol fails (default: True)'
+        help='Continue processing if one symbol fails'
     )
     parser.add_argument(
         '--rate-limit-delay',
@@ -389,7 +388,7 @@ Cron Job Examples:
             force=args.force,
             max_age_days=args.max_age_days,
             fill_gaps=not args.no_fill_gaps,
-            continue_on_error=args.continue_on_error,
+            continue_on_error=True,  # Always continue on error by default
             rate_limit_delay=args.rate_limit_delay
         )
         
