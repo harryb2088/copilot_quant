@@ -336,12 +336,149 @@ CREATE TABLE equity_data (
 
 ### Running the Examples
 
-Try the interactive example script:
+Try the interactive example scripts:
 
 ```bash
+# S&P500 EOD data loader
 python examples/eod_loader_example.py
+
+# Prediction market data
+python examples/prediction_market_examples.py
+
+# Data normalization and quality
+python examples/normalization_examples.py
+
+# Data updates and backfilling
+python examples/update_examples.py
 ```
 
+## 🔮 Prediction Market Data
+
+The platform now supports fetching data from prediction market platforms for use in trading strategies.
+
+### Supported Platforms
+
+- **Polymarket**: Decentralized prediction market on Polygon
+- **Kalshi**: CFTC-regulated prediction market exchange
+
+### Quick Start
+
+```python
+from copilot_quant.data.prediction_markets import (
+    PolymarketProvider,
+    KalshiProvider,
+    get_prediction_market_provider
+)
+
+# Fetch Polymarket data
+polymarket = PolymarketProvider()
+markets = polymarket.get_active_markets(category='crypto', limit=10)
+print(markets[['question', 'volume', 'end_date']])
+
+# Fetch Kalshi data
+kalshi = KalshiProvider()
+markets = kalshi.get_active_markets(limit=10)
+print(markets[['question', 'yes_bid', 'yes_ask']])
+```
+
+See [Prediction Markets Guide](docs/prediction_markets_guide.md) for detailed documentation.
+
+## 🧹 Data Normalization & Quality
+
+Comprehensive utilities for cleaning, standardizing, and validating market data.
+
+### Key Features
+
+- **Symbol Normalization**: Standardize ticker symbols across different data sources
+- **Column Standardization**: Consistent column naming (lowercase, underscores)
+- **Split/Dividend Adjustment**: Automatic price adjustment for corporate actions
+- **Missing Data Detection**: Identify gaps, NaN values, and anomalies
+- **Data Quality Validation**: Comprehensive validation checks
+- **Outlier Removal**: Statistical outlier detection and removal
+- **Data Resampling**: Convert between different time frequencies
+
+### Quick Start
+
+```python
+from copilot_quant.data.normalization import (
+    normalize_symbol,
+    standardize_column_names,
+    detect_missing_data,
+    validate_data_quality,
+    fill_missing_data,
+    resample_data
+)
+
+# Normalize symbols
+symbol = normalize_symbol('BRK.B', source='yahoo')  # Returns 'BRK-B'
+
+# Standardize column names
+df = standardize_column_names(df)
+
+# Detect issues
+issues = detect_missing_data(df)
+print(f"Found {len(issues['missing_values'])} missing values")
+
+# Validate quality
+errors = validate_data_quality(df)
+if not errors:
+    print("✓ Data is clean!")
+
+# Fill missing data
+df = fill_missing_data(df, method='ffill')
+
+# Resample to weekly
+weekly_df = resample_data(df, freq='W')
+```
+
+See [Data Management Guide](docs/data_management_guide.md) for detailed documentation.
+
+## ⚡ Data Updates & Backfilling
+
+Efficient data management with incremental updates and gap filling.
+
+### Key Features
+
+- **Incremental Updates**: Fetch only new data since last update
+- **Backfill Jobs**: Fill in historical data gaps
+- **Gap Detection**: Automatically find missing dates
+- **Update Metadata**: Track last update times
+- **Batch Operations**: Process multiple symbols efficiently
+- **SQLite Support**: Fast queries with database storage
+
+### Quick Start
+
+```python
+from copilot_quant.data.update_jobs import DataUpdater
+
+# Initialize updater
+updater = DataUpdater(
+    storage_type='csv',
+    data_dir='data/historical',
+    rate_limit_delay=1.0
+)
+
+# Incremental update (fetch only new data)
+updater.update_symbol('AAPL')
+
+# Batch update multiple symbols
+result = updater.batch_update(['AAPL', 'MSFT', 'GOOGL'])
+print(f"Updated: {len(result['success'])} symbols")
+
+# Backfill historical data
+updater.backfill_symbol('NVDA', start_date='2020-01-01')
+
+# Find and fill gaps
+gaps = updater.find_gaps('AAPL')
+if gaps:
+    updater.fill_gaps('AAPL')
+
+# Check update status
+status = updater.get_update_status(['AAPL', 'MSFT'])
+print(status)
+```
+
+See [Data Management Guide](docs/data_management_guide.md) for detailed documentation.
 ---
 
 ## 📈 Prediction Market Data Fetchers
@@ -768,11 +905,14 @@ pytest tests/test_risk/ -v --cov=src/risk
 
 - [x] Project structure and infrastructure
 - [x] Data source research and selection (yfinance chosen)
-- [ ] Data ingestion module (Yahoo Finance, CSV import)
 - [x] Data ingestion module (Yahoo Finance, CSV import)
   - [x] S&P500 EOD data loader with yfinance
   - [x] CSV and SQLite storage options
   - [x] Rate limiting and error handling
+  - [x] Prediction market data providers (Polymarket, Kalshi)
+  - [x] Data normalization and quality validation utilities
+  - [x] Incremental updates and backfill jobs
+  - [x] Gap detection and filling
 - [ ] Backtesting engine core
 - [ ] Basic trading strategies (Moving Average, Mean Reversion)
 - [ ] Performance metrics and reporting
