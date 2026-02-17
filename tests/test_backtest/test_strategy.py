@@ -264,13 +264,19 @@ class TestMovingAverageCross:
         """Test that strategy generates buy signal on bullish cross."""
         strategy = MovingAverageCrossStrategy(short_window=2, long_window=5)
         
-        # Create uptrend data
-        closes = [100, 101, 102, 103, 110]  # Short MA will cross above
+        # Create uptrend data that will cause a clear bullish cross
+        # Long MA (5-day) will be around 101.2
+        # Short MA (2-day) will be around 106.5
+        closes = [100, 101, 102, 103, 110]
         data = pd.DataFrame({
             'Close': closes,
         }, index=pd.date_range('2024-01-01', periods=5))
         
         orders = strategy.on_data(datetime(2024, 1, 5), data)
         
-        # Should generate buy order
-        assert len(orders) >= 0  # May or may not cross depending on exact values
+        # Should generate buy order when short MA > long MA
+        # Short MA = (103 + 110) / 2 = 106.5
+        # Long MA = (100 + 101 + 102 + 103 + 110) / 5 = 103.2
+        # Since 106.5 > 103.2, should generate buy signal
+        assert len(orders) == 1
+        assert orders[0].side == 'buy'

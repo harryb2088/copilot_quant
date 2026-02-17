@@ -329,6 +329,11 @@ class BacktestEngine:
         # Determine fill price based on order type
         fill_price = self._calculate_fill_price(order, current_price)
         
+        # Check if limit order can be filled
+        if fill_price is None:
+            # Limit order not filled
+            return
+        
         # Check if we have sufficient capital for buy orders
         if order.side == 'buy':
             cost = fill_price * order.quantity
