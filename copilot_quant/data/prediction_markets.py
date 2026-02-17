@@ -22,7 +22,7 @@ Example Usage:
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 import time
 
 import pandas as pd

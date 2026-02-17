@@ -32,7 +32,6 @@ from typing import Dict, List, Optional, Tuple
 import time
 
 import pandas as pd
-import sqlite3
 
 from copilot_quant.data.eod_loader import SP500EODLoader
 from copilot_quant.data.providers import YFinanceProvider

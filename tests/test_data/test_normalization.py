@@ -3,8 +3,7 @@
 import pytest
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
-import pytz
+from datetime import datetime
 
 from copilot_quant.data.normalization import (
     normalize_symbol,
