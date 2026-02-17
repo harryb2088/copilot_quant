@@ -454,3 +454,15 @@ class TestMaxDeploymentLimit:
         # With 20% max deployed and 10% per position, we should see limited trades
         # The exact count depends on position sizing, but should be reasonable
         assert len(result.trades) <= 10  # At most one trade per day
+        
+        # Verify deployment limit was respected during backtest
+        # Check portfolio history for max deployed percentage
+        if not result.portfolio_history.empty and len(result.trades) > 0:
+            max_deployed = (result.portfolio_history['positions_value'] / 
+                          result.portfolio_history['portfolio_value']).max()
+            
+            # Allow small tolerance for rounding and slippage
+            assert max_deployed <= engine.max_deployed_pct * 1.05, (
+                f"Deployed capital ({max_deployed:.1%}) exceeded max limit "
+                f"({engine.max_deployed_pct:.1%})"
+            )

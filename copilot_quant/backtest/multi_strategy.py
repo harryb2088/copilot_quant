@@ -6,6 +6,7 @@ simultaneously with dynamic capital allocation based on signal quality.
 """
 
 import logging
+import uuid
 from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -523,7 +524,6 @@ class MultiStrategyEngine(BacktestEngine):
         commission = fill_price * order.quantity * self.commission_rate
         
         # Create fill
-        import uuid
         fill = Fill(
             order=order,
             fill_price=fill_price,
@@ -554,14 +554,17 @@ class MultiStrategyEngine(BacktestEngine):
         )
     
     def _update_attribution_unrealized_pnl(self) -> None:
-        """Update unrealized P&L for each strategy's attribution."""
-        for symbol, position in self.positions.items():
-            strategy_name = self.position_owners.get(symbol)
-            
-            if strategy_name and strategy_name in self.attributions:
-                # For simplicity, track only unrealized P&L
-                # More sophisticated tracking could be added
-                pass
+        """
+        Update unrealized P&L for each strategy's attribution.
+        
+        Note: Currently simplified - unrealized P&L tracking per strategy
+        would require maintaining a mapping of which positions belong to which
+        strategy and tracking partial position updates. This is a potential
+        future enhancement.
+        """
+        # For now, unrealized P&L is tracked at the portfolio level
+        # Strategy attribution focuses on realized P&L from closed trades
+        pass
     
     def _create_empty_result(
         self,
