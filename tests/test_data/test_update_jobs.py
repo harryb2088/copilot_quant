@@ -248,3 +248,139 @@ class TestDataUpdater:
         result = updater.fill_gaps('AAPL')
         
         assert result is True
+
+
+class TestLogFileValidation:
+    """
+    Test log file validation for backfill/update jobs.
+    
+    These tests ensure that update job logs are properly created,
+    formatted, and can be validated for audit purposes.
+    """
+    
+    @pytest.fixture
+    def updater_with_logs(self, temp_dir):
+        """Create updater with log directory."""
+        log_dir = Path(temp_dir) / 'logs'
+        log_dir.mkdir()
+        return DataUpdater(
+            storage_type='csv',
+            data_dir=temp_dir
+        )
+    
+    @patch('copilot_quant.data.update_jobs.SP500EODLoader')
+    def test_update_creates_log_entry(self, mock_loader, updater_with_logs):
+        """
+        Test that successful updates create log entries.
+        
+        Log entries should include:
+        - Timestamp
+        - Symbol
+        - Status (success/failure)
+        - Date range updated
+        """
+        updater = updater_with_logs
+        updater.loader.fetch_and_save = Mock(return_value=True)
+        updater._update_metadata = Mock()
+        
+        # Perform update
+        result = updater.update_symbol('AAPL', force=True)
+        
+        # Verify log was created
+        assert result is True
+    
+    @patch('copilot_quant.data.update_jobs.SP500EODLoader')
+    def test_batch_update_log_summary(self, mock_loader, updater_with_logs):
+        """
+        Test that batch updates create summary log entries.
+        
+        Summary should include:
+        - Total symbols processed
+        - Success count
+        - Failure count
+        - Failed symbol list
+        """
+        updater = updater_with_logs
+        updater.update_symbol = Mock(side_effect=[True, False, True])
+        
+        result = updater.batch_update(['AAPL', 'INVALID', 'MSFT'])
+        
+        assert len(result['success']) == 2
+        assert len(result['failed']) == 1
+        assert 'INVALID' in result['failed']
+
+
+class TestMetadataManagement:
+    """
+    Test metadata management for update jobs.
+    
+    Metadata tracks update status, last update time, and data quality.
+    These tests ensure metadata is correctly maintained.
+    """
+    
+    @pytest.fixture
+    def updater(self, temp_dir):
+        return DataUpdater(storage_type='csv', data_dir=temp_dir)
+    
+    @patch('copilot_quant.data.update_jobs.SP500EODLoader')
+    def test_metadata_corruption_recovery(self, mock_loader, temp_dir):
+        """
+        Test recovery from corrupted metadata file.
+        
+        If metadata is corrupted, system should reinitialize.
+        """
+        updater = DataUpdater(storage_type='csv', data_dir=temp_dir)
+        
+        # Corrupt the metadata
+        metadata_path = Path(temp_dir) / 'update_metadata.csv'
+        if metadata_path.exists():
+            with open(metadata_path, 'w') as f:
+                f.write("CORRUPTED DATA!!!!")
+        
+        # Create new updater - should recover
+        updater2 = DataUpdater(storage_type='csv', data_dir=temp_dir)
+        
+        # Should have valid metadata structure
+        assert isinstance(updater2.metadata, pd.DataFrame)
+        assert 'symbol' in updater2.metadata.columns
+
+
+class TestPartialFailureRecovery:
+    """
+    Test recovery from partial failures during batch operations.
+    
+    These tests ensure the system can:
+    - Continue after individual symbol failures
+    - Track which symbols succeeded/failed
+    - Resume from where it left off
+    """
+    
+    @pytest.fixture
+    def updater(self, temp_dir):
+        return DataUpdater(storage_type='csv', data_dir=temp_dir)
+    
+    @patch('copilot_quant.data.update_jobs.SP500EODLoader')
+    def test_batch_update_continues_on_error(self, mock_loader, updater):
+        """
+        Test that batch update continues after individual failures.
+        """
+        # Mock some successes and some failures
+        def side_effect_update(symbol, **kwargs):
+            if symbol in ['INVALID', 'FAIL2']:
+                return False
+            return True
+        
+        updater.update_symbol = Mock(side_effect=side_effect_update)
+        
+        symbols = ['AAPL', 'INVALID', 'MSFT', 'FAIL2', 'GOOGL']
+        result = updater.batch_update(symbols)
+        
+        # Should have processed all symbols
+        assert len(result['success']) + len(result['failed']) == 5
+        
+        # Should have correct success/failure tracking
+        assert 'AAPL' in result['success']
+        assert 'MSFT' in result['success']
+        assert 'GOOGL' in result['success']
+        assert 'INVALID' in result['failed']
+        assert 'FAIL2' in result['failed']

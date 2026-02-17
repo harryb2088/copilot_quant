@@ -1193,13 +1193,97 @@ The notebook includes:
 
 ### Testing
 
-Run the comprehensive test suite:
+The project includes a comprehensive test suite with 146+ tests covering all data pipeline modules.
 
+#### Running Tests
+
+Run all tests (skips integration and live API tests by default):
 ```bash
-pytest tests/test_risk/ -v --cov=src/risk
+pytest tests/
 ```
 
-**Test Coverage: 97%** (51 tests covering all risk controls)
+Run tests with coverage report:
+```bash
+pytest tests/ --cov=copilot_quant --cov-report=term-missing
+```
+
+Run specific test modules:
+```bash
+# Data pipeline tests
+pytest tests/test_data/ -v
+
+# S&P500 loader tests
+pytest tests/test_data/test_eod_loader.py -v
+
+# Prediction market tests
+pytest tests/test_data/test_prediction_markets.py -v
+
+# Normalization tests
+pytest tests/test_data/test_normalization.py -v
+
+# Update jobs tests
+pytest tests/test_data/test_update_jobs.py -v
+
+# Risk management tests
+pytest tests/test_risk/ -v --cov=copilot_quant/risk
+```
+
+#### Test Markers
+
+Tests are organized with pytest markers for selective execution:
+
+- **`integration`**: Tests requiring network access (skipped by default)
+- **`live_api`**: Tests making real API calls (skipped by default)
+
+Run integration tests (requires internet):
+```bash
+pytest -m integration tests/
+```
+
+Run live API tests (requires internet and API access):
+```bash
+pytest -m live_api tests/test_data/test_prediction_markets.py
+```
+
+Skip specific test types:
+```bash
+# Skip both integration and live API tests (default)
+pytest -m "not integration and not live_api" tests/
+
+# Skip only live API tests
+pytest -m "not live_api" tests/
+```
+
+#### Test Coverage
+
+**Data Pipeline Test Coverage:**
+- **146 tests** across all data pipeline modules
+- S&P500 Loader: 11 tests (initialization, fetch, save/load, split/dividend handling, error handling)
+- Prediction Markets: 39 tests (all providers, schema validation, bad data handling)
+- Normalization: 62 tests (symbol normalization, timestamps, data quality, idempotence, edge cases)
+- Update Jobs: 24 tests (backfill, incremental updates, metadata management, failure recovery)
+- Providers: 9 tests (yfinance integration, provider factory)
+- S&P500 Utilities: 11 tests (ticker lists, predefined portfolios)
+
+**Risk Management Test Coverage: 97%** (51 tests covering all risk controls)
+
+#### Test Documentation
+
+See `tests/test_data/README_TESTING.md` for detailed testing strategy and mock data approach.
+
+#### Example Test Run Output
+
+```bash
+$ pytest tests/test_data/ -v
+========================= test session starts ==========================
+collected 154 items
+
+tests/test_data/test_eod_loader.py::test_initialization... PASSED
+tests/test_data/test_eod_loader.py::test_split_handling... PASSED
+tests/test_data/test_prediction_markets.py::test_schema... PASSED
+...
+============== 146 passed, 8 deselected, 9 warnings in 5.00s ===========
+```
 
 ## 🛠️ Technology Stack
 
