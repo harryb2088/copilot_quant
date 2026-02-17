@@ -325,12 +325,7 @@ with col1:
             'Unrealized P&L': '${:+,.0f}',
             'Weight': '{:.1%}',
             'P&L %': '{:+.2f}%'
-        }).background_gradient(
-            subset=['Unrealized P&L'],
-            cmap='RdYlGn',
-            vmin=-2000,
-            vmax=5000
-        ),
+        }),
         hide_index=True,
         use_container_width=True,
         height=320
@@ -475,12 +470,7 @@ with tab2:
     monthly_df = pd.DataFrame(monthly_returns, columns=months, index=years)
     
     st.dataframe(
-        monthly_df.style.format('{:.2f}').background_gradient(
-            cmap='RdYlGn',
-            axis=None,
-            vmin=-5,
-            vmax=8
-        ),
+        monthly_df.style.format('{:.2f}'),
         use_container_width=True
     )
 
