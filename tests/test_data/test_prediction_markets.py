@@ -1,4 +1,31 @@
-"""Tests for prediction market providers."""
+"""Tests for prediction market providers.
+
+TESTING APPROACH - MOCK-FIRST STRATEGY
+======================================
+
+All tests in this file use mocks to avoid external API calls. This ensures:
+1. Tests run in CI/CD environments with firewall restrictions
+2. Tests are fast and deterministic
+3. Tests don't depend on external service availability
+
+The following APIs are mocked to avoid firewall blocks:
+- gamma-api.polymarket.com (Polymarket)
+- api.elections.kalshi.com (Kalshi)
+- www.predictit.org (PredictIt)
+- www.metaculus.com (Metaculus)
+
+RUNNING LIVE API TESTS (OPTIONAL)
+==================================
+
+To test against live APIs locally (when needed):
+1. Mark tests with @pytest.mark.live_api decorator
+2. Run with: pytest -m live_api tests/test_data/test_prediction_markets.py
+
+By default, live_api tests are skipped in CI/CD to prevent firewall issues.
+
+Mock data generators are available in:
+tests/test_data/mock_prediction_markets/mock_data.py
+"""
 
 from unittest.mock import Mock, patch
 import pandas as pd
@@ -25,7 +52,13 @@ from tests.test_data.mock_prediction_markets.mock_data import (
 
 
 class TestPolymarketProvider:
-    """Tests for Polymarket data provider."""
+    """Tests for Polymarket data provider.
+    
+    NOTE: All tests use mocks. To add live API tests in the future:
+    1. Add @pytest.mark.live_api decorator to the test
+    2. Remove the @patch decorator and make real API calls
+    3. Run with: pytest -m live_api
+    """
 
     @pytest.fixture
     def provider(self):
@@ -107,7 +140,13 @@ class TestPolymarketProvider:
 
 
 class TestKalshiProvider:
-    """Tests for Kalshi data provider."""
+    """Tests for Kalshi data provider.
+    
+    NOTE: All tests use mocks. To add live API tests in the future:
+    1. Add @pytest.mark.live_api decorator to the test
+    2. Remove the @patch decorator and make real API calls
+    3. Run with: pytest -m live_api
+    """
 
     @pytest.fixture
     def provider(self):
@@ -156,7 +195,13 @@ class TestKalshiProvider:
 
 
 class TestPredictItProvider:
-    """Tests for PredictIt data provider."""
+    """Tests for PredictIt data provider.
+    
+    NOTE: All tests use mocks. To add live API tests in the future:
+    1. Add @pytest.mark.live_api decorator to the test
+    2. Remove the @patch decorator and make real API calls
+    3. Run with: pytest -m live_api
+    """
 
     @pytest.fixture
     def provider(self):
@@ -216,7 +261,13 @@ class TestPredictItProvider:
 
 
 class TestMetaculusProvider:
-    """Tests for Metaculus data provider."""
+    """Tests for Metaculus data provider.
+    
+    NOTE: All tests use mocks. To add live API tests in the future:
+    1. Add @pytest.mark.live_api decorator to the test
+    2. Remove the @patch decorator and make real API calls
+    3. Run with: pytest -m live_api
+    """
 
     @pytest.fixture
     def provider(self):
