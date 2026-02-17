@@ -124,7 +124,14 @@ class PerformanceAnalyzer:
         Returns:
             Series of period returns (daily if equity_curve is daily)
         """
-        return equity_curve.pct_change(fill_method=None).fillna(0)
+        # Calculate returns without forward-filling missing values
+        # The fillna(0) handles the first NaN value from pct_change
+        try:
+            # Pandas >= 2.1 requires explicit fill_method
+            return equity_curve.pct_change(fill_method=None).fillna(0)
+        except TypeError:
+            # Older pandas versions don't have fill_method parameter
+            return equity_curve.pct_change().fillna(0)
     
     def calculate_total_return(self, initial: float, final: float) -> float:
         """
