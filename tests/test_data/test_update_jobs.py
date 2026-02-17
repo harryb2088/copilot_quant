@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import shutil
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from copilot_quant.data.update_jobs import DataUpdater
 

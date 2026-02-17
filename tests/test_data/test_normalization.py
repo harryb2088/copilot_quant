@@ -3,10 +3,13 @@
 import pytest
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from copilot_quant.data.normalization import (
     normalize_symbol,
+    validate_symbol,
+    normalize_timestamps,
+    adjust_for_contract_roll,
     standardize_column_names,
     adjust_for_splits,
     calculate_adjusted_close,
@@ -40,6 +43,178 @@ class TestSymbolNormalization:
         """Test that whitespace is stripped."""
         assert normalize_symbol(' AAPL ', source='yahoo') == 'AAPL'
         assert normalize_symbol('MSFT  ', source='yahoo') == 'MSFT'
+
+    def test_normalize_symbol_ib_format(self):
+        """Test normalizing symbols for Interactive Brokers."""
+        assert normalize_symbol('BRK.B', source='ib') == 'BRK B'
+        assert normalize_symbol('BRK-B', source='ib') == 'BRK B'
+
+    def test_normalize_symbol_quandl_format(self):
+        """Test normalizing symbols for Quandl."""
+        assert normalize_symbol('BRK/B', source='quandl') == 'BRK-B'
+        assert normalize_symbol('BRK.B', source='quandl') == 'BRK-B'
+
+    def test_normalize_symbol_polygon_format(self):
+        """Test normalizing symbols for Polygon."""
+        assert normalize_symbol('BRK-B', source='polygon') == 'BRK.B'
+        assert normalize_symbol('BRK.B', source='polygon') == 'BRK.B'
+
+
+class TestSymbolValidation:
+    """Tests for symbol validation."""
+
+    def test_validate_symbol_valid(self):
+        """Test validation of valid symbols."""
+        assert validate_symbol('AAPL', source='yahoo') is True
+        assert validate_symbol('BRK-B', source='yahoo') is True
+        assert validate_symbol('^GSPC', source='yahoo') is True
+
+    def test_validate_symbol_empty(self):
+        """Test validation of empty symbols."""
+        assert validate_symbol('', source='yahoo') is False
+        assert validate_symbol('  ', source='yahoo') is False
+
+    def test_validate_symbol_none(self):
+        """Test validation of None."""
+        assert validate_symbol(None, source='yahoo') is False
+
+
+class TestTimestampNormalization:
+    """Tests for timestamp normalization."""
+
+    def test_normalize_timestamps_equity(self):
+        """Test normalizing timestamps for equity markets."""
+        dates = pd.date_range('2024-01-01', periods=3, tz='UTC')
+        df = pd.DataFrame({
+            'date': dates,
+            'close': [100, 101, 102],
+        })
+
+        result = normalize_timestamps(df, market_type='equity')
+
+        # Should be in US/Eastern timezone
+        assert result['date'].dt.tz.zone == 'US/Eastern'
+
+    def test_normalize_timestamps_prediction_market(self):
+        """Test normalizing timestamps for prediction markets."""
+        dates = pd.date_range('2024-01-01', periods=3, tz='US/Eastern')
+        df = pd.DataFrame({
+            'date': dates,
+            'close': [100, 101, 102],
+        })
+
+        result = normalize_timestamps(df, market_type='prediction')
+
+        # Should be in UTC
+        assert result['date'].dt.tz.zone == 'UTC'
+
+    def test_normalize_timestamps_with_index(self):
+        """Test normalizing timestamps when using DatetimeIndex."""
+        dates = pd.date_range('2024-01-01', periods=3, tz='UTC')
+        df = pd.DataFrame({
+            'close': [100, 101, 102],
+        }, index=dates)
+
+        result = normalize_timestamps(df, market_type='equity')
+
+        # Should be in US/Eastern timezone
+        assert result.index.tz.zone == 'US/Eastern'
+
+    def test_normalize_timestamps_naive(self):
+        """Test normalizing naive timestamps."""
+        dates = pd.date_range('2024-01-01', periods=3)  # No timezone
+        df = pd.DataFrame({
+            'date': dates,
+            'close': [100, 101, 102],
+        })
+
+        result = normalize_timestamps(df, market_type='equity')
+
+        # Should be localized to US/Eastern
+        assert result['date'].dt.tz.zone == 'US/Eastern'
+
+    def test_normalize_timestamps_custom_timezone(self):
+        """Test normalizing timestamps to custom timezone."""
+        dates = pd.date_range('2024-01-01', periods=3, tz='UTC')
+        df = pd.DataFrame({
+            'date': dates,
+            'close': [100, 101, 102],
+        })
+
+        result = normalize_timestamps(df, target_timezone='Asia/Tokyo')
+
+        # Should be in Asia/Tokyo timezone
+        assert result['date'].dt.tz.zone == 'Asia/Tokyo'
+
+
+class TestContractRollAdjustment:
+    """Tests for contract roll adjustment."""
+
+    def test_adjust_for_contract_roll_manual_difference(self):
+        """Test manual contract roll adjustment using difference method."""
+        df = pd.DataFrame({
+            'date': pd.date_range('2024-01-01', periods=5),
+            'close': [100.0, 101.0, 102.0, 103.0, 104.0],
+        })
+
+        # Roll on day 3 with -0.25 adjustment
+        result = adjust_for_contract_roll(
+            df,
+            roll_date='2024-01-03',
+            adjustment=-0.25,
+            front_contract_column='close',
+            method='difference'
+        )
+
+        # Prices before roll should be adjusted
+        assert result.iloc[0]['close'] == 99.75  # 100 - 0.25
+        assert result.iloc[1]['close'] == 100.75  # 101 - 0.25
+        # Prices on/after roll should be unchanged
+        assert result.iloc[2]['close'] == 102.0
+        assert result.iloc[3]['close'] == 103.0
+
+    def test_adjust_for_contract_roll_manual_ratio(self):
+        """Test manual contract roll adjustment using ratio method."""
+        df = pd.DataFrame({
+            'date': pd.date_range('2024-01-01', periods=5),
+            'close': [100.0, 100.0, 100.0, 100.0, 100.0],
+        })
+
+        # Roll on day 3 with 1.1 ratio adjustment
+        result = adjust_for_contract_roll(
+            df,
+            roll_date='2024-01-03',
+            adjustment=1.1,
+            front_contract_column='close',
+            method='ratio'
+        )
+
+        # Prices before roll should be multiplied by ratio
+        assert result.iloc[0]['close'] == pytest.approx(110.0, abs=0.01)
+        assert result.iloc[1]['close'] == pytest.approx(110.0, abs=0.01)
+        # Prices on/after roll should be unchanged
+        assert result.iloc[2]['close'] == 100.0
+
+    def test_adjust_for_contract_roll_auto_difference(self):
+        """Test automatic contract roll adjustment calculation."""
+        df = pd.DataFrame({
+            'date': pd.date_range('2024-01-01', periods=5),
+            'front_close': [100.0, 101.0, 102.0, 103.0, 104.0],
+            'back_close': [100.5, 101.5, 102.5, 103.5, 104.5],
+        })
+
+        # Auto-calculate adjustment from front and back contract prices
+        result = adjust_for_contract_roll(
+            df,
+            roll_date='2024-01-03',
+            front_contract_column='front_close',
+            back_contract_column='back_close',
+            method='difference'
+        )
+
+        # Adjustment should be front - back = 101 - 101.5 = -0.5 (from day before roll)
+        assert result.iloc[0]['front_close'] == pytest.approx(99.5, abs=0.01)
+        assert result.iloc[1]['front_close'] == pytest.approx(100.5, abs=0.01)
 
 
 class TestColumnNameStandardization:
