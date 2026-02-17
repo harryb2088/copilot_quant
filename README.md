@@ -1287,6 +1287,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code style, a
 - [Usage Guide](docs/usage_guide.md) - Comprehensive guide with strategy examples
 
 ### Additional Resources
+- [Interactive Brokers Setup Guide](docs/ibkr_setup_guide.md) - Complete IBKR API setup and configuration
 - [Prediction Markets Guide](docs/prediction_markets_guide.md) - Integration with prediction market data
 - [Data Management Guide](docs/data_management_guide.md) - Data pipeline and normalization
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
