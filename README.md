@@ -280,6 +280,166 @@ src/
 5. **Live Trading**: Deploy strategies in paper trading mode
 6. **Risk Management**: Configure risk controls and circuit breakers
 
+## 📈 Signal-Based Allocation and Strategy Attribution
+
+**copilot_quant** uses a sophisticated signal-based capital allocation model instead of traditional "pod" allocation.
+
+### The Problem with Pod Allocation
+
+Traditional hedge fund capital allocation pre-assigns fixed portions of capital to strategies (pods). This approach:
+- **Penalizes rare, high-quality strategies**: A mean reversion strategy with only 2 high-Sharpe trades per year shows poor utilization despite excellent risk-adjusted returns
+- **Wastes capital**: Allocated capital sits idle when a strategy has no signals
+- **Misrepresents performance**: Pod-based metrics reflect allocated capital usage, not actual signal quality
+- **Reduces portfolio efficiency**: Capital is locked away from better opportunities
+
+### Signal-Based Allocation Model
+
+Instead, **copilot_quant** implements dynamic, signal-driven allocation:
+
+#### Core Principles
+
+1. **No pre-allocation**: All strategies compete for a shared capital pool
+2. **Quality-driven sizing**: Each trade is sized based on signal quality (confidence × Sharpe estimate)
+3. **Dynamic capital flow**: Capital automatically flows to the best signals available
+4. **True attribution**: Performance reflects deployed capital and actual signal quality
+
+#### Risk Controls
+
+Global portfolio limits ensure safety while maximizing capital efficiency:
+- **Max position size**: 2.5% of cash per trade (configurable)
+- **Max deployment**: 80% of total portfolio (configurable)
+- **Position limits**: Maximum number of concurrent positions
+- **Risk Management**: Integrated with existing RiskManager framework
+
+#### How It Works
+
+```python
+from copilot_quant.backtest import MultiStrategyEngine, SignalBasedStrategy, TradingSignal
+
+class MeanReversionStrategy(SignalBasedStrategy):
+    """Example: Rare, high-quality signals"""
+    
+    def generate_signals(self, timestamp, data):
+        signals = []
+        
+        # Analyze market conditions
+        if self.detect_mean_reversion_opportunity(data):
+            signals.append(TradingSignal(
+                symbol='AAPL',
+                side='buy',
+                confidence=0.9,        # High confidence
+                sharpe_estimate=2.5,   # High Sharpe
+                entry_price=150.0,
+                strategy_name=self.name
+            ))
+        
+        return signals  # Often returns empty list
+
+class PairsTradingStrategy(SignalBasedStrategy):
+    """Example: Frequent, moderate-quality signals"""
+    
+    def generate_signals(self, timestamp, data):
+        signals = []
+        
+        # Check multiple pairs
+        for pair in self.get_cointegrated_pairs(data):
+            if self.is_diverged(pair):
+                signals.append(TradingSignal(
+                    symbol=pair.symbol,
+                    side='buy',
+                    confidence=0.6,      # Moderate confidence
+                    sharpe_estimate=1.2, # Moderate Sharpe
+                    entry_price=pair.price,
+                    strategy_name=self.name
+                ))
+        
+        return signals  # Often returns multiple signals
+
+# Run backtest with multiple strategies
+engine = MultiStrategyEngine(
+    initial_capital=100000,
+    max_position_pct=0.025,  # 2.5% max per position
+    max_deployed_pct=0.80    # 80% max deployed
+)
+
+engine.add_strategy(MeanReversionStrategy())
+engine.add_strategy(PairsTradingStrategy())
+
+result = engine.run(
+    start_date=datetime(2020, 1, 1),
+    end_date=datetime(2023, 12, 31),
+    symbols=['AAPL', 'MSFT', 'GOOGL']
+)
+
+# View strategy attribution
+for name, attr in result.strategy_attributions.items():
+    print(f"{name}:")
+    print(f"  Trades: {attr['num_trades']}")
+    print(f"  Deployed Capital Return: {attr['deployed_capital_return']:.2%}")
+    print(f"  Win Rate: {attr['win_rate']:.1%}")
+```
+
+#### Signal Quality Scoring
+
+Each signal includes a quality score that drives position sizing:
+
+```python
+quality_score = confidence × min(sharpe_estimate / 2.0, 1.0)
+```
+
+- **High quality** (0.8-1.0): Large position size
+- **Medium quality** (0.4-0.8): Moderate position size  
+- **Low quality** (0.0-0.4): Small position size
+
+#### Execution Priority
+
+At each time step:
+1. Collect signals from all strategies
+2. Rank signals by quality score (highest first)
+3. Execute signals in order until risk limits are hit
+4. Track attribution by strategy
+
+#### Performance Reporting
+
+Strategy attribution includes:
+- **Total deployed capital**: Actual capital used (not allocated)
+- **Deployed capital return**: P&L / deployed capital
+- **Number of trades**: Execution count
+- **Win rate**: Percentage of profitable trades
+- **Sharpe ratio**: Risk-adjusted return
+
+This ensures every strategy is evaluated fairly based on actual performance, not capital utilization.
+
+### Example Scenarios
+
+**Scenario 1: High-Quality, Low-Frequency Strategy**
+- Mean reversion triggers 2 trades in a year
+- Both trades: confidence=0.9, Sharpe=2.5
+- Each trade gets 2.25% position size (0.9 × min(2.5/2, 1) × 2.5% = 2.25%)
+- Attribution shows excellent deployed capital return
+- **No penalty for infrequent trading**
+
+**Scenario 2: Lower-Quality, High-Frequency Strategy**  
+- Pairs trading generates 100 signals
+- Each signal: confidence=0.6, Sharpe=1.2
+- Each trade gets 1.08% position size (0.6 × min(1.2/2, 1) × 2.5% = 0.9%)
+- Attribution reflects actual signal quality and capital used
+- **Capital flows to better signals when available**
+
+**Scenario 3: Mixed Opportunity**
+- Mean reversion has no signals this week
+- Pairs trading has 5 moderate signals
+- All capital flows to pairs trading
+- **No capital sits idle**
+
+### Benefits
+
+✅ **Fair evaluation**: Performance reflects true signal quality  
+✅ **Capital efficiency**: No idle capital in inactive strategies  
+✅ **Risk control**: Global limits prevent overexposure  
+✅ **Transparency**: Clear attribution of P&L to each strategy  
+✅ **Flexibility**: Add/remove strategies without reallocating  
+
 ## 📊 Data Pipeline
 
 The platform includes comprehensive scripts for managing historical and real-time market data.

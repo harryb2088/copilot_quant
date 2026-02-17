@@ -284,7 +284,14 @@ class BacktestEngine:
         """Get current close price for a symbol."""
         try:
             # Handle different data structures
-            if 'Symbol' in data.columns:
+            # Check for multi-level columns first
+            if isinstance(data.columns, pd.MultiIndex):
+                # Multi-symbol data with multi-level columns
+                if ('Close', symbol) in data.columns:
+                    prices = data[('Close', symbol)].dropna()
+                    if not prices.empty:
+                        return float(prices.iloc[-1])
+            elif 'Symbol' in data.columns:
                 # Single symbol with Symbol column
                 symbol_data = data[data['Symbol'] == symbol]
                 if not symbol_data.empty:
@@ -293,12 +300,6 @@ class BacktestEngine:
                 # Single symbol without Symbol column
                 if not data.empty:
                     return float(data.iloc[-1]['Close'])
-            elif isinstance(data.columns, pd.MultiIndex):
-                # Multi-symbol data with multi-level columns
-                if ('Close', symbol) in data.columns:
-                    prices = data[('Close', symbol)].dropna()
-                    if not prices.empty:
-                        return float(prices.iloc[-1])
             
             return None
         except (KeyError, IndexError, ValueError):

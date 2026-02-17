@@ -7,8 +7,10 @@ for testing trading strategies against historical market data.
 
 from copilot_quant.backtest.engine import BacktestEngine
 from copilot_quant.backtest.metrics import PerformanceAnalyzer
+from copilot_quant.backtest.multi_strategy import MultiStrategyEngine, StrategyAttribution
 from copilot_quant.backtest.orders import Fill, Order, Position
 from copilot_quant.backtest.results import BacktestResult
+from copilot_quant.backtest.signals import SignalBasedStrategy, TradingSignal
 from copilot_quant.backtest.strategy import Strategy
 
 # Interface definitions for advanced use cases
@@ -26,7 +28,11 @@ from copilot_quant.backtest.interfaces import (
 __all__ = [
     # Core classes
     "BacktestEngine",
+    "MultiStrategyEngine",
     "Strategy",
+    "SignalBasedStrategy",
+    "TradingSignal",
+    "StrategyAttribution",
     "Order",
     "Fill",
     "Position",
