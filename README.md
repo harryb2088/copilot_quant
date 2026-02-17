@@ -173,7 +173,7 @@ After successfully deploying to Vercel, complete these steps:
    - Test the authentication login with your configured credentials
 
 2. **✅ Update README**
-   - Replace `YOUR-DEPLOYMENT-URL` in the [Live Demo](#-live-demo) section with your actual Vercel URL
+   - Replace `YOUR-DEPLOYMENT-URL` in the [Live Demo](#live-demo) section with your actual Vercel URL
    - Update the deployment badge link at the top of this README
 
 3. **✅ Test Authentication**

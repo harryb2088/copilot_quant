@@ -67,7 +67,7 @@ After deployment, update the `README.md` file:
 
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Click "Add New Project"
-3. Import `harryb2088/copilot_quant` repository
+3. Import your GitHub repository
 4. Configure:
    - Framework: `Other`
    - Build Command: (leave empty)
@@ -176,10 +176,10 @@ vercel logs <deployment-url>
 
 ## Support
 
-- 📖 [Full README](README.md#️-cloud-deployment-on-vercel)
+- 📖 [Full README](README.md#cloud-deployment-on-vercel)
 - 🌐 [Vercel Documentation](https://vercel.com/docs)
 - 📚 [Streamlit Documentation](https://docs.streamlit.io)
-- 🐛 [Report Issues](https://github.com/harryb2088/copilot_quant/issues)
+- 🐛 [Report Issues](https://github.com/your-username/copilot-quant/issues)
 
 ## Quick Commands Reference
 
