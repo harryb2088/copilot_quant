@@ -71,6 +71,36 @@ The Copilot Quant Platform can be deployed to Vercel with built-in authenticatio
    npm install -g vercel
    ```
 
+### Before You Deploy
+
+Before deploying to Vercel, ensure your application works correctly locally:
+
+1. **Test the application locally**:
+   ```bash
+   # Set environment variables for testing
+   export AUTH_EMAIL="test@example.com"
+   export AUTH_PASSWORD="testpassword123"
+   export AUTH_NAME="Test User"
+   
+   # Run the application
+   streamlit run src/ui/app.py
+   ```
+
+2. **Verify authentication**:
+   - Navigate to `http://localhost:8501`
+   - Confirm the login screen appears
+   - Log in using your test credentials
+   - Verify all pages load correctly
+
+3. **Check dependencies**:
+   ```bash
+   # Ensure all requirements are installed
+   pip install -r requirements.txt
+   
+   # Verify critical packages
+   python -c "import streamlit; import streamlit_authenticator; print('Dependencies OK')"
+   ```
+
 ### Deployment Steps
 
 #### Option 1: Deploy with Vercel CLI (Recommended)
