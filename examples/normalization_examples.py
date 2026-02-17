@@ -11,9 +11,13 @@ Run this script to see normalization examples:
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import pytz
 
 from copilot_quant.data.normalization import (
     normalize_symbol,
+    validate_symbol,
+    normalize_timestamps,
+    adjust_for_contract_roll,
     standardize_column_names,
     adjust_for_splits,
     detect_missing_data,
@@ -42,6 +46,28 @@ def example_symbol_normalization():
     for symbol in symbols:
         normalized = normalize_symbol(symbol, source='alpha_vantage')
         print(f"  {symbol!r:15s} -> {normalized!r}")
+    
+    print("\nNormalizing symbols for Interactive Brokers:")
+    for symbol in ['BRK.B', 'BRK-B']:
+        normalized = normalize_symbol(symbol, source='ib')
+        print(f"  {symbol!r:15s} -> {normalized!r}")
+    
+    print("\nNormalizing symbols for Quandl:")
+    for symbol in ['BRK/B', 'BRK.B']:
+        normalized = normalize_symbol(symbol, source='quandl')
+        print(f"  {symbol!r:15s} -> {normalized!r}")
+    
+    # Symbol validation
+    print("\n" + "-"*80)
+    print("SYMBOL VALIDATION")
+    print("-"*80)
+    
+    test_symbols = ['AAPL', 'BRK-B', '', 'MSFT', None]
+    print("\nValidating symbols:")
+    for symbol in test_symbols:
+        valid = validate_symbol(symbol, source='yahoo')
+        status = "✓ Valid" if valid else "✗ Invalid"
+        print(f"  {str(symbol)!r:15s} -> {status}")
 
 
 def example_column_standardization():
@@ -72,6 +98,91 @@ def example_column_standardization():
     
     print("\nFirst few rows:")
     print(standardized.head())
+
+
+def example_timestamp_normalization():
+    """Example: Normalize timestamps to appropriate timezones."""
+    print("\n" + "="*80)
+    print("TIMESTAMP NORMALIZATION")
+    print("="*80)
+    
+    # Create sample data with UTC timestamps
+    dates = pd.date_range('2024-01-01', periods=5, tz='UTC')
+    df = pd.DataFrame({
+        'date': dates,
+        'close': [100, 101, 102, 103, 104],
+    })
+    
+    print("\nOriginal data (UTC):")
+    print(df[['date', 'close']].head())
+    
+    # Normalize to NYSE timezone for equity data
+    equity_df = normalize_timestamps(df.copy(), market_type='equity')
+    print("\nNormalized to NYSE timezone (US/Eastern) for equities:")
+    print(equity_df[['date', 'close']].head())
+    
+    # Normalize to UTC for prediction markets
+    prediction_df = normalize_timestamps(df.copy(), market_type='prediction')
+    print("\nNormalized to UTC for prediction markets:")
+    print(prediction_df[['date', 'close']].head())
+    
+    # Normalize to custom timezone
+    custom_df = normalize_timestamps(df.copy(), target_timezone='Asia/Tokyo')
+    print("\nNormalized to custom timezone (Asia/Tokyo):")
+    print(custom_df[['date', 'close']].head())
+
+
+def example_contract_roll_adjustment():
+    """Example: Adjust futures prices for contract rolls."""
+    print("\n" + "="*80)
+    print("CONTRACT ROLL ADJUSTMENT")
+    print("="*80)
+    
+    # Create sample futures data
+    df = pd.DataFrame({
+        'date': pd.date_range('2024-01-01', periods=10),
+        'close': [100.0, 101.0, 102.0, 103.0, 104.0, 
+                  105.25, 106.25, 107.25, 108.25, 109.25],
+    })
+    
+    print("\nOriginal futures prices:")
+    print(df[['date', 'close']].head(8))
+    
+    # Apply manual contract roll adjustment
+    # Roll happened on 2024-01-06, front contract was $0.25 cheaper
+    adjusted = adjust_for_contract_roll(
+        df,
+        roll_date='2024-01-06',
+        adjustment=-0.25,
+        front_contract_column='close',
+        method='difference'
+    )
+    
+    print(f"\nAfter contract roll adjustment (difference method):")
+    print(adjusted[['date', 'close']].head(8))
+    
+    print("\nNote: Prices before the roll date are adjusted by -0.25 to maintain continuity.")
+    
+    # Example with front and back contract data
+    df_auto = pd.DataFrame({
+        'date': pd.date_range('2024-01-01', periods=10),
+        'front_close': [100.0, 101.0, 102.0, 103.0, 104.0,
+                        105.0, 106.0, 107.0, 108.0, 109.0],
+        'back_close': [100.5, 101.5, 102.5, 103.5, 104.5,
+                       105.5, 106.5, 107.5, 108.5, 109.5],
+    })
+    
+    # Auto-calculate adjustment from spread
+    auto_adjusted = adjust_for_contract_roll(
+        df_auto,
+        roll_date='2024-01-06',
+        front_contract_column='front_close',
+        back_contract_column='back_close',
+        method='difference'
+    )
+    
+    print("\nWith automatic adjustment calculation from contract spread:")
+    print(auto_adjusted[['date', 'front_close', 'back_close']].head(8))
 
 
 def example_split_adjustment():
@@ -263,6 +374,8 @@ def main():
     
     example_symbol_normalization()
     example_column_standardization()
+    example_timestamp_normalization()
+    example_contract_roll_adjustment()
     example_split_adjustment()
     example_missing_data_detection()
     example_data_validation()
@@ -276,10 +389,15 @@ def main():
     print("\nThese normalization utilities help ensure data quality for backtesting.")
     print("\nKey takeaways:")
     print("  • Always validate data quality before use")
+    print("  • Normalize symbols and timestamps for consistency across data sources")
     print("  • Handle missing data appropriately for your use case")
-    print("  • Adjust for corporate actions (splits, dividends)")
+    print("  • Adjust for corporate actions (splits, dividends, contract rolls)")
     print("  • Standardize column names across different data sources")
     print("  • Remove outliers carefully to avoid losing valid data")
+    print("  • Use appropriate timezones for different market types")
+    print("    - Equities: NYSE timezone (US/Eastern)")
+    print("    - Prediction Markets: UTC")
+    print("    - Futures: Depends on exchange (e.g., CME uses US/Central)")
 
 
 if __name__ == "__main__":

@@ -5,18 +5,27 @@ This module provides utilities for cleaning, standardizing, and normalizing
 market data for use in backtesting and live trading.
 
 Features:
-- Symbol normalization and standardization
-- Corporate action handling (splits, dividends)
+- Symbol normalization and standardization across data sources
+- Corporate action handling (splits, dividends, contract rolls)
+- Time normalization (NYSE timezone for equities, UTC for prediction markets)
 - Missing data detection and handling
 - Data quality validation
 - Price adjustment calculations
 
 Example Usage:
-    # Normalize symbol names
-    normalized = normalize_symbol('BRK.B')  # Returns 'BRK-B'
+    # Normalize symbol names across different data sources
+    normalized = normalize_symbol('BRK.B', source='yahoo')  # Returns 'BRK-B'
+    ib_symbol = normalize_symbol('BRK-B', source='ib')  # Returns 'BRK B'
+    
+    # Normalize timestamps to appropriate timezone
+    df = normalize_timestamps(df, market_type='equity')  # NYSE timezone
+    df = normalize_timestamps(df, market_type='prediction')  # UTC
     
     # Handle stock splits
     df = adjust_for_splits(df, split_ratio=2.0, split_date='2024-01-15')
+    
+    # Adjust for contract rolls
+    df = adjust_for_contract_roll(df, roll_date='2024-03-15', adjustment=-0.25)
     
     # Validate data quality
     issues = validate_data_quality(df)
@@ -27,6 +36,7 @@ Example Usage:
 import logging
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
+import pytz
 
 import pandas as pd
 import numpy as np
@@ -41,9 +51,17 @@ def normalize_symbol(symbol: str, source: str = 'yahoo') -> str:
     Different data sources use different conventions for ticker symbols.
     This function standardizes them for consistent use across the platform.
     
+    Supported sources:
+    - yahoo/yfinance: Yahoo Finance format (uses hyphens)
+    - alpha_vantage/alphavantage: Alpha Vantage format (uses dots)
+    - quandl: Quandl/WIKI format (uses underscores for some tickers)
+    - ib/interactive_brokers: Interactive Brokers format (uses spaces)
+    - polygon: Polygon.io format (uses dots for class shares)
+    - standard: Standard format (hyphens for class shares)
+    
     Args:
         symbol: Raw ticker symbol
-        source: Data source ('yahoo', 'alpha_vantage', 'polygon', etc.)
+        source: Data source name
         
     Returns:
         Normalized ticker symbol
@@ -52,26 +70,262 @@ def normalize_symbol(symbol: str, source: str = 'yahoo') -> str:
         >>> normalize_symbol('BRK.B', source='yahoo')
         'BRK-B'
         >>> normalize_symbol('BRK-B', source='alpha_vantage')
+        'BRK.B'
+        >>> normalize_symbol('BRK-B', source='ib')
+        'BRK B'
+        >>> normalize_symbol('BRK/B', source='quandl')
         'BRK-B'
     """
     if not symbol:
         return symbol
         
     symbol = symbol.strip().upper()
+    source = source.lower()
     
-    # Yahoo Finance uses hyphens for class shares
-    if source.lower() in ['yahoo', 'yfinance']:
-        symbol = symbol.replace('.', '-')
+    # Yahoo Finance and most sources use hyphens for class shares
+    if source in ['yahoo', 'yfinance', 'standard']:
+        symbol = symbol.replace('.', '-').replace('/', '-').replace(' ', '-')
     
-    # Alpha Vantage uses dots
-    elif source.lower() in ['alpha_vantage', 'alphavantage']:
-        symbol = symbol.replace('-', '.')
+    # Alpha Vantage and Polygon use dots
+    elif source in ['alpha_vantage', 'alphavantage', 'polygon']:
+        symbol = symbol.replace('-', '.').replace('/', '.').replace(' ', '.')
     
-    # Most other sources use hyphens
+    # Interactive Brokers uses spaces
+    elif source in ['ib', 'interactive_brokers', 'interactivebrokers']:
+        symbol = symbol.replace('.', ' ').replace('/', ' ').replace('-', ' ')
+    
+    # Quandl uses underscores or slashes for some tickers
+    elif source == 'quandl':
+        # Quandl WIKI data uses slashes, convert to hyphens
+        symbol = symbol.replace('/', '-').replace('.', '-').replace(' ', '-')
+    
+    # Default to hyphens
     else:
-        symbol = symbol.replace('.', '-')
+        symbol = symbol.replace('.', '-').replace('/', '-').replace(' ', '-')
     
     return symbol
+
+
+def validate_symbol(symbol: str, source: str = 'yahoo') -> bool:
+    """
+    Validate that a symbol is properly formatted for the given data source.
+    
+    Args:
+        symbol: Ticker symbol to validate
+        source: Data source name
+        
+    Returns:
+        True if symbol is valid, False otherwise
+        
+    Example:
+        >>> validate_symbol('AAPL', source='yahoo')
+        True
+        >>> validate_symbol('', source='yahoo')
+        False
+        >>> validate_symbol('BRK-B', source='yahoo')
+        True
+    """
+    if not symbol or not isinstance(symbol, str):
+        return False
+    
+    symbol = symbol.strip()
+    if not symbol:
+        return False
+    
+    # Basic validation - symbols should be alphanumeric with allowed separators
+    allowed_chars = set('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_./^ ')
+    if not all(c in allowed_chars for c in symbol.upper()):
+        return False
+    
+    # Source-specific validation
+    source = source.lower()
+    if source in ['yahoo', 'yfinance']:
+        # Yahoo allows letters, numbers, hyphens, dots, and caret (for indices)
+        return True
+    elif source in ['ib', 'interactive_brokers']:
+        # IB uses spaces for class shares
+        return True
+    
+    return True
+
+
+def normalize_timestamps(
+    df: pd.DataFrame,
+    market_type: str = 'equity',
+    target_timezone: Optional[str] = None,
+    timestamp_column: str = 'date'
+) -> pd.DataFrame:
+    """
+    Normalize timestamps to appropriate timezone for the market type.
+    
+    Different market types operate in different timezones:
+    - Equities: NYSE timezone (US/Eastern)
+    - Futures: CME timezone (US/Central)  
+    - Crypto: UTC
+    - Prediction markets: UTC
+    
+    Args:
+        df: DataFrame with timestamp data
+        market_type: Type of market ('equity', 'futures', 'crypto', 'prediction')
+        target_timezone: Explicit target timezone (overrides market_type default)
+        timestamp_column: Name of the timestamp column or index
+        
+    Returns:
+        DataFrame with normalized timestamps
+        
+    Example:
+        >>> # Normalize equity data to NYSE timezone
+        >>> df = normalize_timestamps(df, market_type='equity')
+        
+        >>> # Normalize prediction market data to UTC
+        >>> df = normalize_timestamps(df, market_type='prediction')
+        
+        >>> # Explicit timezone conversion
+        >>> df = normalize_timestamps(df, target_timezone='UTC')
+    """
+    df = df.copy()
+    
+    # Determine target timezone based on market type
+    if target_timezone is None:
+        timezone_map = {
+            'equity': 'US/Eastern',  # NYSE
+            'futures': 'US/Central',  # CME
+            'crypto': 'UTC',
+            'prediction': 'UTC',
+            'forex': 'UTC',
+        }
+        target_timezone = timezone_map.get(market_type.lower(), 'UTC')
+    
+    # Get timezone object
+    tz = pytz.timezone(target_timezone)
+    
+    # Handle timestamp column or index
+    if timestamp_column in df.columns:
+        # Convert column to datetime if needed
+        if not pd.api.types.is_datetime64_any_dtype(df[timestamp_column]):
+            df[timestamp_column] = pd.to_datetime(df[timestamp_column])
+        
+        # Localize or convert to target timezone
+        if df[timestamp_column].dt.tz is None:
+            # Naive datetime - localize to target timezone
+            df[timestamp_column] = df[timestamp_column].dt.tz_localize(tz)
+        else:
+            # Already timezone-aware - convert to target timezone
+            df[timestamp_column] = df[timestamp_column].dt.tz_convert(tz)
+            
+        logger.info(f"Normalized {timestamp_column} to {target_timezone} timezone")
+        
+    elif isinstance(df.index, pd.DatetimeIndex):
+        # Handle DatetimeIndex
+        if df.index.tz is None:
+            df.index = df.index.tz_localize(tz)
+        else:
+            df.index = df.index.tz_convert(tz)
+            
+        logger.info(f"Normalized index to {target_timezone} timezone")
+    
+    else:
+        logger.warning(f"No timestamp column '{timestamp_column}' found and index is not DatetimeIndex")
+    
+    return df
+
+
+def adjust_for_contract_roll(
+    df: pd.DataFrame,
+    roll_date: str,
+    adjustment: Optional[float] = None,
+    front_contract_column: str = 'close',
+    back_contract_column: Optional[str] = None,
+    method: str = 'difference'
+) -> pd.DataFrame:
+    """
+    Adjust historical prices for futures contract rolls.
+    
+    When futures contracts expire, positions must be rolled to the next contract.
+    This creates discontinuities in the price series that need to be adjusted.
+    
+    Args:
+        df: DataFrame with futures price data (must have date index or column)
+        roll_date: Date of the contract roll in 'YYYY-MM-DD' format
+        adjustment: Manual adjustment value. If None, calculated from data
+        front_contract_column: Column containing front contract prices
+        back_contract_column: Column containing back contract prices (for auto-calculation)
+        method: Adjustment method - 'difference' (default) or 'ratio'
+        
+    Returns:
+        DataFrame with roll-adjusted prices
+        
+    Example:
+        >>> # Manual adjustment with known roll difference
+        >>> df = adjust_for_contract_roll(
+        ...     df, 
+        ...     roll_date='2024-03-15',
+        ...     adjustment=-0.25,  # Front contract was $0.25 cheaper
+        ...     method='difference'
+        ... )
+        
+        >>> # Automatic adjustment from front and back contract prices
+        >>> df = adjust_for_contract_roll(
+        ...     df,
+        ...     roll_date='2024-03-15',
+        ...     front_contract_column='front_close',
+        ...     back_contract_column='back_close',
+        ...     method='difference'
+        ... )
+    """
+    df = df.copy()
+    
+    # Ensure we have a date column
+    if 'date' not in df.columns:
+        if isinstance(df.index, pd.DatetimeIndex):
+            df['date'] = df.index
+        else:
+            raise ValueError("DataFrame must have 'date' column or DatetimeIndex")
+    
+    # Convert date column to datetime if needed
+    if not pd.api.types.is_datetime64_any_dtype(df['date']):
+        df['date'] = pd.to_datetime(df['date'])
+    
+    roll_date = pd.to_datetime(roll_date)
+    
+    # Calculate adjustment if not provided
+    if adjustment is None:
+        if back_contract_column is None:
+            raise ValueError(
+                "Either 'adjustment' or 'back_contract_column' must be provided"
+            )
+        
+        # Find the last trading day before the roll
+        pre_roll = df[df['date'] < roll_date].iloc[-1] if len(df[df['date'] < roll_date]) > 0 else None
+        
+        if pre_roll is None:
+            logger.warning(f"No data before roll date {roll_date}")
+            return df
+        
+        if method == 'difference':
+            # Additive adjustment
+            adjustment = pre_roll[front_contract_column] - pre_roll[back_contract_column]
+        elif method == 'ratio':
+            # Multiplicative adjustment
+            adjustment = pre_roll[front_contract_column] / pre_roll[back_contract_column]
+        else:
+            raise ValueError(f"Unknown method: {method}. Use 'difference' or 'ratio'")
+        
+        logger.info(f"Calculated roll adjustment: {adjustment}")
+    
+    # Apply adjustment to all data before the roll date
+    mask = df['date'] < roll_date
+    
+    if method == 'difference':
+        # Additive adjustment - add the difference to historical prices
+        df.loc[mask, front_contract_column] = df.loc[mask, front_contract_column] + adjustment
+    elif method == 'ratio':
+        # Multiplicative adjustment - multiply historical prices by the ratio
+        df.loc[mask, front_contract_column] = df.loc[mask, front_contract_column] * adjustment
+    
+    logger.info(f"Adjusted prices for contract roll on {roll_date} using {method} method")
+    
+    return df
 
 
 def standardize_column_names(df: pd.DataFrame, inplace: bool = False) -> pd.DataFrame:

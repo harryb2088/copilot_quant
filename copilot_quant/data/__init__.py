@@ -31,6 +31,9 @@ from copilot_quant.data.prediction_markets import (
 )
 from copilot_quant.data.normalization import (
     normalize_symbol,
+    validate_symbol,
+    normalize_timestamps,
+    adjust_for_contract_roll,
     standardize_column_names,
     adjust_for_splits,
     calculate_adjusted_close,
@@ -63,6 +66,9 @@ __all__ = [
     "get_prediction_market_provider",
     # Normalization
     "normalize_symbol",
+    "validate_symbol",
+    "normalize_timestamps",
+    "adjust_for_contract_roll",
     "standardize_column_names",
     "adjust_for_splits",
     "calculate_adjusted_close",
