@@ -1028,7 +1028,16 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code style, a
 
 ## 📚 Documentation
 
-- [Contributing Guidelines](CONTRIBUTING.md)
+### Core Documentation
+- [Backtesting Engine Architecture](docs/architecture.md) - System design and component interactions
+- [Backtesting API Reference](docs/backtesting.md) - Complete API documentation and examples
+- [Design Decisions](docs/design_decisions.md) - Rationale behind architectural choices
+- [Usage Guide](docs/usage_guide.md) - Comprehensive guide with strategy examples
+
+### Additional Resources
+- [Prediction Markets Guide](docs/prediction_markets_guide.md) - Integration with prediction market data
+- [Data Management Guide](docs/data_management_guide.md) - Data pipeline and normalization
+- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
 - [License](LICENSE) - MIT License
 
 ## 📊 Market Data Sources
