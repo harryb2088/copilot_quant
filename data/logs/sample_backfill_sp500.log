@@ -1,0 +1,45 @@
+2026-02-17 06:00:01,123 - __main__ - INFO - Logging to data/logs/backfill_sp500_20260217_060001.log
+2026-02-17 06:00:01,234 - __main__ - INFO - Fetching S&P500 constituent list...
+2026-02-17 06:00:02,456 - copilot_quant.data.sp500 - INFO - Retrieved 503 S&P500 tickers from Wikipedia
+2026-02-17 06:00:02,457 - __main__ - INFO - Found 503 S&P500 stocks
+2026-02-17 06:00:02,458 - copilot_quant.data.update_jobs - INFO - Initialized DataUpdater
+2026-02-17 06:00:02,459 - __main__ - INFO - Starting backfill from 2020-01-01 to present
+2026-02-17 06:00:02,460 - __main__ - INFO - Storage: csv
+2026-02-17 06:00:02,461 - __main__ - INFO - Total symbols: 503
+2026-02-17 06:00:02,462 - copilot_quant.data.update_jobs - INFO - Starting batch backfill for 503 symbols
+2026-02-17 06:00:02,463 - copilot_quant.data.update_jobs - INFO - Processing 1/503: AAPL
+2026-02-17 06:00:02,464 - copilot_quant.data.update_jobs - INFO - AAPL: Backfilling from 2020-01-01 to 2026-02-17
+2026-02-17 06:00:03,567 - copilot_quant.data.eod_loader - INFO - Fetching AAPL from 2020-01-01 to 2026-02-17
+2026-02-17 06:00:04,789 - copilot_quant.data.eod_loader - INFO - Successfully fetched 1552 records for AAPL
+2026-02-17 06:00:04,890 - copilot_quant.data.eod_loader - INFO - Saved AAPL data to data/historical/AAPL.csv
+2026-02-17 06:00:04,891 - copilot_quant.data.update_jobs - INFO - AAPL: Backfill successful
+2026-02-17 06:00:05,392 - copilot_quant.data.update_jobs - INFO - Processing 2/503: MSFT
+2026-02-17 06:00:05,393 - copilot_quant.data.update_jobs - INFO - MSFT: Backfilling from 2020-01-01 to 2026-02-17
+2026-02-17 06:00:06,567 - copilot_quant.data.eod_loader - INFO - Fetching MSFT from 2020-01-01 to 2026-02-17
+2026-02-17 06:00:07,890 - copilot_quant.data.eod_loader - INFO - Successfully fetched 1552 records for MSFT
+2026-02-17 06:00:07,991 - copilot_quant.data.eod_loader - INFO - Saved MSFT data to data/historical/MSFT.csv
+2026-02-17 06:00:07,992 - copilot_quant.data.update_jobs - INFO - MSFT: Backfill successful
+...
+2026-02-17 08:45:23,456 - copilot_quant.data.update_jobs - INFO - Processing 503/503: ZTS
+2026-02-17 08:45:23,457 - copilot_quant.data.update_jobs - INFO - ZTS: Backfilling from 2020-01-01 to 2026-02-17
+2026-02-17 08:45:24,678 - copilot_quant.data.eod_loader - INFO - Fetching ZTS from 2020-01-01 to 2026-02-17
+2026-02-17 08:45:25,890 - copilot_quant.data.eod_loader - INFO - Successfully fetched 1552 records for ZTS
+2026-02-17 08:45:25,991 - copilot_quant.data.eod_loader - INFO - Saved ZTS data to data/historical/ZTS.csv
+2026-02-17 08:45:25,992 - copilot_quant.data.update_jobs - INFO - ZTS: Backfill successful
+2026-02-17 08:45:25,993 - copilot_quant.data.update_jobs - INFO - Batch backfill complete: 498 succeeded, 5 failed
+2026-02-17 08:45:26,123 - __main__ - INFO - 
+================================================================================
+2026-02-17 08:45:26,124 - __main__ - INFO - BACKFILL SUMMARY
+2026-02-17 08:45:26,125 - __main__ - INFO - ================================================================================
+2026-02-17 08:45:26,126 - __main__ - INFO - Start Date: 2020-01-01
+2026-02-17 08:45:26,127 - __main__ - INFO - End Date: present
+2026-02-17 08:45:26,128 - __main__ - INFO - Storage Type: csv
+2026-02-17 08:45:26,129 - __main__ - INFO - Total Symbols Processed: 503
+2026-02-17 08:45:26,130 - __main__ - INFO - Successful: 498 (99.0%)
+2026-02-17 08:45:26,131 - __main__ - INFO - Failed: 5
+2026-02-17 08:45:26,132 - __main__ - INFO - Duration: 9923.7 seconds (165.4 minutes)
+2026-02-17 08:45:26,133 - __main__ - WARNING - 
+Failed symbols: BRK.B, BF.B, INVALID1, INVALID2, INVALID3
+2026-02-17 08:45:26,134 - __main__ - INFO - 
+Status file: data/historical/backfill_status.csv
+2026-02-17 08:45:26,135 - __main__ - INFO - ================================================================================
