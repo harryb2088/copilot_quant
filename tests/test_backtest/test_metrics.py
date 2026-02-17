@@ -402,3 +402,266 @@ class TestPerformanceAnalyzer:
         # Positive drawdown (should return 0)
         calmar = analyzer._calculate_calmar_ratio(0.20, 0.05)
         assert calmar == 0.0
+
+
+class TestPortfolioMetrics:
+    """Tests for portfolio-level metrics calculation."""
+    
+    def test_calculate_portfolio_metrics_basic(self):
+        """Test basic portfolio metrics calculation."""
+        from copilot_quant.backtest.orders import Position
+        
+        analyzer = PerformanceAnalyzer()
+        
+        # Create mock portfolio history
+        portfolio_history = pd.DataFrame({
+            'timestamp': pd.date_range('2024-01-01', periods=10),
+            'portfolio_value': [1000000] * 10,
+            'cash': [250000] * 10,
+            'positions_value': [750000] * 10,
+            'num_positions': [5] * 10
+        })
+        
+        # Create mock positions
+        positions = {
+            'AAPL': Position(symbol='AAPL', quantity=100, avg_entry_price=150.0),
+            'GOOGL': Position(symbol='GOOGL', quantity=50, avg_entry_price=140.0),
+        }
+        
+        metrics = analyzer.calculate_portfolio_metrics(
+            portfolio_history=portfolio_history,
+            positions=positions,
+            initial_capital=1000000
+        )
+        
+        # Check cash metrics
+        assert metrics['cash_balance'] == 250000
+        assert abs(metrics['cash_allocation'] - 0.25) < 0.0001
+        
+        # Check portfolio value
+        assert metrics['portfolio_value'] == 1000000
+        
+        # Check positions
+        assert metrics['num_positions'] == 2
+    
+    def test_calculate_portfolio_metrics_exposure(self):
+        """Test exposure calculations."""
+        from copilot_quant.backtest.orders import Position
+        
+        analyzer = PerformanceAnalyzer()
+        
+        portfolio_history = pd.DataFrame({
+            'timestamp': pd.date_range('2024-01-01', periods=1),
+            'portfolio_value': [1000000],
+            'cash': [300000],
+            'positions_value': [700000],
+            'num_positions': [3]
+        })
+        
+        # Long and short positions
+        positions = {
+            'AAPL': Position(symbol='AAPL', quantity=1000, avg_entry_price=150.0),   # Long 150k
+            'GOOGL': Position(symbol='GOOGL', quantity=2000, avg_entry_price=140.0),  # Long 280k
+            'TSLA': Position(symbol='TSLA', quantity=-500, avg_entry_price=200.0),    # Short 100k
+        }
+        
+        metrics = analyzer.calculate_portfolio_metrics(
+            portfolio_history=portfolio_history,
+            positions=positions,
+            initial_capital=1000000
+        )
+        
+        # Long exposure: (150k + 280k) / 1M = 0.43
+        assert abs(metrics['long_exposure'] - 0.43) < 0.01
+        
+        # Short exposure: 100k / 1M = 0.10
+        assert abs(metrics['short_exposure'] - 0.10) < 0.01
+        
+        # Net exposure: (430k - 100k) / 1M = 0.33
+        assert abs(metrics['net_exposure'] - 0.33) < 0.01
+        
+        # Gross exposure: (430k + 100k) / 1M = 0.53
+        assert abs(metrics['gross_exposure'] - 0.53) < 0.01
+    
+    def test_calculate_portfolio_metrics_empty(self):
+        """Test portfolio metrics with empty data."""
+        analyzer = PerformanceAnalyzer()
+        
+        portfolio_history = pd.DataFrame()
+        positions = {}
+        
+        metrics = analyzer.calculate_portfolio_metrics(
+            portfolio_history=portfolio_history,
+            positions=positions,
+            initial_capital=1000000
+        )
+        
+        # Should return empty metrics
+        assert metrics['cash_balance'] == 0.0
+        assert metrics['portfolio_value'] == 0.0
+        assert metrics['num_positions'] == 0
+    
+    def test_calculate_turnover(self):
+        """Test turnover calculation."""
+        analyzer = PerformanceAnalyzer()
+        
+        # Create trades
+        trades = [
+            Fill(
+                order=Order('AAPL', 100, 'market', 'buy'),
+                fill_price=150.0, fill_quantity=100, commission=1.0,
+                timestamp=datetime(2024, 1, 1)
+            ),
+            Fill(
+                order=Order('AAPL', 100, 'market', 'sell'),
+                fill_price=155.0, fill_quantity=100, commission=1.0,
+                timestamp=datetime(2024, 1, 15)
+            ),
+        ]
+        
+        # Total trade value = 150*100 + 155*100 = 30,500
+        # Avg portfolio = 1M
+        # Period = 30 days
+        # Turnover = (30,500 / 1M) * (365/30) = 0.371
+        
+        turnover = analyzer.calculate_turnover(
+            trades=trades,
+            avg_portfolio_value=1000000,
+            period_days=30
+        )
+        
+        assert turnover > 0
+        assert turnover < 1.0  # Should be less than 100% for this example
+    
+    def test_calculate_turnover_empty(self):
+        """Test turnover with no trades."""
+        analyzer = PerformanceAnalyzer()
+        
+        turnover = analyzer.calculate_turnover(
+            trades=[],
+            avg_portfolio_value=1000000,
+            period_days=30
+        )
+        
+        assert turnover == 0.0
+    
+    def test_calculate_var(self):
+        """Test VaR calculation."""
+        analyzer = PerformanceAnalyzer()
+        
+        # Create returns with known distribution
+        np.random.seed(42)
+        returns = pd.Series(np.random.normal(0.001, 0.02, 1000))
+        
+        var = analyzer.calculate_var(
+            returns=returns,
+            confidence_level=0.95,
+            portfolio_value=1000000
+        )
+        
+        # VaR should be negative (represents a loss)
+        assert var < 0
+        
+        # Should be a reasonable value (not too extreme)
+        assert var > -100000  # Not more than 10% loss
+    
+    def test_calculate_cvar(self):
+        """Test CVaR calculation."""
+        analyzer = PerformanceAnalyzer()
+        
+        # Create returns with known distribution
+        np.random.seed(42)
+        returns = pd.Series(np.random.normal(0.001, 0.02, 1000))
+        
+        cvar = analyzer.calculate_cvar(
+            returns=returns,
+            confidence_level=0.95,
+            portfolio_value=1000000
+        )
+        
+        # CVaR should be negative (represents expected tail loss)
+        assert cvar < 0
+        
+        # CVaR should be more extreme than VaR
+        var = analyzer.calculate_var(returns, 0.95, 1000000)
+        assert cvar < var  # More negative = worse
+    
+    def test_calculate_beta(self):
+        """Test beta calculation."""
+        analyzer = PerformanceAnalyzer()
+        
+        # Create correlated returns
+        np.random.seed(42)
+        benchmark_returns = pd.Series(np.random.normal(0.0005, 0.01, 252))
+        
+        # Portfolio with beta ~ 1.5
+        portfolio_returns = 1.5 * benchmark_returns + pd.Series(np.random.normal(0, 0.005, 252))
+        
+        beta = analyzer.calculate_beta(portfolio_returns, benchmark_returns)
+        
+        # Beta should be around 1.5
+        assert 1.0 < beta < 2.0
+    
+    def test_calculate_beta_empty(self):
+        """Test beta with empty returns."""
+        analyzer = PerformanceAnalyzer()
+        
+        portfolio_returns = pd.Series(dtype=float)
+        benchmark_returns = pd.Series(dtype=float)
+        
+        beta = analyzer.calculate_beta(portfolio_returns, benchmark_returns)
+        
+        assert beta == 0.0
+    
+    def test_calculate_drawdown_duration(self):
+        """Test drawdown duration calculation."""
+        analyzer = PerformanceAnalyzer()
+        
+        # Create equity curve with known drawdown
+        equity_values = [100, 105, 110, 108, 105, 102, 104, 108, 112, 111, 115]
+        dates = pd.date_range('2024-01-01', periods=len(equity_values))
+        equity_curve = pd.Series(equity_values, index=dates)
+        
+        metrics = analyzer.calculate_drawdown_duration(equity_curve)
+        
+        # Check that metrics are calculated
+        assert 'max_drawdown_duration_days' in metrics
+        assert 'avg_drawdown_duration_days' in metrics
+        assert 'current_drawdown_duration_days' in metrics
+        assert 'underwater_periods' in metrics
+        
+        # All should be non-negative
+        assert metrics['max_drawdown_duration_days'] >= 0
+        assert metrics['avg_drawdown_duration_days'] >= 0
+    
+    def test_calculate_drawdown_duration_no_drawdown(self):
+        """Test drawdown duration with always increasing equity."""
+        analyzer = PerformanceAnalyzer()
+        
+        # Always increasing - no drawdown
+        equity_values = [100, 105, 110, 115, 120]
+        dates = pd.date_range('2024-01-01', periods=len(equity_values))
+        equity_curve = pd.Series(equity_values, index=dates)
+        
+        metrics = analyzer.calculate_drawdown_duration(equity_curve)
+        
+        # No underwater periods
+        assert metrics['max_drawdown_duration_days'] == 0
+        assert metrics['underwater_periods'] == 0
+        assert metrics['current_drawdown_duration_days'] == 0
+    
+    def test_empty_portfolio_metrics(self):
+        """Test empty portfolio metrics helper."""
+        analyzer = PerformanceAnalyzer()
+        
+        empty_metrics = analyzer._empty_portfolio_metrics()
+        
+        # Check all expected keys are present
+        expected_keys = [
+            'cash_balance', 'cash_allocation', 'gross_exposure', 'net_exposure',
+            'leverage_ratio', 'num_positions', 'portfolio_value'
+        ]
+        
+        for key in expected_keys:
+            assert key in empty_metrics
+            assert empty_metrics[key] == 0.0 or empty_metrics[key] == 0
