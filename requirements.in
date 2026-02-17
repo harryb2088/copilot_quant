@@ -9,6 +9,7 @@ lxml
 # UI
 streamlit>=1.30.0
 plotly>=5.17.0
+streamlit-authenticator>=0.3.0
 
 # Broker integration
 ib_insync>=0.9.86

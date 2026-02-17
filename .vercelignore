@@ -1,0 +1,62 @@
+# Development
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+tests/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/
+
+# Git
+.git/
+.github/
+
+# Documentation
+docs/
+CONTRIBUTING.md
+IMPLEMENTATION_SUMMARY.md
+
+# Examples
+examples/
+
+# Data files
+data/
+
+# Logs
+*.log
+/tmp/
+
+# Environment variables (use Vercel env variables instead)
+.env
+.env.local
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

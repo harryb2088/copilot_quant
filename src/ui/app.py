@@ -8,6 +8,7 @@ Run with: streamlit run src/ui/app.py
 import streamlit as st
 from components.sidebar import render_sidebar
 from utils.session import init_session_state
+from utils.auth import init_authentication
 
 # Page configuration
 st.set_page_config(
@@ -16,6 +17,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Initialize authentication (must be called before any other st commands that display content)
+name, authentication_status, username = init_authentication()
 
 # Initialize session state
 init_session_state()
