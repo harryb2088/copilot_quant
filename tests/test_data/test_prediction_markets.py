@@ -33,7 +33,6 @@ tests/test_data/mock_prediction_markets/mock_data.py
 from unittest.mock import Mock, patch
 import pandas as pd
 import pytest
-from datetime import datetime
 
 from copilot_quant.data.prediction_markets import (
     PolymarketProvider,
@@ -46,12 +45,6 @@ from copilot_quant.data.prediction_markets import (
 from tests.test_data.mock_prediction_markets.mock_data import (
     generate_mock_polymarket_markets,
     generate_mock_polymarket_price_data,
-    generate_mock_kalshi_markets,
-    generate_mock_kalshi_price_data,
-    generate_mock_predictit_markets,
-    generate_mock_predictit_contract_data,
-    generate_mock_metaculus_markets,
-    generate_mock_metaculus_prediction_data,
 )
 
 

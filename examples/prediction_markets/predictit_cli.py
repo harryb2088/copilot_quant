@@ -56,7 +56,7 @@ def list_markets(args):
             db_path=args.db_path
         )
         storage.save_markets('predictit', markets)
-        print(f"\nSaved markets to storage")
+        print("\nSaved markets to storage")
 
 
 def fetch_market(args):
@@ -74,7 +74,7 @@ def fetch_market(args):
     print(f"Close Time: {details.get('close_time', 'Unknown')}")
     
     # Fetch current contract prices
-    print(f"\nFetching contract prices...")
+    print("\nFetching contract prices...")
     data = provider.get_market_data(args.market_id)
     
     if data.empty:
@@ -82,7 +82,7 @@ def fetch_market(args):
         return
     
     print(f"\nFound {len(data)} contracts")
-    print(f"\nContract prices:")
+    print("\nContract prices:")
     print(data.to_string(index=False))
     
     # Save data
@@ -92,8 +92,8 @@ def fetch_market(args):
     
     if args.sqlite:
         # Note: PredictIt data is current snapshot, not time series
-        print(f"\nWarning: PredictIt only provides current snapshots, not historical time series")
-        print(f"Data will be saved with current timestamp")
+        print("\nWarning: PredictIt only provides current snapshots, not historical time series")
+        print("Data will be saved with current timestamp")
 
 
 def main():

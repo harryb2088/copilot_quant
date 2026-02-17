@@ -7,7 +7,7 @@ API Documentation: https://trading-api.readme.io/reference/getting-started
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
 
 import pandas as pd
 import requests
@@ -64,7 +64,6 @@ class KalshiProvider(PredictionMarketProvider):
             
             for event in events:
                 # Each event can have multiple markets
-                event_ticker = event.get('event_ticker', '')
                 markets_data = event.get('markets', [])
                 
                 for market in markets_data:

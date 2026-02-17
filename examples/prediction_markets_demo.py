@@ -151,7 +151,7 @@ def demo_storage(markets_data):
         if not loaded.empty:
             print(f"  {provider_name}: {len(loaded)} markets")
     
-    print(f"\nData saved to: /tmp/prediction_markets_demo.db")
+    print("\nData saved to: /tmp/prediction_markets_demo.db")
 
 
 def main():
