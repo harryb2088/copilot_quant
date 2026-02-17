@@ -4,7 +4,7 @@ Order management system for backtesting.
 This module defines order types, fills, and positions used in the backtesting engine.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 

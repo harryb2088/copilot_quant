@@ -1,7 +1,6 @@
 """Tests for backtesting engine."""
 
 from datetime import datetime
-from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest

@@ -296,7 +296,7 @@ class TestBacktestIntegration:
         strategy = CallbackTrackingStrategy()
         engine.add_strategy(strategy)
         
-        result = engine.run(
+        engine.run(
             start_date=datetime(2020, 1, 1),
             end_date=datetime(2020, 12, 31),
             symbols=['SPY']
