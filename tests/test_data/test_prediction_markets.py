@@ -608,6 +608,8 @@ class TestSchemaValidation:
         assert isinstance(markets['market_id'].iloc[0], str)
         assert isinstance(markets['title'].iloc[0], str)
         assert isinstance(markets['status'].iloc[0], str)
+        
+        # Note: Polymarket transforms 'condition_id' to 'market_id' in list_markets()
     
     @patch('copilot_quant.data.prediction_markets.kalshi.requests.Session.get')
     def test_kalshi_markets_schema(self, mock_get, kalshi_provider):

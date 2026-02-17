@@ -149,7 +149,7 @@ Run specific test:
 pytest tests/test_data/test_normalization.py::TestNormalizationIdempotence::test_normalize_symbol_idempotent -v
 ```
 
-All 31 tests use comprehensive mocks and will pass without any network access.
+All tests use comprehensive mocks and will pass without any network access.
 
 ### Live API Tests (Optional)
 
