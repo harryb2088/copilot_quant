@@ -560,7 +560,9 @@ class PerformanceAnalyzer:
         Calculate portfolio turnover rate.
         
         Turnover measures how frequently the portfolio is traded.
-        Formula: (Total Trade Value / Avg Portfolio Value) / (Days / 365)
+        Formula: (Sum of Sells Only / Avg Portfolio Value) * (365 / Days)
+        
+        Note: We only count sells to avoid double-counting round-trip trades.
         
         Args:
             trades: List of all trade fills
@@ -573,10 +575,11 @@ class PerformanceAnalyzer:
         if not trades or avg_portfolio_value == 0 or period_days == 0:
             return 0.0
         
-        # Calculate total trade value (buys + sells)
+        # Calculate total trade value (sells only to avoid double-counting)
         total_trade_value = sum(
             abs(fill.fill_price * fill.fill_quantity) 
             for fill in trades
+            if fill.order.side == 'sell'
         )
         
         # Annualize the turnover
