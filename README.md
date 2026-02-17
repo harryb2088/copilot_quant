@@ -46,6 +46,206 @@ streamlit run src/ui/app.py
 
 The application will launch in your default web browser at `http://localhost:8501`
 
+## ☁️ Cloud Deployment on Vercel
+
+The Copilot Quant Platform can be deployed to Vercel with built-in authentication to keep your trading platform private.
+
+### Prerequisites for Vercel Deployment
+
+1. A [Vercel account](https://vercel.com/signup) (free tier works)
+2. [Vercel CLI](https://vercel.com/docs/cli) installed (optional, but recommended)
+   ```bash
+   npm install -g vercel
+   ```
+
+### Deployment Steps
+
+#### Option 1: Deploy with Vercel CLI (Recommended)
+
+1. **Install Vercel CLI** (if not already installed):
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Login to Vercel**:
+   ```bash
+   vercel login
+   ```
+
+3. **Deploy the application**:
+   ```bash
+   vercel
+   ```
+   
+   Follow the prompts to:
+   - Link to an existing project or create a new one
+   - Confirm the project settings
+   - Deploy to production
+
+4. **Set environment variables for authentication**:
+   ```bash
+   vercel env add AUTH_EMAIL
+   # Enter your login email when prompted (e.g., user@example.com)
+   
+   vercel env add AUTH_PASSWORD
+   # Enter your desired password when prompted
+   
+   vercel env add AUTH_NAME
+   # Enter the display name when prompted (e.g., "Admin User")
+   ```
+   
+   For each variable, select:
+   - Environment: `Production`, `Preview`, and `Development` (select all)
+   - Press Enter to confirm
+
+5. **Redeploy with environment variables**:
+   ```bash
+   vercel --prod
+   ```
+
+#### Option 2: Deploy via Vercel Dashboard
+
+1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
+2. Click "Add New Project"
+3. Import your GitHub repository
+4. Configure the project:
+   - Framework Preset: `Other`
+   - Build Command: (leave empty)
+   - Output Directory: (leave empty)
+5. Add environment variables in the "Environment Variables" section:
+   - `AUTH_EMAIL`: Your login email (e.g., `user@example.com`)
+   - `AUTH_PASSWORD`: Your desired password
+   - `AUTH_NAME`: Display name (e.g., `Admin User`)
+6. Click "Deploy"
+
+### Authentication Configuration
+
+The platform uses **streamlit-authenticator** to protect the UI with email/password login.
+
+#### Required Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `AUTH_EMAIL` | Login email/username | `admin@copilotquant.com` |
+| `AUTH_PASSWORD` | Login password (stored as hash) | `SecurePassword123!` |
+| `AUTH_NAME` | Display name for the user | `Admin User` |
+
+#### Managing User Credentials
+
+**To change credentials after deployment:**
+
+Using Vercel CLI:
+```bash
+# Update password
+vercel env rm AUTH_PASSWORD
+vercel env add AUTH_PASSWORD
+# Enter new password when prompted
+
+# Redeploy
+vercel --prod
+```
+
+Using Vercel Dashboard:
+1. Go to your project settings
+2. Navigate to "Environment Variables"
+3. Edit or remove existing variables
+4. Add new values
+5. Redeploy the application
+
+**To add multiple users:** Currently supports single-user authentication. For multi-user support, modify `src/ui/utils/auth.py` to accept multiple credentials.
+
+### Switching Between Private and Public Access
+
+#### Making the App Public (Disable Authentication)
+
+To disable authentication and make the app publicly accessible:
+
+1. **Remove authentication environment variables:**
+   ```bash
+   vercel env rm AUTH_EMAIL
+   vercel env rm AUTH_PASSWORD
+   vercel env rm AUTH_NAME
+   ```
+
+2. **Redeploy:**
+   ```bash
+   vercel --prod
+   ```
+
+When no authentication variables are set, the app will display a warning banner but allow access without login.
+
+#### Making the App Private (Enable Authentication)
+
+To re-enable authentication:
+
+1. **Set authentication environment variables** (see steps above)
+2. **Redeploy the application**
+
+### Vercel Configuration Files
+
+The repository includes these Vercel-specific files:
+
+- **`vercel.json`**: Deployment configuration
+  - Defines Python runtime and Streamlit entry point
+  - Configures routing and environment settings
+
+- **`.vercelignore`**: Files excluded from deployment
+  - Excludes tests, docs, examples, and development files
+  - Reduces deployment size and build time
+
+### Troubleshooting Vercel Deployment
+
+**App won't start:**
+- Check Vercel build logs in the dashboard
+- Verify all required dependencies are in `requirements.txt`
+- Ensure Python version compatibility (configured in `vercel.json`)
+
+**Authentication not working:**
+- Verify environment variables are set correctly
+- Check variable names match exactly: `AUTH_EMAIL`, `AUTH_PASSWORD`, `AUTH_NAME`
+- Ensure you've redeployed after setting environment variables
+
+**Slow loading:**
+- Vercel cold starts can take a few seconds
+- Consider upgrading to Vercel Pro for better performance
+- Large dependencies (like pandas, numpy) may increase initial load time
+
+**Build fails:**
+- Check the build logs for specific errors
+- Verify `requirements.txt` is properly formatted
+- Ensure no conflicting dependencies
+
+### Security Best Practices
+
+1. **Use strong passwords** for `AUTH_PASSWORD`
+2. **Never commit** environment variables to git
+3. **Rotate credentials** periodically
+4. **Use Vercel secrets** for sensitive data
+5. **Enable HTTPS** (Vercel provides this by default)
+6. **Monitor access logs** in Vercel dashboard
+
+### Custom Domain (Optional)
+
+To use a custom domain:
+
+1. Go to your project in Vercel Dashboard
+2. Navigate to "Settings" → "Domains"
+3. Add your custom domain
+4. Update DNS records as instructed
+5. Vercel will automatically provision SSL certificate
+
+### Limitations and Considerations
+
+- **Serverless environment**: Vercel uses serverless functions with execution time limits
+- **State management**: Session state may be lost between requests in some cases
+- **WebSocket support**: Limited compared to traditional servers
+- **For production trading**: Consider dedicated hosting for mission-critical live trading
+
+For advanced deployment needs or enterprise features, consider:
+- Self-hosted deployment on AWS/GCP/Azure
+- Container-based deployment with Docker
+- Dedicated server with full control
+
 ## 📱 Application Structure
 
 ```
