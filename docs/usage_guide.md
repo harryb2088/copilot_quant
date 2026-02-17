@@ -772,7 +772,7 @@ def on_data(self, timestamp, data):
         return []
     
     # Check for NaN values
-    if data['Close'].iloc[-1] is pd.isna():
+    if pd.isna(data['Close'].iloc[-1]):
         return []
     
     # Your logic here
