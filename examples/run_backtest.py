@@ -87,7 +87,7 @@ def main():
     COMMISSION = 0.001  # 0.1%
     SLIPPAGE = 0.0005   # 0.05%
     
-    print(f"\nBacktest Configuration:")
+    print("\nBacktest Configuration:")
     print(f"  Initial Capital: ${INITIAL_CAPITAL:,.2f}")
     print(f"  Period: {START_DATE.date()} to {END_DATE.date()}")
     print(f"  Symbols: {', '.join(SYMBOLS)}")
@@ -128,7 +128,7 @@ def main():
     print("Backtest Results")
     print("=" * 70)
     
-    print(f"\nPerformance Summary:")
+    print("\nPerformance Summary:")
     print(f"  Strategy: {result.strategy_name}")
     print(f"  Initial Capital: ${result.initial_capital:,.2f}")
     print(f"  Final Capital: ${result.final_capital:,.2f}")
@@ -137,7 +137,7 @@ def main():
     
     # Get summary stats
     stats = result.get_summary_stats()
-    print(f"\nTrading Statistics:")
+    print("\nTrading Statistics:")
     print(f"  Total Trades: {stats['total_trades']}")
     print(f"  Duration: {stats['duration_days']} days")
     

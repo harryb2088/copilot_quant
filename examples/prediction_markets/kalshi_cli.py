@@ -58,7 +58,7 @@ def list_markets(args):
             db_path=args.db_path
         )
         storage.save_markets('kalshi', markets)
-        print(f"\nSaved markets to storage")
+        print("\nSaved markets to storage")
 
 
 def fetch_market(args):
@@ -80,7 +80,7 @@ def fetch_market(args):
     print(f"Volume: ${details.get('volume', 0):,.2f}")
     
     # Fetch price data
-    print(f"\nFetching price data...")
+    print("\nFetching price data...")
     data = provider.get_market_data(
         args.market_id,
         start_date=args.start_date,
@@ -92,7 +92,7 @@ def fetch_market(args):
         return
     
     print(f"\nFetched {len(data)} data points")
-    print(f"\nLatest prices:")
+    print("\nLatest prices:")
     print(data.tail(10).to_string())
     
     # Save data
@@ -106,7 +106,7 @@ def fetch_market(args):
             db_path=args.db_path
         )
         storage.save_market_data('kalshi', args.market_id, data)
-        print(f"\nSaved data to SQLite database")
+        print("\nSaved data to SQLite database")
 
 
 def main():

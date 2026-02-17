@@ -5,7 +5,7 @@ Backtests Page - Configure and run strategy backtests
 import streamlit as st
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 import pandas as pd
 
 # Add parent directory to path for imports
@@ -143,7 +143,7 @@ if submit_button:
         import time
         time.sleep(2)  # Simulate backtest running
     
-    st.success(f"✅ Backtest completed successfully!")
+    st.success("✅ Backtest completed successfully!")
     st.info(f"""
     **Backtest Summary:**
     - Strategy: {selected_strategy}
@@ -194,11 +194,11 @@ if backtests:
     for i, (col, backtest) in enumerate(zip(cols, backtests)):
         with col:
             if backtest['status'] == 'Completed':
-                if st.button(f"📈 View", key=f"view_{backtest['id']}", use_container_width=True):
+                if st.button("📈 View", key=f"view_{backtest['id']}", use_container_width=True):
                     st.session_state.selected_backtest = backtest['id']
                     st.switch_page("pages/3_📈_Results.py")
             else:
-                st.button(f"⏳ Running", key=f"running_{backtest['id']}", disabled=True, use_container_width=True)
+                st.button("⏳ Running", key=f"running_{backtest['id']}", disabled=True, use_container_width=True)
 else:
     st.info("No backtests yet. Create your first backtest above!")
 
