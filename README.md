@@ -63,6 +63,8 @@ The application will launch in your default web browser at `http://localhost:850
 
 The Copilot Quant Platform can be deployed to Vercel with built-in authentication to keep your trading platform private.
 
+> **📚 Quick Start**: See [DEPLOYMENT.md](DEPLOYMENT.md) for a streamlined deployment guide with step-by-step instructions.
+
 ### Prerequisites for Vercel Deployment
 
 1. A [Vercel account](https://vercel.com/signup) (free tier works)
@@ -270,14 +272,34 @@ The repository includes these Vercel-specific files:
 - Check Vercel build logs in the dashboard
 - Verify all required dependencies are in `requirements.txt`
 - Ensure Python version compatibility (configured in `vercel.json`)
+- Verify the entry point path is correct: `src/ui/app.py`
 
 **Authentication not working:**
 - Verify environment variables are set correctly
 - Check variable names match exactly: `AUTH_EMAIL`, `AUTH_PASSWORD`, `AUTH_NAME`
 - Ensure you've redeployed after setting environment variables
+- Test with the exact email/password combination you configured
 
 **Slow loading:**
 - Vercel cold starts can take a few seconds
+- First load after deployment may be slower
+- Consider using a custom domain for better caching
+
+**Page not found (404):**
+- Verify the `vercel.json` routes configuration is correct
+- Ensure the source file path matches your repository structure
+- Check Vercel deployment logs for routing issues
+
+**Import errors:**
+- Ensure all dependencies are listed in `requirements.txt`
+- Verify no local imports are missing from the deployment
+- Check that package versions are compatible
+
+**Need help?**
+- Review Vercel deployment logs: `vercel logs <deployment-url>`
+- Check [Vercel Documentation](https://vercel.com/docs)
+- Consult [Streamlit Documentation](https://docs.streamlit.io)
+- Open an issue in the repository with deployment logs
 - Consider upgrading to Vercel Pro for better performance
 - Large dependencies (like pandas, numpy) may increase initial load time
 
