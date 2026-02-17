@@ -179,7 +179,7 @@ class PairsTradingStrategy(Strategy):
         ]
         
         if self.trading_pairs:
-            print(f"\n[{datetime.now().date()}] Identified {len(self.trading_pairs)} cointegrated pairs:")
+            print(f"\n[Rebalance] Identified {len(self.trading_pairs)} cointegrated pairs:")
             for sym1, sym2 in self.trading_pairs:
                 # Find the pair info from pairs list
                 pair_info = next(p for p in pairs if p[0] == sym1 and p[1] == sym2)

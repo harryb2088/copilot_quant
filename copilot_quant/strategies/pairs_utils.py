@@ -314,5 +314,6 @@ def calculate_half_life(spread: pd.Series) -> float:
             return np.inf
         
         return half_life
-    except:
+    except Exception:
+        # Catch regression errors (e.g., singular matrix, numerical issues)
         return np.inf
