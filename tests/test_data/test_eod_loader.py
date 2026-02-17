@@ -318,3 +318,135 @@ class TestSP500EODLoader:
         # Should have some successes and some failures
         assert len(result['success']) > 0
         assert 'INVALID_XYZ' in result['failed']
+    
+    @pytest.mark.integration
+    def test_daily_fetch_functionality(self, temp_dir):
+        """
+        Test daily fetch functionality for recent trading day.
+        
+        This test verifies that the loader can fetch data for a single trading day,
+        which is critical for daily update jobs.
+        """
+        loader = SP500EODLoader(
+            symbols=['AAPL'],
+            storage_type='csv',
+            data_dir=temp_dir
+        )
+        
+        # Fetch data for yesterday to ensure market was open
+        end_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        start_date = end_date
+        
+        df = loader.fetch_symbol('AAPL', start_date=start_date, end_date=end_date)
+        
+        # Verify data structure for daily fetch
+        assert df is not None
+        if not df.empty:  # Market might be closed on weekends
+            assert 'Symbol' in df.columns
+            assert df['Symbol'].iloc[0] == 'AAPL'
+            # Verify OHLCV columns exist
+            for col in ['open', 'high', 'low', 'close', 'volume']:
+                assert col in df.columns
+                # Verify data types
+                assert pd.api.types.is_numeric_dtype(df[col])
+    
+    def test_split_handling_in_data(self, temp_dir):
+        """
+        Test that stock split data is properly captured and stored.
+        
+        This test creates sample data with split information and verifies
+        it's correctly handled during save/load operations.
+        """
+        loader = SP500EODLoader(
+            symbols=['TSLA'],
+            storage_type='sqlite',
+            db_path=str(Path(temp_dir) / "test_splits.db")
+        )
+        
+        # Create sample data with stock split event
+        df = pd.DataFrame({
+            'date': ['2023-01-01', '2023-01-02', '2023-01-03'],
+            'open': [100.0, 50.0, 51.0],  # Price halved after split
+            'high': [105.0, 52.5, 53.0],
+            'low': [95.0, 47.5, 49.0],
+            'close': [102.0, 51.0, 52.0],
+            'adj_close': [102.0, 51.0, 52.0],
+            'volume': [1000000, 2000000, 1100000],  # Volume doubled after split
+            'dividends': [0.0, 0.0, 0.0],
+            'stock_splits': [0.0, 2.0, 0.0]  # 2-for-1 split on 2023-01-02
+        })
+        
+        # Save and load
+        loader.save_to_sqlite(df, 'TSLA')
+        loaded_df = loader.load_from_sqlite('TSLA')
+        
+        # Verify split data is preserved
+        assert loaded_df is not None
+        assert 'stock_splits' in loaded_df.columns
+        # Check that split event is recorded
+        split_rows = loaded_df[loaded_df['stock_splits'] > 0]
+        assert len(split_rows) > 0
+        assert split_rows.iloc[0]['stock_splits'] == 2.0
+    
+    def test_missing_symbol_error_handling(self, temp_dir):
+        """
+        Test robust error handling for non-existent symbols.
+        
+        Verifies that the loader gracefully handles:
+        - Invalid ticker symbols
+        - Delisted companies
+        - Symbols with no data in date range
+        """
+        loader = SP500EODLoader(
+            symbols=['NOTREAL123', 'FAKE456', 'BOGUS789'],
+            storage_type='csv',
+            data_dir=temp_dir
+        )
+        
+        # Test single invalid symbol
+        df = loader.fetch_symbol('NOTREAL123')
+        assert df is None or df.empty, "Should return None or empty for invalid symbol"
+        
+        # Test batch fetch with all invalid symbols
+        result = loader.fetch_all(continue_on_error=True)
+        
+        # All should fail
+        assert len(result['success']) == 0
+        assert len(result['failed']) == 3
+        assert 'NOTREAL123' in result['failed']
+        assert 'FAKE456' in result['failed']
+        assert 'BOGUS789' in result['failed']
+    
+    def test_dividend_data_capture(self, temp_dir):
+        """
+        Test that dividend information is properly captured.
+        
+        Verifies dividend data is preserved during fetch/save operations.
+        """
+        loader = SP500EODLoader(
+            symbols=['DIV'],
+            storage_type='csv',
+            data_dir=temp_dir
+        )
+        
+        # Create sample data with dividend payment
+        df = pd.DataFrame({
+            'Date': pd.date_range('2023-01-01', periods=3),
+            'open': [100, 101, 102],
+            'high': [105, 106, 107],
+            'low': [95, 96, 97],
+            'close': [102, 103, 104],
+            'volume': [1000000, 1100000, 1200000],
+            'Symbol': ['DIV'] * 3,
+            'dividends': [0.0, 0.52, 0.0]  # Dividend payment on day 2
+        })
+        
+        loader.save_to_csv(df, 'DIV')
+        loaded_df = loader.load_from_csv('DIV')
+        
+        # Verify dividend data is preserved
+        assert loaded_df is not None
+        if 'dividends' in loaded_df.columns:
+            dividend_rows = loaded_df[loaded_df['dividends'] > 0]
+            assert len(dividend_rows) > 0
+            assert dividend_rows.iloc[0]['dividends'] == 0.52

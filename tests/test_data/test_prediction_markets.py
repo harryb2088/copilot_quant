@@ -553,3 +553,225 @@ class TestPredictionMarketStorage:
         assert isinstance(normalized, str)
         assert '/' not in normalized
         assert ':' not in normalized
+
+
+class TestSchemaValidation:
+    """
+    Test schema validation for prediction market data.
+    
+    These tests ensure that data returned from providers conforms to expected
+    schemas, which is critical for data pipeline reliability.
+    """
+    
+    @pytest.fixture
+    def polymarket_provider(self):
+        """Create a Polymarket provider for testing."""
+        return PolymarketProvider()
+    
+    @pytest.fixture
+    def kalshi_provider(self):
+        """Create a Kalshi provider for testing."""
+        return KalshiProvider()
+    
+    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    def test_polymarket_markets_schema(self, mock_get, polymarket_provider):
+        """
+        Test that Polymarket list_markets returns correct schema.
+        
+        Validates all required columns are present and have correct types.
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = [
+            {
+                'condition_id': 'test_123',
+                'question': 'Test Question?',
+                'category': 'Test',
+                'end_date_iso': '2024-12-31T23:59:59Z',
+                'active': True,
+                'volume': 1000.0,
+                'liquidity': 500.0,
+            }
+        ]
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+        
+        markets = polymarket_provider.list_markets()
+        
+        # Validate schema
+        assert isinstance(markets, pd.DataFrame)
+        required_cols = ['market_id', 'title', 'category', 'status']
+        for col in required_cols:
+            assert col in markets.columns, f"Missing required column: {col}"
+        
+        # Validate data types
+        assert not markets.empty
+        assert isinstance(markets['market_id'].iloc[0], str)
+        assert isinstance(markets['title'].iloc[0], str)
+        assert isinstance(markets['status'].iloc[0], str)
+    
+    @patch('copilot_quant.data.prediction_markets.kalshi.requests.Session.get')
+    def test_kalshi_markets_schema(self, mock_get, kalshi_provider):
+        """
+        Test that Kalshi list_markets returns correct schema.
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            'events': [
+                {
+                    'category': 'Finance',
+                    'markets': [
+                        {
+                            'ticker': 'TEST-TICKER',
+                            'title': 'Test Market',
+                            'status': 'open',
+                            'close_time': '2024-12-31',
+                            'volume': 50000.0,
+                        }
+                    ]
+                }
+            ]
+        }
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+        
+        markets = kalshi_provider.list_markets()
+        
+        # Validate schema
+        assert isinstance(markets, pd.DataFrame)
+        required_cols = ['market_id', 'title', 'category', 'status']
+        for col in required_cols:
+            assert col in markets.columns, f"Missing required column: {col}"
+        
+        # Validate data types
+        assert not markets.empty
+        assert isinstance(markets['market_id'].iloc[0], str)
+
+
+class TestBadDataHandling:
+    """
+    Test handling of malformed or unexpected API responses.
+    
+    These tests ensure the data pipeline is resilient to:
+    - Malformed JSON
+    - Missing required fields
+    - Unexpected data types
+    - Empty responses
+    - API errors
+    """
+    
+    @pytest.fixture
+    def polymarket_provider(self):
+        return PolymarketProvider()
+    
+    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    def test_malformed_json_response(self, mock_get, polymarket_provider):
+        """
+        Test handling of malformed JSON response.
+        
+        Provider should return empty DataFrame rather than crashing.
+        """
+        mock_response = Mock()
+        mock_response.json.side_effect = ValueError("Invalid JSON")
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+        
+        markets = polymarket_provider.list_markets()
+        
+        # Should return empty DataFrame, not crash
+        assert isinstance(markets, pd.DataFrame)
+        assert markets.empty
+    
+    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    def test_missing_required_fields(self, mock_get, polymarket_provider):
+        """
+        Test handling of response missing required fields.
+        
+        Provider should handle missing fields gracefully.
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = [
+            {
+                # Missing 'condition_id' and 'question' fields
+                'category': 'Test',
+                'end_date_iso': '2024-12-31',
+            }
+        ]
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+        
+        markets = polymarket_provider.list_markets()
+        
+        # Should handle gracefully - may return data with empty values
+        assert isinstance(markets, pd.DataFrame)
+        # Just verify it doesn't crash
+    
+    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    def test_api_error_response(self, mock_get, polymarket_provider):
+        """
+        Test handling of API error (500, 404, etc).
+        """
+        import requests
+        
+        mock_response = Mock()
+        mock_response.raise_for_status.side_effect = requests.HTTPError("500 Server Error")
+        mock_get.return_value = mock_response
+        
+        markets = polymarket_provider.list_markets()
+        
+        # Should return empty DataFrame on API error
+        assert isinstance(markets, pd.DataFrame)
+        assert markets.empty
+    
+    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    def test_timeout_handling(self, mock_get, polymarket_provider):
+        """
+        Test handling of request timeout.
+        """
+        import requests
+        
+        mock_get.side_effect = requests.Timeout("Connection timed out")
+        
+        markets = polymarket_provider.list_markets()
+        
+        # Should return empty DataFrame on timeout
+        assert isinstance(markets, pd.DataFrame)
+        assert markets.empty
+    
+    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    def test_unexpected_data_types(self, mock_get, polymarket_provider):
+        """
+        Test handling of unexpected data types in response.
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = [
+            {
+                'condition_id': 123,  # Should be string
+                'question': ['Invalid', 'Type'],  # Should be string
+                'category': None,  # Unexpected None
+                'volume': 'not_a_number',  # Should be float
+            }
+        ]
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+        
+        markets = polymarket_provider.list_markets()
+        
+        # Should handle gracefully
+        assert isinstance(markets, pd.DataFrame)
+        # Don't crash - that's the main goal
+    
+    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    def test_empty_array_response(self, mock_get, polymarket_provider):
+        """
+        Test handling of empty array response (no markets available).
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = []
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+        
+        markets = polymarket_provider.list_markets()
+        
+        # Should return empty DataFrame
+        assert isinstance(markets, pd.DataFrame)
+        assert markets.empty

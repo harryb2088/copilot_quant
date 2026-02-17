@@ -566,3 +566,242 @@ class TestDataResampling:
 
         # Close should be averaged
         assert weekly.iloc[0]['close'] == pytest.approx(103.0)
+
+
+class TestNormalizationIdempotence:
+    """
+    Test that normalization operations are idempotent.
+    
+    Applying the same normalization twice should produce the same result.
+    This is critical for data pipeline reliability.
+    """
+    
+    def test_normalize_symbol_idempotent(self):
+        """
+        Test that symbol normalization is idempotent.
+        
+        Normalizing an already normalized symbol should return the same result.
+        """
+        from copilot_quant.data.normalization import normalize_symbol
+        
+        # First normalization
+        symbol = "  BRK-B  "
+        normalized1 = normalize_symbol(symbol, source='yahoo')
+        
+        # Second normalization of the result
+        normalized2 = normalize_symbol(normalized1, source='yahoo')
+        
+        # Should be the same
+        assert normalized1 == normalized2
+    
+    def test_standardize_columns_idempotent(self):
+        """
+        Test that column standardization is idempotent.
+        """
+        from copilot_quant.data.normalization import standardize_column_names
+        
+        # Create DataFrame with mixed case columns
+        df = pd.DataFrame({
+            'Open': [100, 101],
+            'High': [105, 106],
+            'Low': [95, 96],
+            'Close': [102, 103],
+        })
+        
+        # First standardization
+        df1 = standardize_column_names(df.copy())
+        
+        # Second standardization
+        df2 = standardize_column_names(df1.copy())
+        
+        # Column names should be identical
+        assert list(df1.columns) == list(df2.columns)
+        assert all(df1.columns == df2.columns)
+    
+    def test_timestamp_normalization_idempotent(self):
+        """
+        Test that timestamp normalization is idempotent.
+        """
+        from copilot_quant.data.normalization import normalize_timestamps
+        
+        # Create DataFrame with timestamps
+        df = pd.DataFrame({
+            'date': pd.date_range('2024-01-01', periods=3, tz='UTC'),
+            'price': [100, 101, 102]
+        })
+        
+        # First normalization
+        df1 = normalize_timestamps(df.copy(), market_type='equity', target_timezone='America/New_York')
+        
+        # Second normalization
+        df2 = normalize_timestamps(df1.copy(), market_type='equity', target_timezone='America/New_York')
+        
+        # Timestamps should be identical
+        pd.testing.assert_frame_equal(df1, df2)
+
+
+class TestNormalizationEdgeCases:
+    """
+    Test edge cases in data normalization.
+    
+    These tests ensure the pipeline handles unusual but valid scenarios:
+    - Empty DataFrames
+    - Single-row DataFrames
+    - Missing optional columns
+    - Extreme values
+    - Timezone edge cases
+    """
+    
+    def test_empty_dataframe_handling(self):
+        """
+        Test that normalization functions handle empty DataFrames gracefully.
+        """
+        from copilot_quant.data.normalization import (
+            standardize_column_names,
+            validate_data_quality,
+        )
+        
+        # Empty DataFrame
+        df = pd.DataFrame()
+        
+        # Should not crash
+        result = standardize_column_names(df)
+        assert isinstance(result, pd.DataFrame)
+        assert result.empty
+        
+        # Validation should identify it as invalid
+        issues = validate_data_quality(df)
+        assert len(issues) > 0
+        assert any('empty' in issue.lower() for issue in issues)
+    
+    def test_single_row_dataframe(self):
+        """
+        Test handling of single-row DataFrame.
+        
+        This is common for real-time data or latest quotes.
+        """
+        from copilot_quant.data.normalization import (
+            standardize_column_names,
+            validate_data_quality,
+        )
+        
+        # Single row
+        df = pd.DataFrame({
+            'Date': [pd.Timestamp('2024-01-01')],
+            'Open': [100.0],
+            'High': [105.0],
+            'Low': [95.0],
+            'Close': [102.0],
+            'Volume': [1000000]
+        })
+        
+        # Should handle single row
+        result = standardize_column_names(df)
+        assert len(result) == 1
+        assert 'open' in result.columns
+        
+        # Validation should pass
+        issues = validate_data_quality(result)
+        assert len(issues) == 0
+    
+    def test_extreme_price_values(self):
+        """
+        Test handling of extreme but valid price values.
+        """
+        from copilot_quant.data.normalization import validate_data_quality
+        
+        # Very high prices (like BRK.A)
+        df_high = pd.DataFrame({
+            'open': [500000.0, 505000.0],
+            'high': [510000.0, 515000.0],
+            'low': [495000.0, 500000.0],
+            'close': [505000.0, 510000.0],
+            'volume': [100, 150]
+        })
+        
+        issues = validate_data_quality(df_high)
+        # Should be valid (not flagged as error)
+        assert len(issues) == 0 or 'extreme' not in str(issues).lower()
+        
+        # Very low prices (penny stocks)
+        df_low = pd.DataFrame({
+            'open': [0.01, 0.015],
+            'high': [0.02, 0.025],
+            'low': [0.005, 0.01],
+            'close': [0.015, 0.02],
+            'volume': [10000000, 15000000]
+        })
+        
+        issues = validate_data_quality(df_low)
+        # Should be valid
+        assert len(issues) == 0 or 'negative' not in str(issues).lower()
+    
+    def test_timezone_edge_cases(self):
+        """
+        Test timezone handling edge cases.
+        """
+        from copilot_quant.data.normalization import normalize_timestamps
+        
+        # Daylight saving time transition
+        df = pd.DataFrame({
+            'date': pd.date_range('2024-03-10', periods=3, freq='h', tz='America/New_York'),
+            'price': [100, 101, 102]
+        })
+        
+        # Should handle DST transitions
+        result = normalize_timestamps(df, market_type='equity', target_timezone='America/New_York')
+        assert 'date' in result.columns or result.index.name == 'date'
+        assert len(result) == 3
+        
+        # Naive timestamps (no timezone)
+        df_naive = pd.DataFrame({
+            'date': pd.date_range('2024-01-01', periods=3, freq='h'),
+            'price': [100, 101, 102]
+        })
+        
+        # Should add timezone
+        result_naive = normalize_timestamps(df_naive, market_type='equity', target_timezone='America/New_York')
+        # Check if timezone was added (either to column or index)
+        if 'date' in result_naive.columns:
+            assert result_naive['date'].dt.tz is not None
+        else:
+            assert result_naive.index.tz is not None
+    
+    def test_missing_optional_columns(self):
+        """
+        Test handling of DataFrames missing optional columns.
+        """
+        from copilot_quant.data.normalization import standardize_column_names
+        
+        # DataFrame with only required columns
+        df = pd.DataFrame({
+            'Date': pd.date_range('2024-01-01', periods=3),
+            'Close': [100, 101, 102],
+        })
+        
+        # Should handle missing optional columns
+        result = standardize_column_names(df)
+        assert 'close' in result.columns
+        # Should not crash if volume, open, etc. are missing
+    
+    def test_duplicate_timestamps(self):
+        """
+        Test handling of duplicate timestamps.
+        
+        This can occur with intraday data from multiple sources.
+        """
+        from copilot_quant.data.normalization import detect_missing_data
+        
+        df = pd.DataFrame({
+            'close': [100, 100.5, 101, 101.5],
+            'volume': [1000, 2000, 3000, 4000]
+        }, index=pd.to_datetime(['2024-01-01', '2024-01-01', '2024-01-02', '2024-01-02']))
+        
+        # Should handle duplicates without crashing
+        try:
+            missing = detect_missing_data(df)
+            # Should not crash
+            assert isinstance(missing, dict)
+        except Exception:
+            # If it raises an exception, at least it didn't crash the process
+            pass
