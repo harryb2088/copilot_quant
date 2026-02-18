@@ -77,13 +77,13 @@ class TestIBKRLiveDataFeed(unittest.TestCase):
         """Test automatic port detection based on trading mode"""
         # Just verify connection manager is called with correct params
         # Paper TWS
-        feed = IBKRLiveDataFeed(paper_trading=True, use_gateway=False)
+        _ = IBKRLiveDataFeed(paper_trading=True, use_gateway=False)
         # Live TWS
-        feed = IBKRLiveDataFeed(paper_trading=False, use_gateway=False)
+        _ = IBKRLiveDataFeed(paper_trading=False, use_gateway=False)
         # Paper Gateway
-        feed = IBKRLiveDataFeed(paper_trading=True, use_gateway=True)
+        _ = IBKRLiveDataFeed(paper_trading=True, use_gateway=True)
         # Live Gateway
-        feed = IBKRLiveDataFeed(paper_trading=False, use_gateway=True)
+        _ = IBKRLiveDataFeed(paper_trading=False, use_gateway=True)
         # Connection manager handles port auto-detection
     
     def test_connect_success(self):
