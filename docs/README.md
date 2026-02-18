@@ -68,6 +68,24 @@ For customization and extension:
    - Advanced performance analyzer
    - Best for: Building custom components
 
+### For UI Features
+
+For understanding the Streamlit UI features:
+
+9. **[LLM Strategy Generation](llm_strategy_generation.md)** 🤖
+   - LLM-based strategy creation
+   - Natural language to signal logic
+   - Security safeguards
+   - Setup and configuration
+   - Best for: Internal users generating strategies with AI
+
+10. **[LLM Quick Start](llm_quickstart.md)** ⚡
+    - Quick overview of LLM features
+    - Step-by-step demo
+    - Example strategies
+    - Troubleshooting
+    - Best for: Getting started quickly with LLM
+
 ## 🎯 Common Tasks
 
 ### "I want to run my first backtest"
