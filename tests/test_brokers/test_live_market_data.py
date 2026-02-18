@@ -5,8 +5,8 @@ These tests use mocking to avoid requiring an actual IBKR connection.
 """
 
 import unittest
-from unittest.mock import Mock, MagicMock, patch, call
-from datetime import datetime, timedelta
+from unittest.mock import Mock, MagicMock, patch
+from datetime import datetime
 import pandas as pd
 import numpy as np
 

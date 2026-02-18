@@ -329,7 +329,7 @@ class TestMetadataManagement:
         
         If metadata is corrupted, system should reinitialize.
         """
-        updater = DataUpdater(storage_type='csv', data_dir=temp_dir)
+        DataUpdater(storage_type='csv', data_dir=temp_dir)
         
         # Corrupt the metadata
         metadata_path = Path(temp_dir) / 'update_metadata.csv'

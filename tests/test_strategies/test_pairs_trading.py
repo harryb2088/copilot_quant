@@ -1,6 +1,6 @@
 """Tests for pairs trading strategy."""
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import List
 
 import numpy as np
@@ -197,7 +197,7 @@ class TestPairsTradingStrategy:
         
         engine.add_strategy(strategy)
         
-        result = engine.run(
+        engine.run(
             start_date=datetime(2023, 1, 1),
             end_date=datetime(2023, 6, 30),
             symbols=['PAIR_A', 'PAIR_B', 'INDEP']

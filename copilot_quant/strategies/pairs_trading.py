@@ -7,19 +7,17 @@ based on Z-score signals.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
 
 from copilot_quant.backtest import Order, Strategy
 from copilot_quant.strategies.pairs_utils import (
-    calculate_correlation,
     calculate_hedge_ratio,
     calculate_spread,
     calculate_zscore,
     find_cointegrated_pairs,
-    test_cointegration,
 )
 
 
@@ -151,8 +149,6 @@ class PairsTradingStrategy(Strategy):
         # Get unique symbols from data
         if 'Symbol' in data.columns:
             # Data in long format
-            symbols = data['Symbol'].unique()
-            
             # Pivot to get prices by symbol
             prices_df = data.pivot_table(
                 index=data.index,
