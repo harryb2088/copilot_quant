@@ -14,7 +14,7 @@ Log format is designed for easy parsing and analysis.
 import logging
 import json
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from pathlib import Path
 
 from .order_execution_handler import OrderRecord, OrderStatus, Fill
@@ -100,6 +100,9 @@ class OrderLogger:
         # Log to file
         if self.file_logger:
             self.file_logger.info(json_log)
+            # Flush to ensure writes complete
+            for handler in self.file_logger.handlers:
+                handler.flush()
         
         # Log to console
         if self.log_to_console:
