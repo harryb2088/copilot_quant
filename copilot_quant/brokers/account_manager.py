@@ -280,8 +280,12 @@ class IBKRAccountManager:
             return True
         
         try:
-            # Subscribe to account updates
-            self.ib.reqAccountUpdates()
+            # Subscribe to account updates for this account
+            # Note: If account_id is None, IBKR will use the first account
+            if self.account_id:
+                self.ib.reqAccountUpdates(account=self.account_id)
+            else:
+                self.ib.reqAccountUpdates()
             
             # Register event handler
             self.ib.accountValueEvent += self._on_account_value_update

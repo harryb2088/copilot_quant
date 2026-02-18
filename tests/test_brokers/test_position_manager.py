@@ -326,7 +326,7 @@ class TestIBKRPositionManager(unittest.TestCase):
         result = mgr.start_monitoring()
         
         self.assertTrue(result)
-        self.assertTrue(mgr._monitoring_active)
+        self.assertTrue(mgr.is_monitoring())
     
     def test_stop_monitoring(self):
         """Test stopping position monitoring"""
@@ -336,7 +336,7 @@ class TestIBKRPositionManager(unittest.TestCase):
         result = mgr.stop_monitoring()
         
         self.assertTrue(result)
-        self.assertFalse(mgr._monitoring_active)
+        self.assertFalse(mgr.is_monitoring())
     
     def test_register_update_callback(self):
         """Test registering update callback"""

@@ -222,9 +222,11 @@ class IBKRPositionManager:
                 # Try to get current market value if available
                 # Note: This requires market data subscription
                 try:
-                    # Request current market data (non-blocking)
+                    # Request current market data (non-blocking snapshot)
                     ticker = self.ib.reqMktData(ib_pos.contract, snapshot=True)
-                    self.ib.sleep(0.1)  # Brief wait for data
+                    # Brief wait for data - intentional to avoid IBKR rate limits
+                    # and give time for snapshot data to arrive
+                    self.ib.sleep(0.1)
                     
                     if ticker.marketPrice() and ticker.marketPrice() > 0:
                         position.market_price = ticker.marketPrice()

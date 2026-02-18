@@ -221,7 +221,7 @@ class TestIBKRAccountManager(unittest.TestCase):
         result = mgr.start_monitoring()
         
         self.assertTrue(result)
-        self.assertTrue(mgr._monitoring_active)
+        self.assertTrue(mgr.is_monitoring())
         self.mock_ib.reqAccountUpdates.assert_called_once()
     
     def test_start_monitoring_already_active(self):
@@ -243,7 +243,7 @@ class TestIBKRAccountManager(unittest.TestCase):
         result = mgr.stop_monitoring()
         
         self.assertTrue(result)
-        self.assertFalse(mgr._monitoring_active)
+        self.assertFalse(mgr.is_monitoring())
     
     def test_register_update_callback(self):
         """Test registering update callback"""
