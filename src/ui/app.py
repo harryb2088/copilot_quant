@@ -50,8 +50,6 @@ st.title("🚀 Copilot Quant Platform")
 st.markdown("**Professional Algorithmic Trading & Portfolio Analytics**")
 st.markdown("---")
 
-st.markdown("---")
-
 st.markdown("""
 ### Welcome to Your Professional Trading Platform
 

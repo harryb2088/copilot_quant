@@ -171,7 +171,7 @@ def get_next_dividend_calendar(positions_df, days_ahead=90):
         if div_info['annual_dividend'] > 0:
             next_date = div_info['next_ex_date']
             
-            # Check if within the lookback window
+            # Check if within the lookahead window
             if next_date <= datetime.now() + timedelta(days=days_ahead):
                 payment_amount = (div_info['annual_dividend'] / 
                                  (4 if div_info['frequency'] == 'Quarterly' else 1))
