@@ -6,14 +6,14 @@ from copilot_quant.strategies.pairs_utils import (
     calculate_hedge_ratio,
     calculate_spread,
     calculate_zscore,
+    check_cointegration,
     find_cointegrated_pairs,
-    test_cointegration,
     calculate_half_life,
 )
 
 __all__ = [
     "PairsTradingStrategy",
-    "test_cointegration",
+    "check_cointegration",
     "calculate_correlation",
     "calculate_hedge_ratio",
     "calculate_spread",

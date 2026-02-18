@@ -14,7 +14,7 @@ from scipy import stats
 from statsmodels.tsa.stattools import coint
 
 
-def test_cointegration(
+def check_cointegration(
     series1: pd.Series,
     series2: pd.Series,
     significance_level: float = 0.05
@@ -37,7 +37,7 @@ def test_cointegration(
         - test_statistic: Test statistic from the cointegration test
     
     Example:
-        >>> is_coint, pvalue, stat = test_cointegration(prices1, prices2)
+        >>> is_coint, pvalue, stat = check_cointegration(prices1, prices2)
         >>> if is_coint:
         ...     print(f"Series are cointegrated (p={pvalue:.4f})")
     """
@@ -249,7 +249,7 @@ def find_cointegrated_pairs(
                 continue
             
             # Test cointegration
-            is_coint, p_value, test_stat = test_cointegration(s1, s2)
+            is_coint, p_value, test_stat = check_cointegration(s1, s2)
             
             if is_coint:
                 cointegrated_pairs.append((sym1, sym2, p_value, corr))
