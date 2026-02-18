@@ -1439,9 +1439,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code style, a
 - [Usage Guide](docs/usage_guide.md) - Comprehensive guide with strategy examples
 
 ### Additional Resources
-- [Interactive Brokers Setup Guide](docs/ibkr_setup_guide.md) - Complete IBKR API setup and configuration
+- **Interactive Brokers Integration**
+  - [IBKR Integration Epic](issues/ibkr-epic-master.md) - Complete roadmap for live trading integration
+  - [IBKR Setup Guide](docs/ibkr_setup_guide.md) - Complete IBKR API setup and configuration
+  - [Quick Start Guide](examples/IBKR_SETUP.md) - Quick setup for paper trading
   - **Quick Start**: Run `python examples/test_ibkr_connection.py` to test your IB connection
   - **Working Implementation**: See `copilot_quant/brokers/interactive_brokers.py`
+  - **Child Issues**: See [issues/README.md](issues/README.md) for all 11 implementation tasks
 - [Prediction Markets Guide](docs/prediction_markets_guide.md) - Integration with prediction market data
 - [Data Management Guide](docs/data_management_guide.md) - Data pipeline and normalization
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project
@@ -1727,8 +1731,12 @@ tests/test_data/test_prediction_markets.py::test_schema... PASSED
 - [ ] Basic trading strategies (Moving Average, Mean Reversion)
 - [ ] Performance metrics and reporting
 - [ ] Streamlit UI for strategy configuration
-- [ ] Interactive Brokers integration (paper trading)
-- [ ] Live trading capabilities
+- [x] Interactive Brokers integration (paper trading)
+  - [x] Basic broker connection and order execution
+  - [x] Paper trading tested and working
+  - [x] Comprehensive setup documentation
+  - [ ] Enhanced features (see [IBKR Integration Epic](issues/ibkr-epic-master.md))
+- [ ] Live trading capabilities (see [IBKR Integration Epic](issues/ibkr-epic-master.md) for roadmap)
 - [x] Advanced risk management
   - [x] RiskManager class with portfolio and position-level controls
   - [x] Circuit breaker for automatic liquidation
