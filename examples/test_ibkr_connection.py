@@ -13,11 +13,29 @@ Prerequisites:
 3. Enable API access in TWS/Gateway settings
 4. Use paper trading mode (port 7497 for TWS, 4002 for Gateway)
 
+Configuration (Optional):
+    You can configure connection settings via .env file:
+    - IB_HOST=127.0.0.1
+    - IB_PORT=7497 (for paper trading with TWS)
+    - IB_CLIENT_ID=1
+    - IB_PAPER_ACCOUNT=DUB267514 (your paper account number)
+    
+    See .env.example for a template.
+
 For detailed setup instructions, see: docs/ibkr_setup_guide.md
 """
 
 import sys
 from pathlib import Path
+import os
+
+# Load environment variables from .env file if present
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not installed, will use system environment variables
+    pass
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -43,20 +61,33 @@ def main():
     PAPER_TRADING = True  # Always use paper trading for safety
     USE_GATEWAY = False   # Set to True if using IB Gateway instead of TWS
     
+    # Check if environment variables are set
+    env_configured = bool(os.getenv('IB_HOST') or os.getenv('IB_PORT'))
+    
     print("Configuration:")
     print(f"  Paper Trading: {PAPER_TRADING}")
     print(f"  Application: {'IB Gateway' if USE_GATEWAY else 'TWS'}")
-    print(f"  Expected Port: {4002 if USE_GATEWAY and PAPER_TRADING else 7497 if PAPER_TRADING else 'N/A'}")
+    print(f"  Environment Variables: {'✓ Found (.env configured)' if env_configured else '✗ Not set (using defaults)'}")
+    if env_configured:
+        print(f"    IB_HOST: {os.getenv('IB_HOST', 'not set')}")
+        print(f"    IB_PORT: {os.getenv('IB_PORT', 'not set')}")
+        print(f"    IB_CLIENT_ID: {os.getenv('IB_CLIENT_ID', 'not set')}")
+        if os.getenv('IB_PAPER_ACCOUNT'):
+            print(f"    IB_PAPER_ACCOUNT: {os.getenv('IB_PAPER_ACCOUNT')}")
+    else:
+        print(f"  Using Default Port: {4002 if USE_GATEWAY and PAPER_TRADING else 7497 if PAPER_TRADING else 'N/A'}")
     print()
     
     # Create broker instance
     print("Step 1: Creating broker instance...")
+    # Broker will automatically use environment variables if available
     broker = IBKRBroker(
         paper_trading=PAPER_TRADING,
-        use_gateway=USE_GATEWAY,
-        client_id=1  # Use a unique client ID if running multiple instances
+        use_gateway=USE_GATEWAY
+        # host, port, client_id will be read from .env if available
     )
     print("✓ Broker instance created")
+    print(f"  Connecting to: {broker.host}:{broker.port} (Client ID: {broker.client_id})")
     print()
     
     # Connect to IBKR

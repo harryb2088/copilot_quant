@@ -12,11 +12,18 @@ Port Configuration:
 - Paper Trading (IB Gateway): 4002
 - Live Trading (IB Gateway): 4001
 
+Environment Variables (optional):
+    IB_HOST: Interactive Brokers host (default: 127.0.0.1)
+    IB_PORT: IB API port (default: 7497 for paper trading)
+    IB_CLIENT_ID: Unique client identifier (default: 1)
+    IB_PAPER_ACCOUNT: Paper trading account number (for reference)
+
 Prerequisites:
     pip install ib_insync>=0.9.86
 """
 
 import logging
+import os
 from typing import Optional, List, Dict, Any
 import time
 
@@ -38,49 +45,90 @@ class IBKRBroker:
     This class provides a working connection to IB paper trading accounts.
     Tested and verified with IB Gateway and TWS.
     
-    Example:
+    Configuration priority: explicit parameters > environment variables > defaults
+    
+    Example (using defaults):
         >>> broker = IBKRBroker(paper_trading=True)
         >>> if broker.connect():
         ...     balance = broker.get_account_balance()
         ...     print(f"Account balance: {balance}")
         ...     broker.disconnect()
+    
+    Example (using environment variables from .env):
+        >>> # Set IB_HOST=127.0.0.1, IB_PORT=7497, IB_CLIENT_ID=1 in .env
+        >>> broker = IBKRBroker(paper_trading=True)  # Will use env vars
+        >>> broker.connect()
+    
+    Example (explicit parameters):
+        >>> broker = IBKRBroker(
+        ...     paper_trading=True,
+        ...     host='127.0.0.1',
+        ...     port=7497,
+        ...     client_id=1
+        ... )
+        >>> broker.connect()
     """
     
     def __init__(
         self, 
         paper_trading: bool = True,
-        host: str = '127.0.0.1',
-        client_id: int = 1,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        client_id: Optional[int] = None,
         use_gateway: bool = False
     ):
         """
         Initialize IBKR broker connection.
         
+        Connection parameters can be provided directly or via environment variables.
+        Environment variables are used as defaults if parameters are not provided.
+        
         Args:
             paper_trading: If True, connect to paper trading account (default: True)
-            host: IB API host address (default: '127.0.0.1' for localhost)
-            client_id: Unique client identifier (default: 1)
+            host: IB API host address (default: from IB_HOST env or '127.0.0.1')
+            port: IB API port (default: from IB_PORT env or auto-detected based on mode)
+            client_id: Unique client identifier (default: from IB_CLIENT_ID env or 1)
             use_gateway: If True, use IB Gateway ports, else use TWS ports
+            
+        Environment Variables:
+            IB_HOST: Interactive Brokers host (default: 127.0.0.1)
+            IB_PORT: IB API port (overrides auto-detection)
+            IB_CLIENT_ID: Unique client identifier (default: 1)
+            IB_PAPER_ACCOUNT: Paper trading account number (for reference only)
         """
         self.ib = IB()
         self.paper_trading = paper_trading
-        self.host = host
-        self.client_id = client_id
         self.use_gateway = use_gateway
         
-        # Determine port based on trading mode and application
-        if use_gateway:
-            # IB Gateway ports
-            self.port = 4002 if paper_trading else 4001
+        # Get configuration from environment variables or use defaults
+        self.host = host or os.getenv('IB_HOST', '127.0.0.1')
+        self.client_id = client_id or int(os.getenv('IB_CLIENT_ID', '1'))
+        
+        # Determine port: explicit param > env var > auto-detect based on mode
+        if port is not None:
+            self.port = port
+        elif os.getenv('IB_PORT'):
+            self.port = int(os.getenv('IB_PORT'))
         else:
-            # TWS ports  
-            self.port = 7497 if paper_trading else 7496
+            # Auto-detect port based on trading mode and application
+            if use_gateway:
+                # IB Gateway ports
+                self.port = 4002 if paper_trading else 4001
+            else:
+                # TWS ports  
+                self.port = 7497 if paper_trading else 7496
             
         self._connected = False
         
         # Setup logging
         logger.info(
             f"Initialized IBKRBroker: "
+            f"mode={'Paper' if paper_trading else 'Live'}, "
+            f"app={'Gateway' if use_gateway else 'TWS'}, "
+            f"host={self.host}, "
+            f"port={self.port}, "
+            f"client_id={self.client_id}"
+        )
             f"mode={'Paper' if paper_trading else 'Live'}, "
             f"app={'Gateway' if use_gateway else 'TWS'}, "
             f"port={self.port}"

@@ -21,6 +21,31 @@ Or install all project dependencies:
 pip install -r requirements.txt
 ```
 
+### 2a. Configure Environment Variables (Optional but Recommended)
+
+Copy `.env.example` to `.env` and update with your settings:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+```bash
+# Interactive Brokers Configuration
+IB_HOST=127.0.0.1
+IB_PORT=7497              # Paper Trading (TWS) - Port 7497
+IB_CLIENT_ID=1
+IB_PAPER_ACCOUNT=DUB267514  # Your paper trading account number
+```
+
+**Port Reference:**
+- TWS Paper Trading: `7497`
+- TWS Live Trading: `7496`
+- IB Gateway Paper Trading: `4002`
+- IB Gateway Live Trading: `4001`
+
+The broker will automatically use these settings if the `.env` file is present.
+
 ### 3. Configure TWS/IB Gateway
 
 Before running the test, you must configure TWS or IB Gateway:

@@ -13,6 +13,7 @@ streamlit-authenticator>=0.3.0
 
 # Broker integration
 ib_insync>=0.9.86
+python-dotenv>=0.19.0  # For loading .env configuration
 
 # Database
 sqlalchemy>=2.0.0

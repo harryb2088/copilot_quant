@@ -6,16 +6,32 @@ This guide provides comprehensive instructions for setting up and configuring In
 
 **Want to test your IB connection right away?**
 
-1. Ensure TWS or IB Gateway is running with API enabled (see [Step-by-Step Configuration](#step-by-step-configuration))
-2. Run the test script:
+1. Copy `.env.example` to `.env` and configure your settings:
+   ```bash
+   cp .env.example .env
+   ```
+   
+2. Edit `.env` with your paper trading details:
+   ```bash
+   IB_HOST=127.0.0.1
+   IB_PORT=7497              # Paper Trading (TWS)
+   IB_CLIENT_ID=1
+   IB_PAPER_ACCOUNT=DUB267514  # Your paper account number
+   ```
+
+3. Ensure TWS or IB Gateway is running with API enabled (see [Step-by-Step Configuration](#step-by-step-configuration))
+
+4. Run the test script:
    ```bash
    python examples/test_ibkr_connection.py
    ```
-3. See [examples/IBKR_SETUP.md](../examples/IBKR_SETUP.md) for detailed instructions
+   
+5. See [examples/IBKR_SETUP.md](../examples/IBKR_SETUP.md) for detailed instructions
 
 **Working Implementation:**
 - Broker class: [`copilot_quant/brokers/interactive_brokers.py`](../copilot_quant/brokers/interactive_brokers.py)
 - Test script: [`examples/test_ibkr_connection.py`](../examples/test_ibkr_connection.py)
+- Configuration template: [`.env.example`](../.env.example)
 - Quick guide: [`examples/IBKR_SETUP.md`](../examples/IBKR_SETUP.md)
 
 ---
