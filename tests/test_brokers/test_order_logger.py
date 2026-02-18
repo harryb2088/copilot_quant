@@ -5,11 +5,8 @@ These tests verify the structured logging functionality for orders.
 """
 
 import unittest
-from unittest.mock import Mock, MagicMock, patch
 from datetime import datetime
 import tempfile
-import json
-from pathlib import Path
 
 from copilot_quant.brokers.order_logger import OrderLogger
 from copilot_quant.brokers.order_execution_handler import (

@@ -19,7 +19,7 @@ from threading import Lock
 import uuid
 
 try:
-    from ib_insync import Trade, Order, OrderStatus as IBOrderStatus
+    from ib_insync import Trade
 except ImportError as e:
     raise ImportError(
         "ib_insync is required for IBKR integration. "
