@@ -21,6 +21,8 @@ The platform is protected with email/password authentication. Environment variab
 - **Backtesting Engine**: Test strategies against historical market data
 - **Performance Analytics**: Comprehensive metrics, charts, and visualizations
 - **Paper Trading**: Safe testing environment with real market data
+- **Live Market Data**: Real-time price streaming via Interactive Brokers (IBKR)
+- **Historical Data Download**: Backfill capability for any timeframe via IBKR
 - **Risk Management**: Comprehensive risk controls with circuit breaker protection
 - **Data Pipeline**: Automated backfill and incremental updates for S&P500 and prediction markets
 - **Multi-Page UI**: Clean, intuitive Streamlit web interface
@@ -602,6 +604,101 @@ python scripts/daily_update.py --storage sqlite --db-path data/market_data.db
 - **Scripts Guide**: [`scripts/README.md`](scripts/README.md) - Detailed usage for all data scripts
 - **Scheduling Guide**: [`docs/SCHEDULING.md`](docs/SCHEDULING.md) - Automated execution setup
 - **Sample Logs**: [`data/logs/`](data/logs/) - Example log files from script execution
+
+## 📡 Live Market Data Feed (IBKR)
+
+The platform now supports **real-time market data streaming** and **historical data downloads** via Interactive Brokers (IBKR).
+
+### Features
+
+- ✅ Real-time price streaming for multiple symbols
+- ✅ Historical bar data download for backfilling
+- ✅ Automatic data normalization to internal format
+- ✅ Subscription management (subscribe/unsubscribe)
+- ✅ Automatic reconnection handling
+- ✅ Comprehensive error handling and logging
+
+### Quick Start
+
+```python
+from copilot_quant.brokers.live_market_data import IBKRLiveDataFeed
+
+# Create and connect
+feed = IBKRLiveDataFeed(paper_trading=True)
+feed.connect()
+
+# Subscribe to real-time data
+feed.subscribe(['AAPL', 'MSFT', 'GOOGL'])
+
+# Get latest price
+price = feed.get_latest_price('AAPL')
+print(f"AAPL: ${price}")
+
+# Download historical data
+df = feed.get_historical_bars('AAPL', duration='1 M', bar_size='1 day')
+
+# Clean up
+feed.disconnect()
+```
+
+### Prerequisites
+
+1. **Interactive Brokers Account** (paper or live)
+2. **TWS or IB Gateway** running locally
+3. **API connections enabled** in TWS/Gateway settings
+4. **ib_insync library**: Already included in requirements
+
+### Configuration
+
+The data feed auto-detects connection settings:
+
+- **Paper TWS**: Port 7497 (default)
+- **Live TWS**: Port 7496
+- **Paper Gateway**: Port 4002
+- **Live Gateway**: Port 4001
+
+Override with environment variables in `.env`:
+```bash
+IB_HOST=127.0.0.1
+IB_PORT=7497
+IB_CLIENT_ID=1
+```
+
+### Usage Examples
+
+See [`examples/ibkr_live_data_example.py`](examples/ibkr_live_data_example.py) for comprehensive examples including:
+
+1. Basic real-time price monitoring
+2. Historical data download
+3. Multiple timeframes
+4. Reconnection handling
+5. Symbol universe management
+
+### Documentation
+
+For detailed documentation, see:
+- **[Live Market Data Guide](docs/live_market_data_guide.md)** - Complete API reference and usage guide
+- **[IBKR Setup Guide](docs/ibkr_setup_guide.md)** - TWS/Gateway setup instructions
+
+### Changing Symbol Universe
+
+```python
+# Method 1: Direct subscription
+symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META']
+feed.subscribe(symbols)
+
+# Method 2: Dynamic updates
+feed.subscribe(['TSLA', 'NVDA'])  # Add
+feed.unsubscribe(['AAPL'])        # Remove
+
+# Method 3: Load from file
+with open('watchlist.txt') as f:
+    symbols = [line.strip() for line in f if line.strip()]
+feed.subscribe(symbols)
+
+# Check active subscriptions
+active = feed.get_subscribed_symbols()
+```
 
 ## ⚠️ Safety Notice
 
