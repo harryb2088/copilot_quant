@@ -6,7 +6,7 @@ pairs trading strategies, including cointegration tests, correlation
 analysis, and spread calculations.
 """
 
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd

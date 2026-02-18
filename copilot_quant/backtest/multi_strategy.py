@@ -7,9 +7,8 @@ simultaneously with dynamic capital allocation based on signal quality.
 
 import logging
 import uuid
-from collections import defaultdict
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import pandas as pd
 
@@ -432,7 +431,7 @@ class MultiStrategyEngine(BacktestEngine):
         Returns:
             Position size in dollars
         """
-        portfolio_value = self.get_portfolio_value()
+        self.get_portfolio_value()
         
         # Base position size from signal quality and max position limit
         # Use cash instead of portfolio value for position sizing
