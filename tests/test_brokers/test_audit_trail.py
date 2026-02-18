@@ -197,7 +197,7 @@ class TestAuditTrail(unittest.TestCase):
         report = self.audit.generate_compliance_report(
             date.today(),
             date.today(),
-            format='json'
+            output_format='json'
         )
         
         # Should be valid JSON
@@ -221,7 +221,7 @@ class TestAuditTrail(unittest.TestCase):
         report = self.audit.generate_compliance_report(
             date.today(),
             date.today(),
-            format='text'
+            output_format='text'
         )
         
         # Should be text format
@@ -235,7 +235,7 @@ class TestAuditTrail(unittest.TestCase):
             self.audit.generate_compliance_report(
                 date.today(),
                 date.today(),
-                format='xml'
+                output_format='xml'
             )
     
     def test_export_audit_trail_json(self):

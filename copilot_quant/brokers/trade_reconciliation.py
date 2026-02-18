@@ -211,14 +211,28 @@ class TradeReconciliation:
             ibkr_fills = []
             for fill in fills:
                 try:
+                    # Validate and convert shares to int
+                    shares = fill.execution.shares
+                    if not isinstance(shares, (int, float)):
+                        logger.warning(f"Invalid shares type for fill {fill.execution.execId}: {type(shares)}")
+                        continue
+                    quantity = int(shares)
+                    
+                    # Get commission with warning if missing
+                    commission = 0.0
+                    if fill.commissionReport:
+                        commission = float(fill.commissionReport.commission)
+                    else:
+                        logger.warning(f"Missing commission data for fill {fill.execution.execId}")
+                    
                     ibkr_fill = IBKRFill(
                         execution_id=fill.execution.execId,
                         order_id=fill.execution.orderId,
                         symbol=fill.contract.symbol,
                         side=fill.execution.side,
-                        quantity=int(fill.execution.shares),
+                        quantity=quantity,
                         price=float(fill.execution.price),
-                        commission=float(fill.commissionReport.commission) if fill.commissionReport else 0.0,
+                        commission=commission,
                         timestamp=fill.time,
                         raw_data=fill
                     )

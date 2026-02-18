@@ -390,10 +390,15 @@ class TradeDatabase:
         Returns:
             List of OrderModel objects
         """
+        from datetime import timedelta
+        
         with self.get_session() as session:
+            start_time = datetime.combine(target_date, datetime.min.time())
+            end_time = datetime.combine(target_date + timedelta(days=1), datetime.min.time())
+            
             orders = session.query(OrderModel).filter(
-                OrderModel.submission_time >= datetime.combine(target_date, datetime.min.time()),
-                OrderModel.submission_time < datetime.combine(target_date, datetime.max.time())
+                OrderModel.submission_time >= start_time,
+                OrderModel.submission_time < end_time
             ).all()
             
             # Detach from session
@@ -431,10 +436,15 @@ class TradeDatabase:
         Returns:
             List of FillModel objects
         """
+        from datetime import timedelta
+        
         with self.get_session() as session:
+            start_time = datetime.combine(target_date, datetime.min.time())
+            end_time = datetime.combine(target_date + timedelta(days=1), datetime.min.time())
+            
             fills = session.query(FillModel).filter(
-                FillModel.timestamp >= datetime.combine(target_date, datetime.min.time()),
-                FillModel.timestamp < datetime.combine(target_date, datetime.max.time())
+                FillModel.timestamp >= start_time,
+                FillModel.timestamp < end_time
             ).all()
             
             session.expunge_all()

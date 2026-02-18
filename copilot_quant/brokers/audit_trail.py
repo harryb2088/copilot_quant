@@ -228,26 +228,26 @@ class AuditTrail:
         }
     
     def generate_compliance_report(self, start_date: date, end_date: date,
-                                   format: str = 'json') -> str:
+                                   output_format: str = 'json') -> str:
         """
         Generate compliance report for a date range.
         
         Args:
             start_date: Start date (inclusive)
             end_date: End date (inclusive)
-            format: Output format ('json' or 'text')
+            output_format: Output format ('json' or 'text')
             
         Returns:
             Formatted compliance report
         """
         audit_data = self.database.get_audit_trail(start_date, end_date)
         
-        if format == 'json':
+        if output_format == 'json':
             return json.dumps(audit_data, indent=2)
-        elif format == 'text':
+        elif output_format == 'text':
             return self._format_text_report(audit_data)
         else:
-            raise ValueError(f"Unsupported format: {format}")
+            raise ValueError(f"Unsupported format: {output_format}")
     
     def _format_text_report(self, audit_data: Dict[str, Any]) -> str:
         """Format audit data as human-readable text"""
@@ -318,14 +318,14 @@ class AuditTrail:
         
         # Determine format from extension
         if output_path.suffix.lower() == '.json':
-            format = 'json'
+            output_format = 'json'
         elif output_path.suffix.lower() == '.txt':
-            format = 'text'
+            output_format = 'text'
         else:
             raise ValueError(f"Unsupported file extension: {output_path.suffix}")
         
         # Generate report
-        report = self.generate_compliance_report(start_date, end_date, format=format)
+        report = self.generate_compliance_report(start_date, end_date, output_format=output_format)
         
         # Write to file
         output_path.parent.mkdir(parents=True, exist_ok=True)

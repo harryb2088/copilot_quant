@@ -145,7 +145,7 @@ def main():
         text_report = audit.generate_compliance_report(
             date.today(),
             date.today(),
-            format='text'
+            output_format='text'
         )
         print("\nText Report Preview:")
         print(text_report[:500] + "..." if len(text_report) > 500 else text_report)
