@@ -1,10 +1,34 @@
-"""Chart components using Plotly"""
+"""Chart components using Plotly - Bloomberg Terminal style"""
 import plotly.graph_objects as go
+
+# Professional dark theme colors (Bloomberg-inspired)
+DARK_BG = '#0E1117'
+CARD_BG = '#1E2127'
+GRID_COLOR = '#2E3440'
+TEXT_COLOR = '#FAFAFA'
+ACCENT_PURPLE = '#9B59B6'
+ACCENT_GREEN = '#2ECC71'
+ACCENT_RED = '#E74C3C'
+ACCENT_BLUE = '#3498DB'
+ACCENT_GOLD = '#F39C12'
+
+# Template for all charts - professional dark theme
+CHART_TEMPLATE = {
+    'layout': {
+        'plot_bgcolor': CARD_BG,
+        'paper_bgcolor': DARK_BG,
+        'font': {'color': TEXT_COLOR, 'family': 'Arial, sans-serif', 'size': 12},
+        'xaxis': {'gridcolor': GRID_COLOR, 'color': TEXT_COLOR},
+        'yaxis': {'gridcolor': GRID_COLOR, 'color': TEXT_COLOR},
+        'hovermode': 'x unified',
+        'margin': {'l': 60, 'r': 20, 't': 60, 'b': 60}
+    }
+}
 
 
 def plot_equity_curve(data):
     """
-    Plot equity curve from backtest results
+    Plot equity curve from backtest results - Professional dark theme
     
     Args:
         data: DataFrame with 'Date' and 'Equity' columns
@@ -19,15 +43,21 @@ def plot_equity_curve(data):
         y=data['Equity'],
         mode='lines',
         name='Equity',
-        line=dict(color='#1f77b4', width=2)
+        line=dict(color=ACCENT_BLUE, width=3),
+        fill='tozeroy',
+        fillcolor=f'rgba(52, 152, 219, 0.1)'
     ))
     
     fig.update_layout(
-        title='Equity Curve',
+        title=dict(text='<b>Equity Curve</b>', font=dict(size=18, color=TEXT_COLOR)),
         xaxis_title='Date',
         yaxis_title='Portfolio Value ($)',
+        plot_bgcolor=CARD_BG,
+        paper_bgcolor=DARK_BG,
+        font=dict(color=TEXT_COLOR, family='Arial, sans-serif'),
+        xaxis=dict(gridcolor=GRID_COLOR, showgrid=True),
+        yaxis=dict(gridcolor=GRID_COLOR, showgrid=True, tickformat='$,.0f'),
         hovermode='x unified',
-        template='plotly_white',
         height=400
     )
     
@@ -36,7 +66,7 @@ def plot_equity_curve(data):
 
 def plot_drawdown(data):
     """
-    Plot drawdown chart
+    Plot drawdown chart - Professional dark theme
     
     Args:
         data: DataFrame with 'Date' and 'Drawdown' columns
@@ -52,16 +82,105 @@ def plot_drawdown(data):
         mode='lines',
         name='Drawdown',
         fill='tozeroy',
-        line=dict(color='#d62728', width=2)
+        line=dict(color=ACCENT_RED, width=3),
+        fillcolor=f'rgba(231, 76, 60, 0.2)'
     ))
     
     fig.update_layout(
-        title='Drawdown',
+        title=dict(text='<b>Drawdown Analysis</b>', font=dict(size=18, color=TEXT_COLOR)),
         xaxis_title='Date',
         yaxis_title='Drawdown (%)',
+        plot_bgcolor=CARD_BG,
+        paper_bgcolor=DARK_BG,
+        font=dict(color=TEXT_COLOR, family='Arial, sans-serif'),
+        xaxis=dict(gridcolor=GRID_COLOR, showgrid=True),
+        yaxis=dict(gridcolor=GRID_COLOR, showgrid=True, tickformat='.1%'),
         hovermode='x unified',
-        template='plotly_white',
         height=400
+    )
+    
+    return fig
+
+
+def plot_portfolio_performance_chart(dates, values, title="Portfolio Performance"):
+    """
+    Plot main portfolio performance chart - Bloomberg style, chart-first display
+    
+    Args:
+        dates: Array of dates
+        values: Array of portfolio values
+        title: Chart title
+    
+    Returns:
+        Plotly figure optimized for top-of-page display
+    """
+    import numpy as np
+    
+    # Calculate returns for coloring
+    returns = np.diff(values) / values[:-1]
+    colors = [ACCENT_GREEN if r >= 0 else ACCENT_RED for r in returns]
+    
+    fig = go.Figure()
+    
+    # Main line chart
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=values,
+        mode='lines',
+        name='Portfolio Value',
+        line=dict(color=ACCENT_BLUE, width=4),
+        fill='tozeroy',
+        fillcolor='rgba(52, 152, 219, 0.15)',
+        hovertemplate='<b>%{x}</b><br>Value: $%{y:,.0f}<extra></extra>'
+    ))
+    
+    # Add range selector buttons
+    fig.update_xaxes(
+        rangeselector=dict(
+            buttons=list([
+                dict(count=1, label="1D", step="day", stepmode="backward"),
+                dict(count=7, label="1W", step="day", stepmode="backward"),
+                dict(count=1, label="1M", step="month", stepmode="backward"),
+                dict(count=3, label="3M", step="month", stepmode="backward"),
+                dict(count=6, label="6M", step="month", stepmode="backward"),
+                dict(count=1, label="YTD", step="year", stepmode="todate"),
+                dict(count=1, label="1Y", step="year", stepmode="backward"),
+                dict(label="ALL", step="all")
+            ]),
+            bgcolor=CARD_BG,
+            activecolor=ACCENT_PURPLE,
+            font=dict(color=TEXT_COLOR)
+        ),
+        rangeslider=dict(visible=False),
+        type="date"
+    )
+    
+    fig.update_layout(
+        title=dict(
+            text=f'<b>{title}</b>',
+            font=dict(size=24, color=TEXT_COLOR),
+            x=0.5,
+            xanchor='center'
+        ),
+        xaxis_title='',
+        yaxis_title='Portfolio Value',
+        plot_bgcolor=CARD_BG,
+        paper_bgcolor=DARK_BG,
+        font=dict(color=TEXT_COLOR, family='Arial, sans-serif', size=14),
+        xaxis=dict(
+            gridcolor=GRID_COLOR,
+            showgrid=True,
+            color=TEXT_COLOR
+        ),
+        yaxis=dict(
+            gridcolor=GRID_COLOR,
+            showgrid=True,
+            tickformat='$,.0f',
+            color=TEXT_COLOR
+        ),
+        hovermode='x unified',
+        height=500,
+        margin=dict(l=80, r=40, t=80, b=60)
     )
     
     return fig
@@ -519,4 +638,50 @@ def plot_price_with_signals(price_df, signals_df):
     )
     
     return fig
+
+
+def plot_dividend_history(dividend_df, symbol="Portfolio"):
+    """
+    Plot dividend payment history - Bloomberg style
+    
+    Args:
+        dividend_df: DataFrame with 'date' and 'amount' columns
+        symbol: Stock symbol or "Portfolio" for display
+    
+    Returns:
+        Plotly figure
+    """
+    fig = go.Figure()
+    
+    fig.add_trace(go.Bar(
+        x=dividend_df['date'],
+        y=dividend_df['amount'],
+        name='Dividend',
+        marker=dict(
+            color=ACCENT_GREEN,
+            line=dict(color=ACCENT_GREEN, width=1)
+        ),
+        hovertemplate='<b>%{x|%Y-%m-%d}</b><br>Dividend: $%{y:.2f}<extra></extra>'
+    ))
+    
+    fig.update_layout(
+        title=dict(
+            text=f'<b>{symbol} - Dividend History</b>',
+            font=dict(size=16, color=TEXT_COLOR)
+        ),
+        xaxis_title='Payment Date',
+        yaxis_title='Dividend per Share ($)',
+        plot_bgcolor=CARD_BG,
+        paper_bgcolor=DARK_BG,
+        font=dict(color=TEXT_COLOR, family='Arial, sans-serif'),
+        xaxis=dict(gridcolor=GRID_COLOR, showgrid=False, color=TEXT_COLOR),
+        yaxis=dict(gridcolor=GRID_COLOR, showgrid=True, tickformat='$.2f', color=TEXT_COLOR),
+        hovermode='x unified',
+        height=300,
+        margin=dict(l=60, r=20, t=50, b=50),
+        showlegend=False
+    )
+    
+    return fig
+
 
