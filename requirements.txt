@@ -85,7 +85,10 @@ numpy==2.4.2
     #   -r requirements.in
     #   eventkit
     #   pandas
+    #   patsy
     #   pydeck
+    #   scipy
+    #   statsmodels
     #   streamlit
     #   yfinance
 packaging==26.0
@@ -94,13 +97,17 @@ packaging==26.0
     #   build
     #   plotly
     #   pytest
+    #   statsmodels
     #   streamlit
     #   wheel
 pandas==2.3.3
     # via
     #   -r requirements.in
+    #   statsmodels
     #   streamlit
     #   yfinance
+patsy==1.0.2
+    # via statsmodels
 peewee==3.19.0
     # via yfinance
 pillow==12.1.1
@@ -121,7 +128,7 @@ protobuf==6.33.5
     # via
     #   streamlit
     #   yfinance
-pyarrow==23.0.0
+pyarrow==23.0.1
     # via streamlit
 pycparser==3.0
     # via cffi
@@ -143,6 +150,8 @@ pytest-cov==7.0.0
     # via -r requirements.in
 python-dateutil==2.9.0.post0
     # via pandas
+python-dotenv==1.2.1
+    # via -r requirements.in
 pytz==2025.2
     # via
     #   pandas
@@ -163,6 +172,10 @@ rpds-py==0.30.0
     #   referencing
 ruff==0.15.1
     # via -r requirements.in
+scipy==1.17.0
+    # via
+    #   -r requirements.in
+    #   statsmodels
 six==1.17.0
     # via python-dateutil
 smmap==5.0.2
@@ -170,6 +183,8 @@ smmap==5.0.2
 soupsieve==2.8.3
     # via beautifulsoup4
 sqlalchemy==2.0.46
+    # via -r requirements.in
+statsmodels==0.14.6
     # via -r requirements.in
 streamlit==1.54.0
     # via
@@ -201,7 +216,7 @@ websockets==16.0
     # via yfinance
 wheel==0.46.3
     # via pip-tools
-yfinance==1.1.0
+yfinance==1.2.0
     # via -r requirements.in
 
 # The following packages are considered to be unsafe in a requirements file:
