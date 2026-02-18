@@ -431,8 +431,6 @@ class MultiStrategyEngine(BacktestEngine):
         Returns:
             Position size in dollars
         """
-        self.get_portfolio_value()
-        
         # Base position size from signal quality and max position limit
         # Use cash instead of portfolio value for position sizing
         max_position_value = self.cash * self.max_position_pct

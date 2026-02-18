@@ -149,8 +149,6 @@ class PairsTradingStrategy(Strategy):
         # Get unique symbols from data
         if 'Symbol' in data.columns:
             # Data in long format
-            data['Symbol'].unique()
-            
             # Pivot to get prices by symbol
             prices_df = data.pivot_table(
                 index=data.index,
