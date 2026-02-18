@@ -100,19 +100,25 @@ st.markdown("### 🧭 Navigate to:")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.page_link("pages/1_📊_Strategies.py", label="📊 View Strategies", icon="📊")
-    st.page_link("pages/2_🔬_Backtests.py", label="🔬 Run Backtests", icon="🔬")
+    st.page_link("pages/1_📊_Portfolio_Dashboard.py", label="📊 Portfolio Dashboard", icon="📊")
+    st.page_link("pages/2_📊_Strategies.py", label="📊 View Strategies", icon="📊")
 
 with col2:
-    st.page_link("pages/3_📈_Results.py", label="📈 View Results", icon="📈")
-    st.page_link("pages/4_🔴_Live_Trading.py", label="🔴 Live Trading", icon="🔴")
+    st.page_link("pages/3_🔬_Backtests.py", label="🔬 Run Backtests", icon="🔬")
+    st.page_link("pages/4_📈_Results.py", label="📈 View Results", icon="📈")
 
 with col3:
-    st.info("**Getting Started**\n\n"
-            "1. Check out available strategies\n"
-            "2. Run a backtest\n"
-            "3. Review the results\n"
-            "4. Deploy to paper trading")
+    st.page_link("pages/5_🔴_Live_Trading.py", label="🔴 Live Trading", icon="🔴")
+    st.page_link("pages/6_🛡️_Risk_Management.py", label="🛡️ Risk Management", icon="🛡️")
+
+st.markdown("---")
+
+# Quick start guide
+st.info("**🚀 Quick Start Guide**\n\n"
+        "1. View and create trading strategies\n"
+        "2. Run backtests on historical data\n"
+        "3. Analyze results and monitor portfolio\n"
+        "4. Deploy to paper trading mode")
 
 st.markdown("---")
 

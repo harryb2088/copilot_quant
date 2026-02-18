@@ -17,6 +17,7 @@ The platform is protected with email/password authentication. Environment variab
 ## 🚀 Features
 
 - **Strategy Development**: Create and manage custom trading strategies
+- **Pairs Trading**: Statistical arbitrage with automatic pair identification and mean-reversion signals
 - **Backtesting Engine**: Test strategies against historical market data
 - **Performance Analytics**: Comprehensive metrics, charts, and visualizations
 - **Paper Trading**: Safe testing environment with real market data
@@ -673,6 +674,60 @@ copilot_quant aims to provide a comprehensive, modular platform for:
    ```bash
    pip install -r requirements.txt
    ```
+
+## 📊 Pairs Trading Strategy
+
+The platform includes a comprehensive statistical arbitrage strategy for pairs trading:
+
+### Quick Example
+
+```python
+from datetime import datetime
+from copilot_quant.backtest import BacktestEngine
+from copilot_quant.data.providers import YFinanceProvider
+from copilot_quant.strategies import PairsTradingStrategy
+
+# Define related assets
+asset_universe = ['SPY', 'QQQ', 'IWM', 'DIA']
+
+# Create pairs trading strategy
+strategy = PairsTradingStrategy(
+    lookback=60,          # 60-day window for statistics
+    entry_zscore=2.0,     # Enter at 2 std devs from mean
+    exit_zscore=0.5,      # Exit when spread reverts
+    quantity=100,         # Trade 100 shares per asset
+    max_pairs=3           # Trade up to 3 pairs
+)
+
+# Run backtest
+engine = BacktestEngine(initial_capital=100000, data_provider=YFinanceProvider())
+engine.add_strategy(strategy)
+result = engine.run(
+    start_date=datetime(2020, 1, 1),
+    end_date=datetime(2023, 12, 31),
+    symbols=asset_universe
+)
+
+# View results
+print(f"Return: {result.metrics['total_return_pct']:.2f}%")
+print(f"Sharpe: {result.metrics['sharpe_ratio']:.2f}")
+```
+
+### Key Features
+
+- **Automatic pair identification** using Engle-Granger cointegration test
+- **Hedge ratio calculation** via linear regression
+- **Mean-reversion signals** based on spread Z-scores
+- **Multi-pair trading** with configurable limits
+- **Real-time performance tracking** (PnL, Sharpe ratio, max drawdown)
+
+### Run the Example
+
+```bash
+python examples/pairs_trading_example.py
+```
+
+For comprehensive documentation, see [Pairs Trading Guide](docs/pairs_trading.md).
 
 ## 📁 Project Structure
 

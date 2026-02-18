@@ -439,3 +439,340 @@ class PerformanceAnalyzer:
             'trading_days': 0,
             'trading_years': 0.0,
         }
+    
+    def calculate_portfolio_metrics(
+        self,
+        portfolio_history: pd.DataFrame,
+        positions: Dict,
+        initial_capital: float
+    ) -> Dict:
+        """
+        Calculate portfolio-level metrics from portfolio history.
+        
+        This method computes institutional metrics including cash allocation,
+        exposure, leverage, and position concentration.
+        
+        Args:
+            portfolio_history: DataFrame with columns:
+                - timestamp: datetime index
+                - portfolio_value: total portfolio value
+                - cash: cash balance
+                - positions_value: total positions value
+                - num_positions: number of open positions
+            positions: Dictionary of current positions {symbol: Position}
+            initial_capital: Starting capital
+        
+        Returns:
+            Dictionary containing portfolio-level metrics
+        """
+        if portfolio_history.empty:
+            return self._empty_portfolio_metrics()
+        
+        latest = portfolio_history.iloc[-1]
+        
+        # Cash metrics
+        cash_balance = latest.get('cash', 0)
+        portfolio_value = latest.get('portfolio_value', initial_capital)
+        positions_value = latest.get('positions_value', 0)
+        
+        cash_allocation = cash_balance / portfolio_value if portfolio_value > 0 else 0.0
+        
+        # Exposure metrics
+        # Gross exposure = sum of absolute position values
+        # Net exposure = sum of signed position values (long - short)
+        long_value = 0
+        short_value = 0
+        
+        for position in positions.values():
+            market_value = abs(position.quantity * position.avg_entry_price)
+            if position.quantity > 0:
+                long_value += market_value
+            elif position.quantity < 0:
+                short_value += market_value
+        
+        gross_exposure = (long_value + short_value) / portfolio_value if portfolio_value > 0 else 0.0
+        net_exposure = (long_value - short_value) / portfolio_value if portfolio_value > 0 else 0.0
+        long_exposure = long_value / portfolio_value if portfolio_value > 0 else 0.0
+        short_exposure = short_value / portfolio_value if portfolio_value > 0 else 0.0
+        
+        # Leverage ratio
+        leverage_ratio = gross_exposure + cash_allocation
+        
+        # Position concentration
+        num_positions = len([p for p in positions.values() if p.quantity != 0])
+        
+        if num_positions > 0 and portfolio_value > 0:
+            position_sizes = [
+                abs(p.quantity * p.avg_entry_price) / portfolio_value 
+                for p in positions.values() if p.quantity != 0
+            ]
+            largest_position = max(position_sizes) if position_sizes else 0.0
+            avg_position_size = np.mean(position_sizes) if position_sizes else 0.0
+            
+            # Top 5 concentration
+            sorted_sizes = sorted(position_sizes, reverse=True)
+            top_5_concentration = sum(sorted_sizes[:5]) if len(sorted_sizes) >= 5 else sum(sorted_sizes)
+        else:
+            largest_position = 0.0
+            avg_position_size = 0.0
+            top_5_concentration = 0.0
+        
+        return {
+            # Cash metrics
+            'cash_balance': cash_balance,
+            'cash_allocation': cash_allocation,
+            'cash_allocation_pct': cash_allocation * 100,
+            
+            # Exposure metrics
+            'gross_exposure': gross_exposure,
+            'gross_exposure_pct': gross_exposure * 100,
+            'net_exposure': net_exposure,
+            'net_exposure_pct': net_exposure * 100,
+            'long_exposure': long_exposure,
+            'long_exposure_pct': long_exposure * 100,
+            'short_exposure': short_exposure,
+            'short_exposure_pct': short_exposure * 100,
+            
+            # Leverage
+            'leverage_ratio': leverage_ratio,
+            
+            # Position metrics
+            'num_positions': num_positions,
+            'largest_position': largest_position,
+            'largest_position_pct': largest_position * 100,
+            'avg_position_size': avg_position_size,
+            'avg_position_size_pct': avg_position_size * 100,
+            'top_5_concentration': top_5_concentration,
+            'top_5_concentration_pct': top_5_concentration * 100,
+            
+            # Portfolio value
+            'portfolio_value': portfolio_value,
+            'positions_value': positions_value,
+        }
+    
+    def calculate_turnover(
+        self,
+        trades: List[Fill],
+        avg_portfolio_value: float,
+        period_days: int = 30
+    ) -> float:
+        """
+        Calculate portfolio turnover rate.
+        
+        Turnover measures how frequently the portfolio is traded.
+        Formula: (Sum of Sells Only / Avg Portfolio Value) * (365 / Days)
+        
+        Note: We only count sells to avoid double-counting round-trip trades.
+        
+        Args:
+            trades: List of all trade fills
+            avg_portfolio_value: Average portfolio value over the period
+            period_days: Number of days in the measurement period
+        
+        Returns:
+            Annual turnover rate as decimal (e.g., 0.45 = 45% annual turnover)
+        """
+        if not trades or avg_portfolio_value == 0 or period_days == 0:
+            return 0.0
+        
+        # Calculate total trade value (sells only to avoid double-counting)
+        total_trade_value = sum(
+            abs(fill.fill_price * fill.fill_quantity) 
+            for fill in trades
+            if fill.order.side == 'sell'
+        )
+        
+        # Annualize the turnover
+        annualization_factor = 365.0 / period_days
+        turnover = (total_trade_value / avg_portfolio_value) * annualization_factor
+        
+        return turnover
+    
+    def calculate_var(
+        self,
+        returns: pd.Series,
+        confidence_level: float = 0.95,
+        portfolio_value: float = 1000000
+    ) -> float:
+        """
+        Calculate Value at Risk (VaR) using historical simulation.
+        
+        VaR estimates the maximum expected loss at a given confidence level.
+        
+        Args:
+            returns: Series of period returns
+            confidence_level: Confidence level (e.g., 0.95 for 95%)
+            portfolio_value: Current portfolio value
+        
+        Returns:
+            VaR in dollars (negative value represents potential loss)
+        """
+        if len(returns) == 0:
+            return 0.0
+        
+        # Calculate the percentile
+        var_percentile = 1 - confidence_level
+        var_return = np.percentile(returns, var_percentile * 100)
+        
+        # Convert to dollar value
+        var_dollars = var_return * portfolio_value
+        
+        return var_dollars
+    
+    def calculate_cvar(
+        self,
+        returns: pd.Series,
+        confidence_level: float = 0.95,
+        portfolio_value: float = 1000000
+    ) -> float:
+        """
+        Calculate Conditional Value at Risk (CVaR), also known as Expected Shortfall.
+        
+        CVaR is the expected loss given that the loss exceeds VaR.
+        
+        Args:
+            returns: Series of period returns
+            confidence_level: Confidence level (e.g., 0.95 for 95%)
+            portfolio_value: Current portfolio value
+        
+        Returns:
+            CVaR in dollars (negative value represents expected tail loss)
+        """
+        if len(returns) == 0:
+            return 0.0
+        
+        # Calculate VaR threshold
+        var_percentile = 1 - confidence_level
+        var_threshold = np.percentile(returns, var_percentile * 100)
+        
+        # Calculate mean of returns below VaR threshold
+        tail_returns = returns[returns <= var_threshold]
+        
+        if len(tail_returns) == 0:
+            return var_threshold * portfolio_value
+        
+        cvar_return = tail_returns.mean()
+        cvar_dollars = cvar_return * portfolio_value
+        
+        return cvar_dollars
+    
+    def calculate_beta(
+        self,
+        portfolio_returns: pd.Series,
+        benchmark_returns: pd.Series
+    ) -> float:
+        """
+        Calculate portfolio beta relative to a benchmark.
+        
+        Beta measures the portfolio's sensitivity to benchmark movements.
+        Beta = Covariance(Portfolio, Benchmark) / Variance(Benchmark)
+        
+        Args:
+            portfolio_returns: Series of portfolio returns
+            benchmark_returns: Series of benchmark returns (e.g., SPY)
+        
+        Returns:
+            Beta coefficient (1.0 = same volatility as benchmark)
+        """
+        if len(portfolio_returns) == 0 or len(benchmark_returns) == 0:
+            return 0.0
+        
+        # Align the series
+        aligned = pd.DataFrame({
+            'portfolio': portfolio_returns,
+            'benchmark': benchmark_returns
+        }).dropna()
+        
+        if len(aligned) < 2:
+            return 0.0
+        
+        # Calculate covariance and variance
+        covariance = aligned['portfolio'].cov(aligned['benchmark'])
+        benchmark_variance = aligned['benchmark'].var()
+        
+        if benchmark_variance == 0:
+            return 0.0
+        
+        beta = covariance / benchmark_variance
+        
+        return beta
+    
+    def calculate_drawdown_duration(self, equity_curve: pd.Series) -> Dict:
+        """
+        Calculate drawdown duration metrics.
+        
+        Args:
+            equity_curve: Time series of portfolio values
+        
+        Returns:
+            Dictionary with drawdown duration metrics
+        """
+        if len(equity_curve) == 0:
+            return {
+                'max_drawdown_duration_days': 0,
+                'avg_drawdown_duration_days': 0.0,
+                'current_drawdown_duration_days': 0,
+                'underwater_periods': 0
+            }
+        
+        # Calculate running maximum
+        running_max = equity_curve.expanding().max()
+        
+        # Identify underwater periods (when below peak)
+        is_underwater = equity_curve < running_max
+        
+        # Find continuous underwater periods
+        underwater_periods = []
+        current_duration = 0
+        
+        for underwater in is_underwater:
+            if underwater:
+                current_duration += 1
+            else:
+                if current_duration > 0:
+                    underwater_periods.append(current_duration)
+                    current_duration = 0
+        
+        # Add final period if still underwater
+        if current_duration > 0:
+            underwater_periods.append(current_duration)
+        
+        max_duration = max(underwater_periods) if underwater_periods else 0
+        avg_duration = np.mean(underwater_periods) if underwater_periods else 0.0
+        num_periods = len(underwater_periods)
+        
+        # Current drawdown duration
+        current_dd_duration = current_duration
+        
+        return {
+            'max_drawdown_duration_days': max_duration,
+            'avg_drawdown_duration_days': avg_duration,
+            'current_drawdown_duration_days': current_dd_duration,
+            'underwater_periods': num_periods
+        }
+    
+    def _empty_portfolio_metrics(self) -> Dict:
+        """Return empty portfolio metrics when no data available."""
+        return {
+            'cash_balance': 0.0,
+            'cash_allocation': 0.0,
+            'cash_allocation_pct': 0.0,
+            'gross_exposure': 0.0,
+            'gross_exposure_pct': 0.0,
+            'net_exposure': 0.0,
+            'net_exposure_pct': 0.0,
+            'long_exposure': 0.0,
+            'long_exposure_pct': 0.0,
+            'short_exposure': 0.0,
+            'short_exposure_pct': 0.0,
+            'leverage_ratio': 0.0,
+            'num_positions': 0,
+            'largest_position': 0.0,
+            'largest_position_pct': 0.0,
+            'avg_position_size': 0.0,
+            'avg_position_size_pct': 0.0,
+            'top_5_concentration': 0.0,
+            'top_5_concentration_pct': 0.0,
+            'portfolio_value': 0.0,
+            'positions_value': 0.0,
+        }
