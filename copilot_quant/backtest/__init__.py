@@ -12,6 +12,7 @@ from copilot_quant.backtest.orders import Fill, Order, Position
 from copilot_quant.backtest.results import BacktestResult
 from copilot_quant.backtest.signals import SignalBasedStrategy, TradingSignal
 from copilot_quant.backtest.strategy import Strategy
+from copilot_quant.backtest.live_engine import LiveStrategyEngine
 
 # Interface definitions for advanced use cases
 from copilot_quant.backtest.interfaces import (
@@ -28,6 +29,7 @@ from copilot_quant.backtest.interfaces import (
 __all__ = [
     # Core classes
     "BacktestEngine",
+    "LiveStrategyEngine",
     "MultiStrategyEngine",
     "Strategy",
     "SignalBasedStrategy",
