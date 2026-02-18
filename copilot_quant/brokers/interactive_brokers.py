@@ -24,6 +24,9 @@ Prerequisites:
 
 import logging
 from typing import Optional, List, Dict, Any
+import os
+from typing import Optional, List, Dict, Any, Callable
+import time
 
 try:
     from ib_insync import IB, Stock, MarketOrder, LimitOrder
@@ -36,6 +39,8 @@ except ImportError as e:
 from .connection_manager import IBKRConnectionManager
 from .account_manager import IBKRAccountManager
 from .position_manager import IBKRPositionManager
+from .order_execution_handler import OrderExecutionHandler, OrderRecord
+from .order_logger import OrderLogger
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +84,9 @@ class IBKRBroker:
         client_id: Optional[int] = None,
         use_gateway: bool = False,
         enable_account_manager: bool = True,
-        enable_position_manager: bool = True
+        enable_position_manager: bool = True,
+        enable_order_execution: bool = True,
+        enable_order_logging: bool = True
     ):
         """
         Initialize IBKR broker connection.
@@ -95,6 +102,8 @@ class IBKRBroker:
             use_gateway: If True, use IB Gateway ports, else use TWS ports
             enable_account_manager: If True, enable account manager for real-time sync
             enable_position_manager: If True, enable position manager for real-time sync
+            enable_order_execution: If True, enable order execution handler
+            enable_order_logging: If True, enable order logging to file
             
         Environment Variables:
             IB_HOST: Interactive Brokers host (default: 127.0.0.1)
@@ -119,17 +128,22 @@ class IBKRBroker:
         # Manager flags
         self._enable_account_manager = enable_account_manager
         self._enable_position_manager = enable_position_manager
+        self._enable_order_execution = enable_order_execution
+        self._enable_order_logging = enable_order_logging
         
         # Managers (will be initialized after connection)
         self.account_manager: Optional[IBKRAccountManager] = None
         self.position_manager: Optional[IBKRPositionManager] = None
+        self.order_handler: Optional[OrderExecutionHandler] = None
+        self.order_logger: Optional[OrderLogger] = None
         
         logger.info(
             f"Initialized IBKRBroker: "
             f"mode={'Paper' if paper_trading else 'Live'}, "
             f"app={'Gateway' if use_gateway else 'TWS'}, "
             f"account_mgr={'enabled' if enable_account_manager else 'disabled'}, "
-            f"position_mgr={'enabled' if enable_position_manager else 'disabled'}"
+            f"position_mgr={'enabled' if enable_position_manager else 'disabled'}, "
+            f"order_exec={'enabled' if enable_order_execution else 'disabled'}"
         )
     
     def connect(self, timeout: int = 30, retry_count: int = 3) -> bool:
@@ -158,7 +172,7 @@ class IBKRBroker:
             return False
     
     def _initialize_managers(self):
-        """Initialize account and position managers after connection."""
+        """Initialize account, position, and order managers after connection."""
         try:
             # Initialize account manager
             if self._enable_account_manager:
@@ -169,9 +183,88 @@ class IBKRBroker:
             if self._enable_position_manager:
                 self.position_manager = IBKRPositionManager(self.connection_manager)
                 logger.info("Position manager initialized and synced")
+            
+            # Initialize order execution handler
+            if self._enable_order_execution:
+                self.order_handler = OrderExecutionHandler()
+                logger.info("Order execution handler initialized")
+                
+                # Register event callbacks from ib_insync
+                self._register_order_callbacks()
+            
+            # Initialize order logger
+            if self._enable_order_logging:
+                self.order_logger = OrderLogger(log_to_file=True, log_to_console=True)
+                logger.info("Order logger initialized")
+                
+                # Register logging callbacks
+                if self.order_handler:
+                    self.order_handler.register_fill_callback(
+                        lambda record: self.order_logger.log_fill(record, record.fills[-1])
+                    )
+                    self.order_handler.register_error_callback(
+                        lambda record, msg: self.order_logger.log_error(record, msg)
+                    )
                 
         except Exception as e:
             logger.error(f"Error initializing managers: {e}", exc_info=True)
+    
+    def _register_order_callbacks(self):
+        """Register callbacks for order events from ib_insync"""
+        try:
+            ib = self.connection_manager.get_ib()
+            
+            # Register execDetails callback for fills
+            def on_exec_details(trade, fill):
+                """Handle execution (fill) notification"""
+                try:
+                    order_id = trade.order.orderId
+                    logger.debug(f"Execution details received for order {order_id}")
+                    
+                    # Process fill through handler
+                    if self.order_handler:
+                        self.order_handler.handle_fill(
+                            order_id=order_id,
+                            quantity=int(fill.execution.shares),
+                            price=fill.execution.price,
+                            commission=fill.commissionReport.commission if fill.commissionReport else 0.0
+                        )
+                except Exception as e:
+                    logger.error(f"Error handling execution details: {e}", exc_info=True)
+            
+            # Register orderStatus callback for status updates
+            def on_order_status(trade):
+                """Handle order status updates"""
+                try:
+                    order_id = trade.order.orderId
+                    logger.debug(f"Order status update for {order_id}: {trade.orderStatus.status}")
+                    
+                    # Update order status through handler
+                    if self.order_handler:
+                        self.order_handler.update_order_status(order_id, trade)
+                except Exception as e:
+                    logger.error(f"Error handling order status: {e}", exc_info=True)
+            
+            # Register error callback for errors
+            def on_error(reqId, errorCode, errorString, contract):
+                """Handle error notifications"""
+                try:
+                    # Only process order-related errors (reqId is order ID)
+                    if reqId > 0 and self.order_handler:
+                        logger.debug(f"Error for order {reqId}: {errorCode} - {errorString}")
+                        self.order_handler.handle_error(reqId, errorCode, errorString)
+                except Exception as e:
+                    logger.error(f"Error handling error callback: {e}", exc_info=True)
+            
+            # Attach callbacks
+            ib.execDetailsEvent += on_exec_details
+            ib.orderStatusEvent += on_order_status
+            ib.errorEvent += on_error
+            
+            logger.info("Order event callbacks registered")
+            
+        except Exception as e:
+            logger.error(f"Error registering order callbacks: {e}", exc_info=True)
     
     def is_connected(self) -> bool:
         """Check if currently connected to IBKR"""
@@ -265,7 +358,7 @@ class IBKRBroker:
         symbol: str, 
         quantity: int, 
         side: str = 'buy'
-    ) -> Optional[Any]:
+    ) -> Optional[OrderRecord]:
         """
         Execute a market order.
         
@@ -275,34 +368,51 @@ class IBKRBroker:
             side: 'buy' or 'sell'
             
         Returns:
-            Trade object if successful, None otherwise
+            OrderRecord if successful, None otherwise
         """
         if not self.is_connected():
             logger.error("Not connected to IBKR")
             return None
         
-        try:
-            # Create contract
-            contract = Stock(symbol, 'SMART', 'USD')
-            self.ib.qualifyContracts(contract)
-            
-            # Create order
-            action = 'BUY' if side.lower() == 'buy' else 'SELL'
-            order = MarketOrder(action, quantity)
-            
-            # Place order
-            trade = self.ib.placeOrder(contract, order)
-            
-            logger.info(
-                f"Market order placed: {action} {quantity} {symbol} "
-                f"(Order ID: {trade.order.orderId})"
+        # Use order handler if available
+        if self.order_handler:
+            order_record = self.order_handler.submit_order(
+                ib_connection=self.ib,
+                symbol=symbol,
+                action=side.upper(),
+                quantity=quantity,
+                order_type="MARKET"
             )
             
-            return trade
+            # Log submission
+            if order_record and self.order_logger:
+                self.order_logger.log_submission(order_record)
             
-        except Exception as e:
-            logger.error(f"Error executing market order: {e}")
-            return None
+            return order_record
+        else:
+            # Fallback to old implementation if handler not enabled
+            try:
+                # Create contract
+                contract = Stock(symbol, 'SMART', 'USD')
+                self.ib.qualifyContracts(contract)
+                
+                # Create order
+                action = 'BUY' if side.lower() == 'buy' else 'SELL'
+                order = MarketOrder(action, quantity)
+                
+                # Place order
+                trade = self.ib.placeOrder(contract, order)
+                
+                logger.info(
+                    f"Market order placed: {action} {quantity} {symbol} "
+                    f"(Order ID: {trade.order.orderId})"
+                )
+                
+                return trade
+                
+            except Exception as e:
+                logger.error(f"Error executing market order: {e}")
+                return None
     
     def execute_limit_order(
         self,
@@ -310,7 +420,7 @@ class IBKRBroker:
         quantity: int,
         limit_price: float,
         side: str = 'buy'
-    ) -> Optional[Any]:
+    ) -> Optional[OrderRecord]:
         """
         Execute a limit order.
         
@@ -321,34 +431,52 @@ class IBKRBroker:
             side: 'buy' or 'sell'
             
         Returns:
-            Trade object if successful, None otherwise
+            OrderRecord if successful, None otherwise
         """
         if not self.is_connected():
             logger.error("Not connected to IBKR")
             return None
         
-        try:
-            # Create contract
-            contract = Stock(symbol, 'SMART', 'USD')
-            self.ib.qualifyContracts(contract)
-            
-            # Create order
-            action = 'BUY' if side.lower() == 'buy' else 'SELL'
-            order = LimitOrder(action, quantity, limit_price)
-            
-            # Place order
-            trade = self.ib.placeOrder(contract, order)
-            
-            logger.info(
-                f"Limit order placed: {action} {quantity} {symbol} "
-                f"@ ${limit_price} (Order ID: {trade.order.orderId})"
+        # Use order handler if available
+        if self.order_handler:
+            order_record = self.order_handler.submit_order(
+                ib_connection=self.ib,
+                symbol=symbol,
+                action=side.upper(),
+                quantity=quantity,
+                order_type="LIMIT",
+                limit_price=limit_price
             )
             
-            return trade
+            # Log submission
+            if order_record and self.order_logger:
+                self.order_logger.log_submission(order_record)
             
-        except Exception as e:
-            logger.error(f"Error executing limit order: {e}")
-            return None
+            return order_record
+        else:
+            # Fallback to old implementation if handler not enabled
+            try:
+                # Create contract
+                contract = Stock(symbol, 'SMART', 'USD')
+                self.ib.qualifyContracts(contract)
+                
+                # Create order
+                action = 'BUY' if side.lower() == 'buy' else 'SELL'
+                order = LimitOrder(action, quantity, limit_price)
+                
+                # Place order
+                trade = self.ib.placeOrder(contract, order)
+                
+                logger.info(
+                    f"Limit order placed: {action} {quantity} {symbol} "
+                    f"@ ${limit_price} (Order ID: {trade.order.orderId})"
+                )
+                
+                return trade
+                
+            except Exception as e:
+                logger.error(f"Error executing limit order: {e}")
+                return None
     
     def get_open_orders(self) -> List[Any]:
         """
@@ -374,7 +502,7 @@ class IBKRBroker:
         Cancel an order.
         
         Args:
-            order: Order object to cancel
+            order: Order object or order ID to cancel
             
         Returns:
             True if cancellation successful, False otherwise
@@ -385,11 +513,110 @@ class IBKRBroker:
         
         try:
             self.ib.cancelOrder(order)
-            logger.info(f"Order cancelled: {order.orderId}")
+            order_id = order.orderId if hasattr(order, 'orderId') else order
+            logger.info(f"Order cancelled: {order_id}")
+            
+            # Log cancellation
+            if self.order_handler and self.order_logger:
+                order_record = self.order_handler.get_order(order_id)
+                if order_record:
+                    self.order_logger.log_cancellation(order_record)
+            
             return True
         except Exception as e:
             logger.error(f"Error cancelling order: {e}")
             return False
+    
+    def get_order_status(self, order_id: int) -> Optional[OrderRecord]:
+        """
+        Get status of a specific order.
+        
+        Args:
+            order_id: Order ID to query
+            
+        Returns:
+            OrderRecord if found, None otherwise
+        """
+        if self.order_handler:
+            return self.order_handler.get_order(order_id)
+        return None
+    
+    def get_all_orders(self) -> List[OrderRecord]:
+        """
+        Get all tracked orders.
+        
+        Returns:
+            List of all OrderRecord objects
+        """
+        if self.order_handler:
+            return self.order_handler.get_all_orders()
+        return []
+    
+    def get_active_orders(self) -> List[OrderRecord]:
+        """
+        Get all active orders (not filled or cancelled).
+        
+        Returns:
+            List of active OrderRecord objects
+        """
+        if self.order_handler:
+            return self.order_handler.get_active_orders()
+        return []
+    
+    def get_order_history(self, order_id: int) -> List[str]:
+        """
+        Get complete event history for an order.
+        
+        Args:
+            order_id: Order ID to get history for
+            
+        Returns:
+            List of log entries for the order
+        """
+        if self.order_logger:
+            return self.order_logger.get_order_history(order_id)
+        return []
+    
+    def get_todays_order_summary(self) -> Dict[str, Any]:
+        """
+        Get summary of today's order activity.
+        
+        Returns:
+            Dictionary with order statistics
+        """
+        if self.order_logger:
+            return self.order_logger.get_todays_summary()
+        return {}
+    
+    def register_order_fill_callback(self, callback: Callable[[OrderRecord], None]):
+        """
+        Register a callback for order fill events.
+        
+        Args:
+            callback: Function to call when order is filled (complete or partial)
+        """
+        if self.order_handler:
+            self.order_handler.register_fill_callback(callback)
+    
+    def register_order_status_callback(self, callback: Callable[[OrderRecord], None]):
+        """
+        Register a callback for order status changes.
+        
+        Args:
+            callback: Function to call when order status changes
+        """
+        if self.order_handler:
+            self.order_handler.register_status_callback(callback)
+    
+    def register_order_error_callback(self, callback: Callable[[OrderRecord, str], None]):
+        """
+        Register a callback for order errors.
+        
+        Args:
+            callback: Function to call when order encounters an error
+        """
+        if self.order_handler:
+            self.order_handler.register_error_callback(callback)
     
     def disconnect(self):
         """Disconnect from IBKR"""
