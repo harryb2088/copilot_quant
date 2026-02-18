@@ -35,6 +35,8 @@ except ImportError as e:
         "Install it with: pip install ib_insync>=0.9.86"
     ) from e
 
+from .connection_manager import IBKRConnectionManager
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,38 +98,24 @@ class IBKRBroker:
             IB_CLIENT_ID: Unique client identifier (default: 1)
             IB_PAPER_ACCOUNT: Paper trading account number (for reference only)
         """
-        self.ib = IB()
+        # Use connection manager to handle all connection logic
+        self.connection_manager = IBKRConnectionManager(
+            paper_trading=paper_trading,
+            host=host,
+            port=port,
+            client_id=client_id,
+            use_gateway=use_gateway,
+            auto_reconnect=True
+        )
+        
+        # Convenience properties
         self.paper_trading = paper_trading
         self.use_gateway = use_gateway
         
-        # Get configuration from environment variables or use defaults
-        self.host = host or os.getenv('IB_HOST', '127.0.0.1')
-        self.client_id = client_id or int(os.getenv('IB_CLIENT_ID', '1'))
-        
-        # Determine port: explicit param > env var > auto-detect based on mode
-        if port is not None:
-            self.port = port
-        elif os.getenv('IB_PORT'):
-            self.port = int(os.getenv('IB_PORT'))
-        else:
-            # Auto-detect port based on trading mode and application
-            if use_gateway:
-                # IB Gateway ports
-                self.port = 4002 if paper_trading else 4001
-            else:
-                # TWS ports  
-                self.port = 7497 if paper_trading else 7496
-            
-        self._connected = False
-        
-        # Setup logging
         logger.info(
             f"Initialized IBKRBroker: "
             f"mode={'Paper' if paper_trading else 'Live'}, "
-            f"app={'Gateway' if use_gateway else 'TWS'}, "
-            f"host={self.host}, "
-            f"port={self.port}, "
-            f"client_id={self.client_id}"
+            f"app={'Gateway' if use_gateway else 'TWS'}"
         )
     
     def connect(self, timeout: int = 30, retry_count: int = 3) -> bool:
@@ -141,53 +129,30 @@ class IBKRBroker:
         Returns:
             True if connection successful, False otherwise
         """
-        for attempt in range(retry_count):
-            try:
-                logger.info(
-                    f"Connecting to IBKR at {self.host}:{self.port} "
-                    f"(attempt {attempt + 1}/{retry_count})"
-                )
-                
-                self.ib.connect(
-                    self.host, 
-                    self.port, 
-                    clientId=self.client_id,
-                    timeout=timeout
-                )
-                
-                if self.ib.isConnected():
-                    self._connected = True
-                    mode = "Paper" if self.paper_trading else "Live"
-                    accounts = self.ib.managedAccounts()
-                    
-                    logger.info(f"✓ Connected to IBKR ({mode} Trading)")
-                    logger.info(f"Accounts: {accounts}")
-                    
-                    # Setup disconnection handler
-                    self.ib.disconnectedEvent += self._on_disconnect
-                    
-                    return True
-                else:
-                    logger.warning("Connection established but not confirmed")
-                    
-            except Exception as e:
-                logger.error(f"Connection attempt {attempt + 1} failed: {e}")
-                if attempt < retry_count - 1:
-                    wait_time = 5 * (attempt + 1)  # Exponential backoff
-                    logger.info(f"Retrying in {wait_time} seconds...")
-                    time.sleep(wait_time)
-        
-        logger.error("Failed to connect to IBKR after all retries")
-        return False
-    
-    def _on_disconnect(self):
-        """Handle disconnection event"""
-        logger.warning("Disconnected from IBKR")
-        self._connected = False
+        try:
+            return self.connection_manager.connect(timeout=timeout, retry_count=retry_count)
+        except ConnectionError:
+            return False
     
     def is_connected(self) -> bool:
         """Check if currently connected to IBKR"""
-        return self._connected and self.ib.isConnected()
+        return self.connection_manager.is_connected()
+    
+    @property
+    def ib(self) -> IB:
+        """
+        Get the underlying IB instance.
+        
+        Note: This property will raise a RuntimeError if not connected.
+        Always call connect() before accessing this property.
+        
+        Returns:
+            The ib_insync IB instance
+            
+        Raises:
+            RuntimeError: If not connected to IBKR
+        """
+        return self.connection_manager.get_ib()
     
     def get_account_balance(self) -> Dict[str, float]:
         """
@@ -389,13 +354,7 @@ class IBKRBroker:
     
     def disconnect(self):
         """Disconnect from IBKR"""
-        if self.is_connected():
-            try:
-                self.ib.disconnect()
-                self._connected = False
-                logger.info("Disconnected from IBKR")
-            except Exception as e:
-                logger.error(f"Error during disconnect: {e}")
+        self.connection_manager.disconnect()
 
 
 def test_connection(
