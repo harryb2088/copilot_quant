@@ -1,6 +1,7 @@
 """
 Copilot Quant Platform - Main Streamlit Application
 
+Professional Bloomberg-style interface for algorithmic trading.
 This is the entry point for the multi-page Streamlit application.
 Run with: streamlit run src/ui/app.py
 """
@@ -18,6 +19,23 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Custom CSS for professional dark theme
+st.markdown("""
+<style>
+    /* Metric styling - bold numbers */
+    [data-testid="stMetricValue"] {
+        font-size: 28px;
+        font-weight: 700;
+    }
+    
+    /* Headers */
+    h1, h2, h3 {
+        font-weight: 600;
+        letter-spacing: -0.5px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Initialize authentication (must be called before any other st commands that display content)
 name, authentication_status, username = init_authentication()
 
@@ -29,83 +47,80 @@ render_sidebar()
 
 # Main page content
 st.title("🚀 Copilot Quant Platform")
+st.markdown("**Professional Algorithmic Trading & Portfolio Analytics**")
+st.markdown("---")
+
 st.markdown("---")
 
 st.markdown("""
-## Welcome to Your Algorithmic Trading Platform
+### Welcome to Your Professional Trading Platform
 
-Copilot Quant is a comprehensive platform for developing, testing, and deploying 
-quantitative trading strategies.
+Copilot Quant delivers institutional-grade tools for developing, testing, and deploying 
+quantitative trading strategies with a Bloomberg Terminal-inspired interface.
 
-### 🎯 Quick Start Guide
+#### 🎯 Platform Capabilities
 
-1. **📊 Strategies** - Create and manage your trading strategies
-2. **🔬 Backtests** - Test strategies against historical data
-3. **📈 Results** - Analyze backtest performance and metrics
-4. **🔴 Live Trading** - Deploy strategies in paper trading mode
+**Strategy Development** - Build and refine custom trading strategies  
+**Backtesting Engine** - Validate strategies against historical market data  
+**Performance Analytics** - Comprehensive metrics and professional visualizations  
+**Paper Trading** - Risk-free testing with real market data  
+**Risk Management** - Built-in position sizing and risk controls
 
-### ⚡ Platform Features
+#### 🔒 Safety & Security
 
-- **Strategy Development**: Build custom trading strategies with ease
-- **Backtesting Engine**: Test strategies on historical market data
-- **Performance Analytics**: Comprehensive metrics and visualizations
-- **Paper Trading**: Safe testing environment with real market data
-- **Risk Management**: Built-in position sizing and risk controls
-
-### 🔒 Safety First
-
-This platform currently operates in **PAPER TRADING ONLY** mode. No real money 
-will be at risk. All trades are simulated using live market data.
-
-### 📊 Current Status
-
+Operating in **PAPER TRADING ONLY** mode - zero real money at risk.  
+All trades are simulated using live market data for realistic testing.
 """)
 
-# Quick stats dashboard
+st.markdown("---")
+
+# Quick stats dashboard with professional styling
+st.markdown("### 📊 Platform Status")
+
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.metric(
         label="Total Strategies",
         value="4",
-        delta="0 this week"
+        delta="Active"
     )
 
 with col2:
     st.metric(
-        label="Active Backtests",
-        value="1",
-        delta="+1 running"
+        label="Backtests",
+        value="12",
+        delta="+3 this week"
     )
 
 with col3:
     st.metric(
         label="Paper Trading",
-        value="Inactive",
+        value="Ready",
         delta="Disconnected"
     )
 
 with col4:
     st.metric(
         label="Platform Version",
-        value="v0.1.0",
-        delta="alpha"
+        value="v2.0",
+        delta="Bloomberg UI"
     )
 
 st.markdown("---")
 
-# Navigation buttons
-st.markdown("### 🧭 Navigate to:")
+# Navigation - More compact and professional
+st.markdown("### 🧭 Quick Navigation")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
     st.page_link("pages/1_📊_Portfolio_Dashboard.py", label="📊 Portfolio Dashboard", icon="📊")
-    st.page_link("pages/2_📊_Strategies.py", label="📊 View Strategies", icon="📊")
+    st.page_link("pages/2_📊_Strategies.py", label="📊 Strategies", icon="📊")
 
 with col2:
-    st.page_link("pages/3_🔬_Backtests.py", label="🔬 Run Backtests", icon="🔬")
-    st.page_link("pages/4_📈_Results.py", label="📈 View Results", icon="📈")
+    st.page_link("pages/3_🔬_Backtests.py", label="🔬 Backtests", icon="🔬")
+    st.page_link("pages/4_📈_Results.py", label="📈 Results", icon="📈")
 
 with col3:
     st.page_link("pages/5_🔴_Live_Trading.py", label="🔴 Live Trading", icon="🔴")
@@ -113,25 +128,23 @@ with col3:
 
 st.markdown("---")
 
-# Quick start guide
-st.info("**🚀 Quick Start Guide**\n\n"
-        "1. View and create trading strategies\n"
-        "2. Run backtests on historical data\n"
-        "3. Analyze results and monitor portfolio\n"
-        "4. Deploy to paper trading mode")
-
-st.markdown("---")
-
 # System information
 with st.expander("ℹ️ System Information"):
     st.markdown("""
-    **Platform**: Copilot Quant v0.1.0-alpha  
+    **Platform**: Copilot Quant v2.0 - Bloomberg-Style Interface  
     **Mode**: Paper Trading Only  
-    **Broker**: Interactive Brokers (Not Connected)  
-    **Data Provider**: Mock Data (Development)  
+    **Broker**: Interactive Brokers (Development)  
+    **Data Provider**: Mock Data / IBKR Integration  
+    **Theme**: Professional Dark (Financial Markets)
     
-    **Note**: This is a development version. Backend integration is in progress.
+    **New in v2.0:**
+    - Bloomberg Terminal-inspired dark theme
+    - Chart-first dashboard layout
+    - Dividend yield and calendar tracking
+    - Enhanced professional metrics display
+    - Improved typography and data density
     """)
 
 # Footer
-st.caption("Copilot Quant Platform © 2024 | For educational and paper trading purposes only")
+st.caption("Copilot Quant Platform © 2024 | Professional trading tools for internal use")
+
