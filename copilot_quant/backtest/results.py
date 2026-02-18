@@ -159,6 +159,26 @@ class BacktestResult:
         """
         return self.get_summary_stats(risk_free_rate=risk_free_rate)
     
+    @property
+    def metrics(self) -> Dict:
+        """
+        Get performance metrics as a property for convenience.
+        
+        Returns:
+            Dictionary with comprehensive performance metrics
+        """
+        return self.get_summary_stats()
+    
+    @property
+    def equity_curve(self) -> pd.Series:
+        """
+        Get equity curve as a property for convenience.
+        
+        Returns:
+            Series with DatetimeIndex and portfolio values
+        """
+        return self.get_equity_curve()
+    
     def __repr__(self) -> str:
         """String representation of backtest result."""
         return (
