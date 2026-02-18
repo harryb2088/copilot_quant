@@ -415,7 +415,7 @@ def test_connection(
         True if connection test passed, False otherwise
     """
     print(f"\n{'='*60}")
-    print(f"Testing IBKR Connection")
+    print("Testing IBKR Connection")
     print(f"Mode: {'Paper Trading' if paper_trading else 'Live Trading'}")
     print(f"App: {'IB Gateway' if use_gateway else 'TWS'}")
     print(f"{'='*60}\n")

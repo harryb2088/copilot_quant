@@ -1,10 +1,9 @@
 """Tests for performance metrics analyzer."""
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from copilot_quant.backtest.metrics import PerformanceAnalyzer
 from copilot_quant.backtest.orders import Fill, Order
