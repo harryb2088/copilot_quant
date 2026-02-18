@@ -87,7 +87,12 @@ def main():
     if balance:
         print("✓ Account Balance:")
         for key, value in balance.items():
-            print(f"     {key:20s}: ${value:15,.2f}")
+            try:
+                # Safely format numeric values
+                value_float = float(value)
+                print(f"     {key:20s}: ${value_float:15,.2f}")
+            except (ValueError, TypeError):
+                print(f"     {key:20s}: {value}")
     else:
         print("⚠️  Could not retrieve account balance")
     print()
@@ -100,7 +105,7 @@ def main():
         print(f"✓ Found {len(positions)} position(s):")
         for pos in positions:
             print(f"     {pos['symbol']:10s}: {pos['position']:8.0f} shares "
-                  f"@ ${pos['avg_cost']:10.2f} = ${pos['market_value']:12,.2f}")
+                  f"@ ${pos['avg_cost']:10.2f} = ${pos['cost_basis']:12,.2f} (cost basis)")
     else:
         print("✓ No open positions")
     print()

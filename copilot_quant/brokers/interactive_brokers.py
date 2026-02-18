@@ -11,12 +11,22 @@ Port Configuration:
 - Live Trading (TWS): 7496  
 - Paper Trading (IB Gateway): 4002
 - Live Trading (IB Gateway): 4001
+
+Prerequisites:
+    pip install ib_insync>=0.9.86
 """
 
-from ib_insync import IB, Stock, MarketOrder, LimitOrder
 import logging
 from typing import Optional, List, Dict, Any
 import time
+
+try:
+    from ib_insync import IB, Stock, MarketOrder, LimitOrder
+except ImportError as e:
+    raise ImportError(
+        "ib_insync is required for IBKR integration. "
+        "Install it with: pip install ib_insync>=0.9.86"
+    ) from e
 
 logger = logging.getLogger(__name__)
 
@@ -173,7 +183,11 @@ class IBKRBroker:
             - symbol: Stock symbol
             - position: Number of shares (positive for long, negative for short)
             - avg_cost: Average cost per share
-            - market_value: Current market value
+            - cost_basis: Total cost basis (position * avg_cost)
+            
+        Note:
+            The 'cost_basis' field shows the total cost, not current market value.
+            To get current market value, you would need to request market data separately.
         """
         if not self.is_connected():
             logger.error("Not connected to IBKR")
@@ -188,7 +202,7 @@ class IBKRBroker:
                     'symbol': pos.contract.symbol,
                     'position': pos.position,
                     'avg_cost': pos.avgCost,
-                    'market_value': pos.position * pos.avgCost
+                    'cost_basis': pos.position * pos.avgCost
                 })
             
             logger.debug(f"Retrieved {len(position_list)} positions")
