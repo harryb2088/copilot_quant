@@ -129,10 +129,6 @@ class IBKRBroker:
             f"port={self.port}, "
             f"client_id={self.client_id}"
         )
-            f"mode={'Paper' if paper_trading else 'Live'}, "
-            f"app={'Gateway' if use_gateway else 'TWS'}, "
-            f"port={self.port}"
-        )
     
     def connect(self, timeout: int = 30, retry_count: int = 3) -> bool:
         """
