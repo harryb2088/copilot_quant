@@ -53,7 +53,7 @@ except ImportError as e:
     ) from e
 
 try:
-    from copilot_quant.config.trading_mode import TradingMode, TradingModeConfig, get_trading_mode_config
+    from copilot_quant.config.trading_mode import TradingMode, TradingModeConfig
 except ImportError:
     TradingModeConfig = None
     TradingMode = None
