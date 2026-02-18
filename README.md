@@ -26,6 +26,63 @@ The platform is protected with email/password authentication. Environment variab
 - **Risk Management**: Comprehensive risk controls with circuit breaker protection
 - **Data Pipeline**: Automated backfill and incremental updates for S&P500 and prediction markets
 - **Multi-Page UI**: Clean, intuitive Streamlit web interface
+- **Bloomberg-Style Professional UI**: Dark theme with chart-first design and institutional-grade aesthetics
+- **Dividend Tracking**: Comprehensive dividend yield, calendar, and payout history monitoring
+
+## 🎨 UI Design System
+
+The platform features a **Bloomberg Terminal-inspired professional dark theme** designed for extended use in capital markets environments.
+
+### Design Principles
+
+- **Chart-First**: Main performance charts prominently displayed at the top of dashboards
+- **Data-Dense**: Maximum information density while maintaining readability
+- **Professional Aesthetics**: Dark backgrounds with carefully chosen accent colors
+- **Institutional Metrics**: Key performance indicators (KPIs) above the fold
+- **Dividend Intelligence**: Comprehensive dividend yield, calendar, and history tracking
+
+### Color Palette
+
+```
+Primary Background:   #0E1117 (Terminal Black)
+Card Background:      #1E2127 (Slightly Lighter)
+Grid/Borders:         #2E3440 (Subtle Gray)
+Text:                 #FAFAFA (Off-white)
+Primary Accent:       #9B59B6 (Purple)
+Success/Up:           #2ECC71 (Green)
+Error/Down:           #E74C3C (Red)
+Info:                 #3498DB (Blue)
+Warning:              #F39C12 (Gold)
+```
+
+### Key Features
+
+- **Dark Theme by Default**: Professional financial market aesthetic (configurable in `.streamlit/config.toml`)
+- **Enhanced Typography**: Bold metric values, clean headers, improved readability
+- **Chart Styling**: Plotly charts with dark backgrounds, thick lines, professional colors
+- **Responsive Layout**: Streamlit's column system for flexible, responsive design
+- **KPI Tiles**: `st.metric()` components with delta indicators and color coding
+
+### Configuration
+
+The theme is configured in `.streamlit/config.toml`:
+
+```toml
+[theme]
+primaryColor = "#9B59B6"              # Purple accent
+backgroundColor = "#0E1117"           # Dark background
+secondaryBackgroundColor = "#1E2127"  # Card background
+textColor = "#FAFAFA"                 # Off-white text
+font = "sans serif"
+```
+
+### Custom CSS Enhancements
+
+Additional styling is applied via `st.markdown()` for:
+- Bold metric values (28px, weight 700)
+- Improved header spacing
+- Professional separator lines
+- Data-dense table styling
 
 ## 📋 Prerequisites
 
