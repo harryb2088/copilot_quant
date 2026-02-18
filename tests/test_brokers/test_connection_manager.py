@@ -490,5 +490,99 @@ class TestErrorPatterns(unittest.TestCase):
             self.assertIsInstance(pattern['tips'], list)
 
 
+class TestConnectionManagerWithTradingModeConfig(unittest.TestCase):
+    """Test cases for IBKRConnectionManager with TradingModeConfig"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        # Patch IB class to avoid actual connection
+        self.ib_patcher = patch('copilot_quant.brokers.connection_manager.IB')
+        self.mock_ib_class = self.ib_patcher.start()
+        self.mock_ib = MagicMock()
+        self.mock_ib_class.return_value = self.mock_ib
+        
+        # Mock connection status
+        self.mock_ib.isConnected.return_value = False
+        
+        # Mock event attributes
+        self.mock_ib.errorEvent = MagicMock()
+        self.mock_ib.disconnectedEvent = MagicMock()
+        self.mock_ib.connectedEvent = MagicMock()
+        self.mock_ib.errorEvent.__iadd__ = Mock(return_value=self.mock_ib.errorEvent)
+        self.mock_ib.disconnectedEvent.__iadd__ = Mock(return_value=self.mock_ib.disconnectedEvent)
+        self.mock_ib.connectedEvent.__iadd__ = Mock(return_value=self.mock_ib.connectedEvent)
+    
+    def tearDown(self):
+        """Clean up after tests"""
+        self.ib_patcher.stop()
+    
+    def test_connection_manager_with_paper_config(self):
+        """Test connection manager initialized with paper trading config"""
+        from copilot_quant.config.trading_mode import TradingMode, TradingModeConfig
+        
+        config = TradingModeConfig(
+            mode=TradingMode.PAPER,
+            host='127.0.0.1',
+            port=7497,
+            client_id=1,
+            account_number='DU123456'
+        )
+        
+        manager = IBKRConnectionManager(trading_mode_config=config)
+        
+        self.assertEqual(manager.host, '127.0.0.1')
+        self.assertEqual(manager.port, 7497)
+        self.assertEqual(manager.client_id, 1)
+        self.assertTrue(manager.paper_trading)
+        self.assertFalse(manager.use_gateway)
+    
+    def test_connection_manager_with_live_config(self):
+        """Test connection manager initialized with live trading config"""
+        from copilot_quant.config.trading_mode import TradingMode, TradingModeConfig
+        
+        config = TradingModeConfig(
+            mode=TradingMode.LIVE,
+            host='127.0.0.1',
+            port=7496,
+            client_id=2,
+            account_number='U7654321',
+            use_gateway=False
+        )
+        
+        manager = IBKRConnectionManager(trading_mode_config=config)
+        
+        self.assertEqual(manager.host, '127.0.0.1')
+        self.assertEqual(manager.port, 7496)
+        self.assertEqual(manager.client_id, 2)
+        self.assertFalse(manager.paper_trading)
+        self.assertFalse(manager.use_gateway)
+    
+    def test_config_overrides_individual_params(self):
+        """Test that trading_mode_config overrides individual parameters"""
+        from copilot_quant.config.trading_mode import TradingMode, TradingModeConfig
+        
+        config = TradingModeConfig(
+            mode=TradingMode.LIVE,
+            host='192.168.1.100',
+            port=9999,
+            client_id=99
+        )
+        
+        # Pass both config and individual params - config should win
+        manager = IBKRConnectionManager(
+            trading_mode_config=config,
+            paper_trading=True,  # Should be overridden
+            host='10.0.0.1',     # Should be overridden
+            port=8888,           # Should be overridden
+            client_id=1          # Should be overridden
+        )
+        
+        # Config values should be used
+        self.assertEqual(manager.host, '192.168.1.100')
+        self.assertEqual(manager.port, 9999)
+        self.assertEqual(manager.client_id, 99)
+        self.assertFalse(manager.paper_trading)  # From config (LIVE mode)
+
+
 if __name__ == '__main__':
     unittest.main()

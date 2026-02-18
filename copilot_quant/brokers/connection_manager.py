@@ -52,6 +52,12 @@ except ImportError as e:
         "Install it with: pip install ib_insync>=0.9.86"
     ) from e
 
+try:
+    from copilot_quant.config.trading_mode import TradingMode, TradingModeConfig, get_trading_mode_config
+except ImportError:
+    TradingModeConfig = None
+    TradingMode = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -101,7 +107,8 @@ class IBKRConnectionManager:
         port: Optional[int] = None,
         client_id: Optional[int] = None,
         use_gateway: bool = False,
-        auto_reconnect: bool = True
+        auto_reconnect: bool = True,
+        trading_mode_config: Optional['TradingModeConfig'] = None
     ):
         """
         Initialize IBKR connection manager.
@@ -113,33 +120,49 @@ class IBKRConnectionManager:
             client_id: Unique client identifier (default: from IB_CLIENT_ID env or 1)
             use_gateway: If True, use IB Gateway ports, else use TWS ports
             auto_reconnect: If True, automatically reconnect on disconnect
+            trading_mode_config: TradingModeConfig instance (overrides other params if provided)
             
         Environment Variables:
             IB_HOST: Interactive Brokers host (default: 127.0.0.1)
             IB_PORT: IB API port (overrides auto-detection)
             IB_CLIENT_ID: Unique client identifier (default: 1)
+            
+            New mode-specific env vars (recommended):
+            IB_PAPER_HOST, IB_PAPER_PORT, IB_PAPER_CLIENT_ID, IB_PAPER_ACCOUNT
+            IB_LIVE_HOST, IB_LIVE_PORT, IB_LIVE_CLIENT_ID, IB_LIVE_ACCOUNT
         """
         self.ib = IB()
-        self.paper_trading = paper_trading
-        self.use_gateway = use_gateway
         self.auto_reconnect = auto_reconnect
         self.state = ConnectionState.DISCONNECTED
+        self._trading_mode_config = trading_mode_config
         
-        # Get configuration from environment variables or use defaults
-        self.host = host or os.getenv('IB_HOST', '127.0.0.1')
-        self.client_id = client_id or int(os.getenv('IB_CLIENT_ID', '1'))
-        
-        # Determine port: explicit param > env var > auto-detect
-        if port is not None:
-            self.port = port
-        elif os.getenv('IB_PORT'):
-            self.port = int(os.getenv('IB_PORT'))
+        # If trading_mode_config is provided, use it to override other params
+        if trading_mode_config is not None:
+            self.paper_trading = trading_mode_config.is_paper
+            self.use_gateway = trading_mode_config.use_gateway
+            self.host = trading_mode_config.host
+            self.port = trading_mode_config.port
+            self.client_id = trading_mode_config.client_id
         else:
-            # Auto-detect port based on trading mode and application
-            if use_gateway:
-                self.port = 4002 if paper_trading else 4001
+            # Legacy behavior - use individual parameters
+            self.paper_trading = paper_trading
+            self.use_gateway = use_gateway
+            
+            # Get configuration from environment variables or use defaults
+            self.host = host or os.getenv('IB_HOST', '127.0.0.1')
+            self.client_id = client_id or int(os.getenv('IB_CLIENT_ID', '1'))
+            
+            # Determine port: explicit param > env var > auto-detect
+            if port is not None:
+                self.port = port
+            elif os.getenv('IB_PORT'):
+                self.port = int(os.getenv('IB_PORT'))
             else:
-                self.port = 7497 if paper_trading else 7496
+                # Auto-detect port based on trading mode and application
+                if use_gateway:
+                    self.port = 4002 if paper_trading else 4001
+                else:
+                    self.port = 7497 if paper_trading else 7496
         
         # Connection state tracking
         self._connected_at: Optional[datetime] = None
@@ -155,8 +178,8 @@ class IBKRConnectionManager:
         
         logger.info(
             f"Initialized IBKRConnectionManager: "
-            f"mode={'Paper' if paper_trading else 'Live'}, "
-            f"app={'Gateway' if use_gateway else 'TWS'}, "
+            f"mode={'Paper' if self.paper_trading else 'Live'}, "
+            f"app={'Gateway' if self.use_gateway else 'TWS'}, "
             f"host={self.host}, "
             f"port={self.port}, "
             f"client_id={self.client_id}, "
