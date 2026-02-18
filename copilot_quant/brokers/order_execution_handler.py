@@ -183,14 +183,18 @@ class OrderExecutionHandler:
         return f"{symbol}_{action}_{quantity}_{int(time.time())}"
     
     def _is_duplicate_order(self, order_key: str) -> bool:
-        """Check if order is a duplicate within a time window"""
+        """
+        Check if order is a duplicate within a time window.
+        
+        Note: Current implementation doesn't auto-cleanup old keys.
+        In production, implement periodic cleanup using a background task
+        or use a time-based cache like TTLCache from cachetools.
+        """
         with self._order_lock:
             if order_key in self._submitted_order_keys:
                 logger.warning(f"Duplicate order detected: {order_key}")
                 return True
             self._submitted_order_keys.add(order_key)
-            # Clean up old keys after 60 seconds
-            # In production, use a more sophisticated cleanup mechanism
             return False
     
     def submit_order(
@@ -368,22 +372,32 @@ class OrderExecutionHandler:
     
     def _schedule_retry(self, order_record: OrderRecord):
         """
-        Schedule a retry for a failed order with exponential backoff.
+        Log retry attempt for a failed order with exponential backoff.
+        
+        IMPORTANT: This method does NOT automatically retry the order.
+        It only increments the retry count and logs the retry information.
+        
+        Actual retry logic must be implemented externally using:
+        - A task scheduler (celery, apscheduler, etc.)
+        - Manual retry by calling submit_order() again
+        - Custom retry logic in your application
         
         Args:
             order_record: Order to retry
+        
+        Returns:
+            Calculated delay in seconds for retry (for external use)
         """
         order_record.retry_count += 1
         delay = self.initial_retry_delay * (self.retry_backoff_factor ** (order_record.retry_count - 1))
         
         logger.info(
-            f"Scheduling retry {order_record.retry_count}/{self.max_retries} "
-            f"for order {order_record.order_id} in {delay:.1f} seconds"
+            f"Retry {order_record.retry_count}/{self.max_retries} logged for "
+            f"order {order_record.order_id} (suggested delay: {delay:.1f}s). "
+            f"Note: Automatic retry NOT implemented - manual retry required."
         )
         
-        # Note: In production, use a proper task scheduler (celery, apscheduler, etc.)
-        # For now, just log the retry intent
-        # The actual retry would need to be triggered by the calling code
+        return delay
     
     def update_order_status(self, order_id: int, trade: Trade):
         """

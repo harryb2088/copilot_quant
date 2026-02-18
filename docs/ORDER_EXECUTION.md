@@ -238,32 +238,103 @@ broker.register_order_error_callback(on_error)
 
 ## Retry Mechanism
 
-### When Retries Occur
+### Important Note About Retries
+
+**The current implementation logs retry information but does NOT automatically retry failed orders.**
+
+When an error occurs:
+1. Error is logged and retry_count is incremented
+2. Error callbacks are triggered
+3. Retry delay is calculated using exponential backoff
+4. **You must implement manual retry logic** (see examples below)
+
+For automatic retries in production, integrate with:
+- Task schedulers (Celery, APScheduler)
+- Background workers
+- Custom retry queues
+
+### When Retries Should Occur
 
 - Network errors
 - Temporary IBKR API errors
-- Rejected orders (configurable)
+- Transient connection issues
 
-### Retry Prevention
+### When NOT to Retry
 
-Orders are NOT retried for:
 - User cancellations
 - Insufficient funds errors
 - Invalid contract errors
+- Order already filled/cancelled
 
-### Manual Retry
+### Manual Retry Implementation
+
+```python
+def on_error(order_record, error_message):
+    """Error callback with manual retry logic"""
+    print(f"Order {order_record.order_id} error: {error_message}")
+    
+    # Check if we should retry
+    if order_record.retry_count < 3:
+        # Calculate delay (exponential backoff)
+        delay = 1.0 * (2.0 ** (order_record.retry_count - 1))
+        
+        # Schedule retry (pseudo-code)
+        # In production, use a proper scheduler
+        import threading
+        def retry_order():
+            time.sleep(delay)
+            broker.execute_market_order(
+                symbol=order_record.symbol,
+                quantity=order_record.remaining_quantity,
+                side=order_record.action.lower()
+            )
+        
+        threading.Timer(delay, retry_order).start()
+    else:
+        print("Max retries reached")
+
+broker.register_order_error_callback(on_error)
+```
+
+### Simple Retry Pattern
 
 ```python
 # Get failed order
 order = broker.get_order_status(order_id)
 
-if order.status == OrderStatus.ERROR:
-    # Resubmit manually
+if order.status == OrderStatus.ERROR and order.retry_count < 3:
+    # Wait based on retry count
+    import time
+    delay = 1.0 * (2.0 ** order.retry_count)
+    time.sleep(delay)
+    
+    # Resubmit order
     new_order = broker.execute_market_order(
         symbol=order.symbol,
         quantity=order.remaining_quantity,
         side=order.action.lower()
     )
+```
+
+### Production-Grade Retry with Celery
+
+```python
+from celery import shared_task
+
+@shared_task(bind=True, max_retries=3)
+def submit_order_with_retry(self, symbol, quantity, side):
+    try:
+        broker = IBKRBroker()
+        broker.connect()
+        order = broker.execute_market_order(symbol, quantity, side)
+        return order.order_id
+    except Exception as exc:
+        # Exponential backoff: 1s, 2s, 4s
+        countdown = 2 ** self.request.retries
+        raise self.retry(exc=exc, countdown=countdown)
+
+# Submit order
+task = submit_order_with_retry.delay("AAPL", 100, "buy")
 ```
 
 ## Duplicate Prevention
@@ -273,7 +344,33 @@ if order.status == OrderStatus.ERROR:
 1. Each order generates a unique key: `symbol_action_quantity_timestamp`
 2. Key checked against recently submitted orders
 3. Duplicate rejected if key exists in tracking set
-4. Keys automatically cleaned up after 60 seconds
+4. **Note**: Keys are NOT automatically cleaned up in current implementation
+
+### Important Limitation
+
+The current duplicate prevention tracks ALL submitted orders in memory.
+For long-running applications, implement periodic cleanup:
+
+```python
+# Option 1: Periodic manual cleanup
+import threading
+
+def cleanup_old_orders():
+    # Clear duplicate tracking every hour
+    broker.order_handler._submitted_order_keys.clear()
+    threading.Timer(3600, cleanup_old_orders).start()
+
+cleanup_old_orders()
+```
+
+```python
+# Option 2: Use time-based cache (recommended for production)
+# Install: pip install cachetools
+from cachetools import TTLCache
+
+# Replace set with TTL cache in OrderExecutionHandler
+# self._submitted_order_keys = TTLCache(maxsize=1000, ttl=60)
+```
 
 ### Example
 
@@ -281,12 +378,12 @@ if order.status == OrderStatus.ERROR:
 # First submission succeeds
 order1 = broker.execute_market_order("AAPL", 100, "buy")  # ✓ Success
 
-# Immediate duplicate rejected
+# Immediate duplicate rejected (same second)
 order2 = broker.execute_market_order("AAPL", 100, "buy")  # ✗ Rejected
 
-# After 1 minute, same order allowed
-time.sleep(61)
-order3 = broker.execute_market_order("AAPL", 100, "buy")  # ✓ Success
+# Different timestamp (next second) allowed
+time.sleep(1)
+order3 = broker.execute_market_order("AAPL", 100, "buy")  # ✓ Success (different timestamp)
 ```
 
 ## Common Use Cases
