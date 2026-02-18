@@ -176,3 +176,120 @@ def generate_mock_backtests():
         }
     ]
     return backtests
+
+
+def generate_portfolio_metrics():
+    """Generate mock portfolio-level metrics"""
+    return {
+        'portfolio_value': 1250000.00,
+        'initial_capital': 1000000.00,
+        'cash_balance': 312500.00,
+        'positions_value': 937500.00,
+        'total_return': 0.25,
+        'sharpe_ratio': 1.85,
+        'max_drawdown': -0.087,
+        'net_exposure': 0.75,
+        'gross_exposure': 0.95,
+        'long_exposure': 0.85,
+        'short_exposure': 0.10,
+        'leverage_ratio': 1.15,
+        'num_positions': 8,
+        'largest_position': 0.105,
+        'avg_position_size': 0.075,
+        'turnover_annual': 0.45
+    }
+
+
+def generate_cash_history(days=90):
+    """Generate mock cash balance history"""
+    import numpy as np
+    
+    dates = pd.date_range(end=datetime.now(), periods=days, freq='D')
+    np.random.seed(42)
+    cash_history = 300000 + np.cumsum(np.random.normal(0, 5000, len(dates)))
+    
+    return pd.DataFrame({
+        'Date': dates,
+        'Cash': cash_history
+    })
+
+
+def generate_exposure_history(days=90):
+    """Generate mock exposure history"""
+    import numpy as np
+    
+    dates = pd.date_range(end=datetime.now(), periods=days, freq='D')
+    np.random.seed(42)
+    
+    # Generate exposure with some variation
+    gross_exposure = 0.85 + np.cumsum(np.random.normal(0, 0.01, len(dates)))
+    gross_exposure = np.clip(gross_exposure, 0.7, 1.0)
+    
+    net_exposure = 0.70 + np.cumsum(np.random.normal(0, 0.008, len(dates)))
+    net_exposure = np.clip(net_exposure, 0.5, 0.9)
+    
+    return pd.DataFrame({
+        'Date': dates,
+        'Gross_Exposure': gross_exposure,
+        'Net_Exposure': net_exposure
+    })
+
+
+def generate_leverage_history(days=90):
+    """Generate mock leverage ratio history"""
+    import numpy as np
+    
+    dates = pd.date_range(end=datetime.now(), periods=days, freq='D')
+    np.random.seed(42)
+    
+    leverage = 1.0 + np.cumsum(np.random.normal(0, 0.01, len(dates)))
+    leverage = np.clip(leverage, 1.0, 1.5)
+    
+    return pd.DataFrame({
+        'Date': dates,
+        'Leverage': leverage
+    })
+
+
+def generate_sector_breakdown():
+    """Generate mock sector allocation breakdown"""
+    return pd.DataFrame({
+        'Sector': ['Technology', 'Healthcare', 'Financials', 'Consumer', 'Energy'],
+        'Exposure': [0.35, 0.20, 0.15, 0.15, 0.10],
+        'P&L': [5850, 1200, 1400, 650, -300]
+    })
+
+
+def generate_asset_attribution():
+    """Generate mock P&L attribution by asset"""
+    return pd.DataFrame({
+        'Symbol': ['AAPL', 'NVDA', 'MSFT', 'META', 'JPM', 'AMZN', 'GOOGL', 'TSLA'],
+        'P&L': [3400, 4275, -1575, 1134, 1400, 810, 720, -710],
+        'Contribution': [0.34, 0.43, -0.16, 0.11, 0.14, 0.08, 0.07, -0.07]
+    })
+
+
+def generate_risk_metrics():
+    """Generate mock advanced risk metrics"""
+    return {
+        'var_95': -23500,
+        'cvar_95': -31200,
+        'beta_spy': 1.12,
+        'correlation_spy': 0.78,
+        'information_ratio': 0.85,
+        'tracking_error': 0.082,
+        'downside_deviation': 0.123
+    }
+
+
+def generate_liquidity_metrics():
+    """Generate mock liquidity metrics"""
+    return {
+        'turnover_30d': 0.45,
+        'avg_holding_period': 87,
+        'cash_to_equity': 0.25,
+        'avg_daily_volume': 125000,
+        'position_concentration': 0.105,
+        'largest_position_symbol': 'MSFT',
+        'top_5_concentration': 0.405
+    }

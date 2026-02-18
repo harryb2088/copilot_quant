@@ -135,3 +135,331 @@ def plot_monthly_returns_heatmap(data):
     )
     
     return fig
+
+
+def plot_cash_history(dates, cash_values):
+    """
+    Plot cash balance history over time
+    
+    Args:
+        dates: Array of dates
+        cash_values: Array of cash balance values
+    
+    Returns:
+        Plotly figure
+    """
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=cash_values,
+        mode='lines',
+        name='Cash Balance',
+        line=dict(color='#2ca02c', width=2),
+        fill='tozeroy',
+        fillcolor='rgba(44, 160, 44, 0.1)'
+    ))
+    
+    fig.update_layout(
+        title='Cash Balance History',
+        xaxis_title='Date',
+        yaxis_title='Cash Balance ($)',
+        hovermode='x unified',
+        template='plotly_white',
+        height=350
+    )
+    
+    return fig
+
+
+def plot_exposure_chart(dates, gross_exposure, net_exposure):
+    """
+    Plot gross and net exposure over time
+    
+    Args:
+        dates: Array of dates
+        gross_exposure: Array of gross exposure values
+        net_exposure: Array of net exposure values
+    
+    Returns:
+        Plotly figure
+    """
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=gross_exposure,
+        mode='lines',
+        name='Gross Exposure',
+        line=dict(color='#1f77b4', width=2)
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=net_exposure,
+        mode='lines',
+        name='Net Exposure',
+        line=dict(color='#ff7f0e', width=2)
+    ))
+    
+    fig.update_layout(
+        title='Portfolio Exposure',
+        xaxis_title='Date',
+        yaxis_title='Exposure (%)',
+        hovermode='x unified',
+        template='plotly_white',
+        height=350,
+        yaxis=dict(tickformat='.0%')
+    )
+    
+    return fig
+
+
+def plot_leverage_history(dates, leverage_values):
+    """
+    Plot leverage ratio over time
+    
+    Args:
+        dates: Array of dates
+        leverage_values: Array of leverage ratio values
+    
+    Returns:
+        Plotly figure
+    """
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=leverage_values,
+        mode='lines',
+        name='Leverage Ratio',
+        line=dict(color='#ff7f0e', width=2)
+    ))
+    
+    # Add reference line at 1.0
+    fig.add_hline(
+        y=1.0,
+        line_dash="dash",
+        line_color="gray",
+        opacity=0.5,
+        annotation_text="No Leverage"
+    )
+    
+    fig.update_layout(
+        title='Leverage History',
+        xaxis_title='Date',
+        yaxis_title='Leverage Ratio',
+        hovermode='x unified',
+        template='plotly_white',
+        height=300
+    )
+    
+    return fig
+
+
+def plot_allocation_pie(categories, values):
+    """
+    Plot allocation as pie chart
+    
+    Args:
+        categories: List of category names
+        values: List of values for each category
+    
+    Returns:
+        Plotly figure
+    """
+    fig = go.Figure(data=[go.Pie(
+        labels=categories,
+        values=values,
+        hole=0.4,
+        marker=dict(colors=['#2ca02c', '#1f77b4', '#ff7f0e', '#d62728', '#9467bd'])
+    )])
+    
+    fig.update_layout(
+        title='Asset Allocation',
+        height=350,
+        showlegend=True
+    )
+    
+    return fig
+
+
+def plot_sector_exposure(sectors, exposures):
+    """
+    Plot exposure by sector as horizontal bar chart
+    
+    Args:
+        sectors: List of sector names
+        exposures: List of exposure values
+    
+    Returns:
+        Plotly figure
+    """
+    fig = go.Figure(data=[go.Bar(
+        x=exposures,
+        y=sectors,
+        orientation='h',
+        marker=dict(color='#1f77b4')
+    )])
+    
+    fig.update_layout(
+        title='Sector Exposure',
+        xaxis_title='Exposure (%)',
+        yaxis_title='Sector',
+        template='plotly_white',
+        height=300,
+        xaxis=dict(tickformat='.0%')
+    )
+    
+    return fig
+
+
+def plot_attribution_waterfall(assets, pnl_values):
+    """
+    Plot P&L attribution as waterfall chart
+    
+    Args:
+        assets: List of asset names
+        pnl_values: List of P&L contributions
+    
+    Returns:
+        Plotly figure
+    """
+    # Calculate cumulative values for waterfall
+    cumulative = [0]
+    for val in pnl_values:
+        cumulative.append(cumulative[-1] + val)
+    
+    # Create waterfall chart
+    colors = ['#2ca02c' if x > 0 else '#d62728' for x in pnl_values]
+    
+    fig = go.Figure()
+    
+    for i, (asset, pnl) in enumerate(zip(assets, pnl_values)):
+        fig.add_trace(go.Bar(
+            x=[asset],
+            y=[pnl],
+            base=[cumulative[i]],
+            marker=dict(color=colors[i]),
+            name=asset,
+            showlegend=False
+        ))
+    
+    fig.update_layout(
+        title='P&L Attribution by Asset',
+        xaxis_title='Asset',
+        yaxis_title='P&L ($)',
+        template='plotly_white',
+        height=350,
+        yaxis=dict(tickformat='$,.0f')
+    )
+    
+    return fig
+
+
+def plot_pnl_bars(categories, pnl_values):
+    """
+    Plot P&L as bar chart with color coding
+    
+    Args:
+        categories: List of category names (assets, sectors, etc.)
+        pnl_values: List of P&L values
+    
+    Returns:
+        Plotly figure
+    """
+    colors = ['#2ca02c' if x > 0 else '#d62728' for x in pnl_values]
+    
+    fig = go.Figure(data=[go.Bar(
+        x=categories,
+        y=pnl_values,
+        marker=dict(color=colors),
+        text=pnl_values,
+        texttemplate='$%{text:,.0f}',
+        textposition='outside'
+    )])
+    
+    fig.update_layout(
+        title='P&L Distribution',
+        xaxis_title='Category',
+        yaxis_title='P&L ($)',
+        template='plotly_white',
+        height=350,
+        yaxis=dict(tickformat='$,.0f')
+    )
+    
+    return fig
+
+
+def plot_rolling_sharpe(dates, sharpe_values):
+    """
+    Plot rolling Sharpe ratio over time
+    
+    Args:
+        dates: Array of dates
+        sharpe_values: Array of rolling Sharpe ratio values
+    
+    Returns:
+        Plotly figure
+    """
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=sharpe_values,
+        mode='lines',
+        name='Rolling Sharpe',
+        line=dict(color='#9467bd', width=2)
+    ))
+    
+    # Add reference lines
+    fig.add_hline(y=1.0, line_dash="dash", line_color="orange", opacity=0.5, annotation_text="Good")
+    fig.add_hline(y=2.0, line_dash="dash", line_color="green", opacity=0.5, annotation_text="Excellent")
+    
+    fig.update_layout(
+        title='Rolling Sharpe Ratio (90-day)',
+        xaxis_title='Date',
+        yaxis_title='Sharpe Ratio',
+        hovermode='x unified',
+        template='plotly_white',
+        height=300
+    )
+    
+    return fig
+
+
+def plot_cumulative_returns(dates, returns):
+    """
+    Plot cumulative returns over time
+    
+    Args:
+        dates: Array of dates
+        returns: Array of cumulative return values
+    
+    Returns:
+        Plotly figure
+    """
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=returns,
+        mode='lines',
+        name='Cumulative Return',
+        line=dict(color='#1f77b4', width=2),
+        fill='tozeroy',
+        fillcolor='rgba(31, 119, 180, 0.1)'
+    ))
+    
+    fig.update_layout(
+        title='Cumulative Returns',
+        xaxis_title='Date',
+        yaxis_title='Return (%)',
+        hovermode='x unified',
+        template='plotly_white',
+        height=400,
+        yaxis=dict(tickformat='.1%')
+    )
+    
+    return fig
+
