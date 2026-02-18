@@ -68,6 +68,18 @@ For customization and extension:
    - Advanced performance analyzer
    - Best for: Building custom components
 
+### For Live Trading
+
+For connecting to live markets:
+
+9. **[Interactive Brokers Setup Guide](ibkr_setup_guide.md)** 🔴
+   - TWS/Gateway installation and configuration
+   - API setup and security best practices
+   - Paper trading vs live trading
+   - Rate limits and restrictions
+   - Connection code examples
+   - Troubleshooting common issues
+   - Best for: Setting up live/paper trading with IBKR
 ### For UI Features
 
 For understanding the Streamlit UI features:
@@ -108,6 +120,9 @@ For understanding the Streamlit UI features:
 
 ### "I want to understand why things are designed this way"
 → Read [Design Decisions](design_decisions.md)
+
+### "I want to set up live/paper trading with Interactive Brokers"
+→ Read [Interactive Brokers Setup Guide](ibkr_setup_guide.md)
 
 ## 📋 Core Concepts
 
@@ -183,6 +198,14 @@ Stores backtest outcomes and performance metrics.
 - [Mock Data](usage_guide.md#mock-data-provider)
 - [Test Examples](quick_reference.md#testing-quick-reference)
 
+### Live Trading
+- [IBKR Setup Guide](ibkr_setup_guide.md) - Complete Interactive Brokers setup
+- [Paper Trading Setup](ibkr_setup_guide.md#paper-trading-vs-live-trading)
+- [API Configuration](ibkr_setup_guide.md#api-connection-settings)
+- [Security Best Practices](ibkr_setup_guide.md#security-best-practices)
+- [Connection Examples](ibkr_setup_guide.md#connection-code-examples)
+- [Troubleshooting](ibkr_setup_guide.md#troubleshooting)
+
 ## 📈 Example Strategies
 
 All examples are in the [Usage Guide](usage_guide.md#example-strategies):
@@ -228,6 +251,7 @@ All examples are in the [Usage Guide](usage_guide.md#example-strategies):
 - [usage_guide.md](usage_guide.md) - Comprehensive guide
 - [quick_reference.md](quick_reference.md) - Quick reference
 - [backtesting.md](backtesting.md) - API reference
+- [ibkr_setup_guide.md](ibkr_setup_guide.md) - Interactive Brokers setup
 
 ### Code Files
 - [interfaces.py](../copilot_quant/backtest/interfaces.py) - Interface definitions
