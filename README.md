@@ -1343,6 +1343,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code style, a
 
 ### Additional Resources
 - [Interactive Brokers Setup Guide](docs/ibkr_setup_guide.md) - Complete IBKR API setup and configuration
+  - **Quick Start**: Run `python examples/test_ibkr_connection.py` to test your IB connection
+  - **Working Implementation**: See `copilot_quant/brokers/interactive_brokers.py`
 - [Prediction Markets Guide](docs/prediction_markets_guide.md) - Integration with prediction market data
 - [Data Management Guide](docs/data_management_guide.md) - Data pipeline and normalization
 - [Contributing Guidelines](CONTRIBUTING.md) - How to contribute to the project

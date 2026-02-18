@@ -2,6 +2,24 @@
 
 This guide provides comprehensive instructions for setting up and configuring Interactive Brokers TWS (Trader Workstation) or IB Gateway for API access with the Copilot Quant platform.
 
+## 🚀 Quick Start
+
+**Want to test your IB connection right away?**
+
+1. Ensure TWS or IB Gateway is running with API enabled (see [Step-by-Step Configuration](#step-by-step-configuration))
+2. Run the test script:
+   ```bash
+   python examples/test_ibkr_connection.py
+   ```
+3. See [examples/IBKR_SETUP.md](../examples/IBKR_SETUP.md) for detailed instructions
+
+**Working Implementation:**
+- Broker class: [`copilot_quant/brokers/interactive_brokers.py`](../copilot_quant/brokers/interactive_brokers.py)
+- Test script: [`examples/test_ibkr_connection.py`](../examples/test_ibkr_connection.py)
+- Quick guide: [`examples/IBKR_SETUP.md`](../examples/IBKR_SETUP.md)
+
+---
+
 ## 📋 Table of Contents
 
 1. [Prerequisites](#prerequisites)
