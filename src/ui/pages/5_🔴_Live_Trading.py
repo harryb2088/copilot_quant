@@ -1,5 +1,5 @@
 """
-Live Trading Page - Paper trading interface with safety controls
+Live Trading Page - Paper/Live trading interface with safety controls
 """
 
 import streamlit as st
@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from components.sidebar import render_sidebar, render_connection_status
 from components.tables import render_positions, render_orders
+from components.trading_mode_toggle import render_trading_mode_toggle, render_mode_status_banner
 from utils.session import init_session_state
 from utils.mock_data import generate_mock_positions
 
@@ -32,19 +33,9 @@ render_connection_status()
 st.title("🔴 Live Trading")
 st.markdown("---")
 
-# PROMINENT WARNING BANNER
-st.error("""
-### ⚠️ PAPER TRADING ONLY - NO REAL MONEY ⚠️
-
-This platform is configured for **PAPER TRADING ONLY**. All trades are simulated using live market data.
-NO REAL MONEY IS AT RISK.
-
-**Important:**
-- Orders are executed in a simulated environment
-- Positions are tracked but not real
-- P&L is calculated but not actual money
-- This is for testing and learning purposes only
-""")
+# Trading Mode Toggle Section
+st.markdown("### 🔄 Trading Mode Configuration")
+current_mode, mode_changed = render_trading_mode_toggle()
 
 st.markdown("---")
 
@@ -66,7 +57,10 @@ with col2:
 
 with col3:
     st.markdown("**Mode**")
-    st.warning("📝 Paper Trading (Locked)")
+    if current_mode == "paper":
+        st.success("📝 Paper Trading")
+    else:
+        st.error("🔴 LIVE Trading")
 
 st.markdown("---")
 
@@ -76,26 +70,27 @@ st.markdown("### 🔒 Safety Controls")
 col1, col2 = st.columns(2)
 
 with col1:
-    paper_trading_toggle = st.toggle(
-        "Enable Paper Trading",
-        value=st.session_state.get('paper_trading_enabled', False),
-        help="Must be enabled to connect to paper trading account",
-        key="paper_toggle"
+    trading_enabled = st.toggle(
+        f"Enable {'Paper' if current_mode == 'paper' else 'Live'} Trading",
+        value=st.session_state.get('trading_enabled', False),
+        help=f"Must be enabled to connect to {'paper' if current_mode == 'paper' else 'live'} trading account",
+        key="trading_toggle"
     )
     
-    if paper_trading_toggle != st.session_state.get('paper_trading_enabled', False):
-        st.session_state.paper_trading_enabled = paper_trading_toggle
-        if paper_trading_toggle:
-            st.success("✅ Paper trading enabled")
+    if trading_enabled != st.session_state.get('trading_enabled', False):
+        st.session_state.trading_enabled = trading_enabled
+        if trading_enabled:
+            st.success(f"✅ {'Paper' if current_mode == 'paper' else 'Live'} trading enabled")
         else:
-            st.warning("⚠️ Paper trading disabled")
+            st.warning(f"⚠️ {'Paper' if current_mode == 'paper' else 'Live'} trading disabled")
             st.session_state.broker_connected = False
 
 with col2:
-    if st.session_state.get('paper_trading_enabled', False):
+    if st.session_state.get('trading_enabled', False):
         if not st.session_state.get('broker_connected', False):
-            if st.button("🔌 Connect to Paper Account", type="primary", use_container_width=True):
-                with st.spinner("Connecting to paper trading account..."):
+            btn_label = f"🔌 Connect to {'Paper' if current_mode == 'paper' else 'Live'} Account"
+            if st.button(btn_label, type="primary", use_container_width=True):
+                with st.spinner(f"Connecting to {'paper' if current_mode == 'paper' else 'live'} trading account..."):
                     import time
                     time.sleep(2)  # Simulate connection
                     st.session_state.broker_connected = True
@@ -105,8 +100,8 @@ with col2:
                 st.session_state.broker_connected = False
                 st.rerun()
     else:
-        st.button("🔌 Connect to Paper Account", disabled=True, use_container_width=True)
-        st.caption("Enable paper trading first")
+        st.button(f"🔌 Connect to {'Paper' if current_mode == 'paper' else 'Live'} Account", disabled=True, use_container_width=True)
+        st.caption(f"Enable {'paper' if current_mode == 'paper' else 'live'} trading first")
 
 st.markdown("---")
 
@@ -239,17 +234,17 @@ if st.session_state.get('broker_connected', False):
 
 else:
     # Not connected - show connection instructions
-    st.info("""
-    ### 🔌 Connect to Paper Trading
+    st.info(f"""
+    ### 🔌 Connect to {'Paper' if current_mode == 'paper' else 'Live'} Trading
     
-    To start paper trading:
+    To start trading:
     
-    1. ✅ **Enable Paper Trading** using the toggle above
-    2. 🔌 **Click "Connect to Paper Account"** to establish connection
+    1. ✅ **Enable Trading** using the toggle above
+    2. 🔌 **Click "Connect to {'Paper' if current_mode == 'paper' else 'Live'} Account"** to establish connection
     3. 📊 **Monitor positions and orders** in real-time
     4. 🚀 **Deploy strategies** to trade automatically
     
-    **Note:** This is a simulated trading environment. No real money is involved.
+    **Note:** {'This is a simulated trading environment. No real money is involved.' if current_mode == 'paper' else '⚠️ This is LIVE trading with real money at risk!'}
     """)
     
     st.markdown("---")
@@ -266,64 +261,108 @@ else:
         - Set appropriate position sizes
         - Configure risk management rules
         - Start with small positions
-        """)
+        """ + ("" if current_mode == "paper" else "\n        - Double-check you want live trading"))
     
     with col2:
         st.markdown("""
         **⚠️ Important Reminders:**
-        - Paper trading simulates real market conditions
+        - """ + ("Paper trading simulates real market conditions" if current_mode == "paper" else "⚠️ Live trading uses REAL MONEY") + """
         - Execution may differ in live trading
-        - Use this to learn and test strategies
-        - No real money is at risk
+        - Use this to """ + ("learn and test strategies" if current_mode == "paper" else "execute real trades carefully") + """
+        - """ + ("No real money is at risk" if current_mode == "paper" else "⚠️ All money is at REAL RISK") + """
         - Always practice good risk management
         """)
 
 # Help section
-with st.expander("ℹ️ Paper Trading Guide"):
-    st.markdown("""
-    ### What is Paper Trading?
-    
-    Paper trading is simulated trading using real market data but without real money.
-    It allows you to:
-    
-    - Test strategies in real market conditions
-    - Practice trading without financial risk
-    - Learn platform functionality
-    - Build confidence before live trading
-    
-    ### How It Works
-    
-    1. **Real Data**: Uses live market prices and order books
-    2. **Simulated Execution**: Orders are simulated but not sent to market
-    3. **Realistic Fills**: Simulates order execution with market prices
-    4. **Position Tracking**: Tracks your positions as if they were real
-    5. **P&L Calculation**: Calculates profits and losses in real-time
-    
-    ### Limitations of Paper Trading
-    
-    - No real market impact (slippage may differ)
-    - Order fills may be more optimistic
-    - No emotional pressure of real money
-    - Liquidity assumptions may not hold
-    - Execution speed may differ
-    
-    ### Best Practices
-    
-    - Treat it like real trading
-    - Use realistic position sizes
-    - Follow your risk management rules
-    - Keep a trading journal
-    - Review your performance regularly
-    
-    ### Transitioning to Live Trading
-    
-    Before going live (future feature):
-    - Achieve consistent profitability in paper trading
-    - Understand all platform features
-    - Have a solid risk management plan
-    - Start with very small positions
-    - Be prepared for emotional challenges
-    """)
+with st.expander(f"ℹ️ {'Paper' if current_mode == 'paper' else 'Live'} Trading Guide"):
+    if current_mode == "paper":
+        st.markdown("""
+        ### What is Paper Trading?
+        
+        Paper trading is simulated trading using real market data but without real money.
+        It allows you to:
+        
+        - Test strategies in real market conditions
+        - Practice trading without financial risk
+        - Learn platform functionality
+        - Build confidence before live trading
+        
+        ### How It Works
+        
+        1. **Real Data**: Uses live market prices and order books
+        2. **Simulated Execution**: Orders are simulated but not sent to market
+        3. **Realistic Fills**: Simulates order execution with market prices
+        4. **Position Tracking**: Tracks your positions as if they were real
+        5. **P&L Calculation**: Calculates profits and losses in real-time
+        
+        ### Limitations of Paper Trading
+        
+        - No real market impact (slippage may differ)
+        - Order fills may be more optimistic
+        - No emotional pressure of real money
+        - Liquidity assumptions may not hold
+        - Execution speed may differ
+        
+        ### Best Practices
+        
+        - Treat it like real trading
+        - Use realistic position sizes
+        - Follow your risk management rules
+        - Keep a trading journal
+        - Review your performance regularly
+        
+        ### Transitioning to Live Trading
+        
+        Before going live:
+        - Achieve consistent profitability in paper trading
+        - Understand all platform features
+        - Have a solid risk management plan
+        - Start with very small positions
+        - Be prepared for emotional challenges
+        """)
+    else:
+        st.markdown("""
+        ### ⚠️ Live Trading Safety Guide
+        
+        **You are in LIVE TRADING MODE** - all orders use real money!
+        
+        ### Critical Safety Rules
+        
+        1. **Start Small**: Use minimal position sizes initially
+        2. **Set Stop Losses**: Always define your maximum loss
+        3. **Monitor Actively**: Never leave trades unattended
+        4. **Check Twice**: Verify order details before submission
+        5. **Risk Management**: Never risk more than you can afford to lose
+        
+        ### Before Each Trade
+        
+        - [ ] Verify you intended to switch to live mode
+        - [ ] Check position size is appropriate
+        - [ ] Confirm stop loss is set
+        - [ ] Review total portfolio risk
+        - [ ] Ensure sufficient buying power
+        
+        ### Emergency Procedures
+        
+        - **Close All Positions**: Use "Close All" button if needed
+        - **Disconnect**: Stop trading immediately if issues arise
+        - **Switch to Paper**: Return to paper mode for testing
+        - **Review Logs**: Check trading history for any issues
+        
+        ### Connection Information
+        
+        - **Port**: 7496 (TWS Live) or 4001 (Gateway Live)
+        - **Account**: Your configured live account
+        - **Credentials**: From IB_LIVE_* environment variables
+        
+        ### Support
+        
+        If you encounter issues or unexpected behavior:
+        1. Disconnect immediately
+        2. Switch back to paper trading mode
+        3. Review logs and trading history
+        4. Contact support if needed
+        """)
 
 # Footer
-st.caption("🔒 Remember: Paper trading only - No real money at risk")
+st.caption(f"🔒 Current Mode: {'Paper Trading (No real money)' if current_mode == 'paper' else '⚠️ LIVE TRADING (Real money at risk)'}")

@@ -8,6 +8,7 @@ Run with: streamlit run src/ui/app.py
 
 import streamlit as st
 from components.sidebar import render_sidebar
+from components.trading_mode_toggle import render_mode_status_banner
 from utils.session import init_session_state
 from utils.auth import init_authentication
 
@@ -48,6 +49,10 @@ render_sidebar()
 # Main page content
 st.title("🚀 Copilot Quant Platform")
 st.markdown("**Professional Algorithmic Trading & Portfolio Analytics**")
+st.markdown("---")
+
+# Show current trading mode status
+render_mode_status_banner()
 st.markdown("---")
 
 st.markdown("""
