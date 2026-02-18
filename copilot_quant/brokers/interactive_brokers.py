@@ -396,10 +396,10 @@ class IBKRBroker:
     def disconnect(self):
         """Disconnect from IBKR"""
         # Stop monitoring if active
-        if self.account_manager and self.account_manager._monitoring_active:
+        if self.account_manager:
             self.account_manager.stop_monitoring()
         
-        if self.position_manager and self.position_manager._monitoring_active:
+        if self.position_manager:
             self.position_manager.stop_monitoring()
         
         self.connection_manager.disconnect()

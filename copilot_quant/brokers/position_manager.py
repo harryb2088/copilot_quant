@@ -383,6 +383,15 @@ class IBKRPositionManager:
             logger.error(f"Error stopping position monitoring: {e}", exc_info=True)
             return False
     
+    def is_monitoring(self) -> bool:
+        """
+        Check if real-time monitoring is active.
+        
+        Returns:
+            True if monitoring is active, False otherwise
+        """
+        return self._monitoring_active
+    
     def register_update_callback(self, callback: Callable[[List[Position]], None]):
         """
         Register a callback for position updates.

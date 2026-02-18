@@ -19,8 +19,8 @@ Example Usage:
     >>> 
     >>> # Get account summary
     >>> summary = account_mgr.get_account_summary()
-    >>> print(f"Net Liquidation: ${summary['NetLiquidation']:,.2f}")
-    >>> print(f"Buying Power: ${summary['BuyingPower']:,.2f}")
+    >>> print(f"Net Liquidation: ${summary.net_liquidation:,.2f}")
+    >>> print(f"Buying Power: ${summary.buying_power:,.2f}")
     >>> 
     >>> # Start real-time updates
     >>> account_mgr.start_monitoring()
@@ -316,6 +316,15 @@ class IBKRAccountManager:
         except Exception as e:
             logger.error(f"Error stopping account monitoring: {e}", exc_info=True)
             return False
+    
+    def is_monitoring(self) -> bool:
+        """
+        Check if real-time monitoring is active.
+        
+        Returns:
+            True if monitoring is active, False otherwise
+        """
+        return self._monitoring_active
     
     def register_update_callback(self, callback: Callable[[AccountSummary], None]):
         """
