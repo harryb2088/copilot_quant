@@ -1,0 +1,14 @@
+## Backtest Results Log System
+
+### Description
+We need to implement a system to keep a log of all backtested strategies along with their respective settings and performance metrics. This log will help in tracking the effectiveness of various strategies over time and facilitate further analysis. 
+
+### Requirements
+- Log of backtested strategies
+- Include respective settings for each strategy
+- Performance metrics to be recorded:
+  - Profit/Loss
+  - Sharpe Ratio
+  - Max Drawdown
+  
+This will greatly enhance our ability to evaluate and refine our trading strategies based on past performance.
