@@ -5,9 +5,8 @@ These tests use mocking to avoid requiring an actual IBKR connection.
 """
 
 import unittest
-from unittest.mock import Mock, MagicMock, patch, call
+from unittest.mock import Mock, MagicMock, patch
 from datetime import datetime
-import time
 
 from copilot_quant.brokers.connection_manager import (
     IBKRConnectionManager,

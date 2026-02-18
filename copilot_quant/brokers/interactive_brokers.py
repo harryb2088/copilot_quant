@@ -23,9 +23,7 @@ Prerequisites:
 """
 
 import logging
-import os
 from typing import Optional, List, Dict, Any
-import time
 
 try:
     from ib_insync import IB, Stock, MarketOrder, LimitOrder

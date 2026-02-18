@@ -26,12 +26,12 @@ Example Usage:
 """
 
 import logging
-from typing import Dict, Any, Optional, Callable, List
+from typing import Dict, Optional, Callable, List
 from datetime import datetime
 from dataclasses import dataclass, field
 
 try:
-    from ib_insync import IB, Position as IBPosition
+    from ib_insync import Position as IBPosition
 except ImportError as e:
     raise ImportError(
         "ib_insync is required for IBKR integration. "

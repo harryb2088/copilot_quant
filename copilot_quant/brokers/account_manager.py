@@ -27,13 +27,12 @@ Example Usage:
 """
 
 import logging
-import time
 from typing import Dict, Any, Optional, Callable, List
 from datetime import datetime
 from dataclasses import dataclass, field
 
 try:
-    from ib_insync import IB, AccountValue
+    from ib_insync import AccountValue
 except ImportError as e:
     raise ImportError(
         "ib_insync is required for IBKR integration. "
