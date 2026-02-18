@@ -36,6 +36,8 @@ except ImportError as e:
     ) from e
 
 from .connection_manager import IBKRConnectionManager
+from .account_manager import IBKRAccountManager
+from .position_manager import IBKRPositionManager
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +79,9 @@ class IBKRBroker:
         host: Optional[str] = None,
         port: Optional[int] = None,
         client_id: Optional[int] = None,
-        use_gateway: bool = False
+        use_gateway: bool = False,
+        enable_account_manager: bool = True,
+        enable_position_manager: bool = True
     ):
         """
         Initialize IBKR broker connection.
@@ -91,6 +95,8 @@ class IBKRBroker:
             port: IB API port (default: from IB_PORT env or auto-detected based on mode)
             client_id: Unique client identifier (default: from IB_CLIENT_ID env or 1)
             use_gateway: If True, use IB Gateway ports, else use TWS ports
+            enable_account_manager: If True, enable account manager for real-time sync
+            enable_position_manager: If True, enable position manager for real-time sync
             
         Environment Variables:
             IB_HOST: Interactive Brokers host (default: 127.0.0.1)
@@ -112,15 +118,27 @@ class IBKRBroker:
         self.paper_trading = paper_trading
         self.use_gateway = use_gateway
         
+        # Manager flags
+        self._enable_account_manager = enable_account_manager
+        self._enable_position_manager = enable_position_manager
+        
+        # Managers (will be initialized after connection)
+        self.account_manager: Optional[IBKRAccountManager] = None
+        self.position_manager: Optional[IBKRPositionManager] = None
+        
         logger.info(
             f"Initialized IBKRBroker: "
             f"mode={'Paper' if paper_trading else 'Live'}, "
-            f"app={'Gateway' if use_gateway else 'TWS'}"
+            f"app={'Gateway' if use_gateway else 'TWS'}, "
+            f"account_mgr={'enabled' if enable_account_manager else 'disabled'}, "
+            f"position_mgr={'enabled' if enable_position_manager else 'disabled'}"
         )
     
     def connect(self, timeout: int = 30, retry_count: int = 3) -> bool:
         """
         Establish connection to IBKR.
+        
+        After connection, initializes account and position managers if enabled.
         
         Args:
             timeout: Connection timeout in seconds
@@ -130,9 +148,32 @@ class IBKRBroker:
             True if connection successful, False otherwise
         """
         try:
-            return self.connection_manager.connect(timeout=timeout, retry_count=retry_count)
+            success = self.connection_manager.connect(timeout=timeout, retry_count=retry_count)
+            
+            if success:
+                # Initialize managers after connection
+                self._initialize_managers()
+            
+            return success
+            
         except ConnectionError:
             return False
+    
+    def _initialize_managers(self):
+        """Initialize account and position managers after connection."""
+        try:
+            # Initialize account manager
+            if self._enable_account_manager:
+                self.account_manager = IBKRAccountManager(self.connection_manager)
+                logger.info("Account manager initialized and synced")
+            
+            # Initialize position manager
+            if self._enable_position_manager:
+                self.position_manager = IBKRPositionManager(self.connection_manager)
+                logger.info("Position manager initialized and synced")
+                
+        except Exception as e:
+            logger.error(f"Error initializing managers: {e}", exc_info=True)
     
     def is_connected(self) -> bool:
         """Check if currently connected to IBKR"""
@@ -354,7 +395,57 @@ class IBKRBroker:
     
     def disconnect(self):
         """Disconnect from IBKR"""
+        # Stop monitoring if active
+        if self.account_manager:
+            self.account_manager.stop_monitoring()
+        
+        if self.position_manager:
+            self.position_manager.stop_monitoring()
+        
         self.connection_manager.disconnect()
+    
+    def start_real_time_monitoring(self) -> bool:
+        """
+        Start real-time monitoring of account and positions.
+        
+        This enables real-time updates via IBKR events.
+        Updates are delivered to registered callbacks.
+        
+        Returns:
+            True if monitoring started successfully, False otherwise
+        """
+        success = True
+        
+        if self.account_manager:
+            if not self.account_manager.start_monitoring():
+                logger.error("Failed to start account monitoring")
+                success = False
+        
+        if self.position_manager:
+            if not self.position_manager.start_monitoring():
+                logger.error("Failed to start position monitoring")
+                success = False
+        
+        return success
+    
+    def stop_real_time_monitoring(self) -> bool:
+        """
+        Stop real-time monitoring of account and positions.
+        
+        Returns:
+            True if monitoring stopped successfully, False otherwise
+        """
+        success = True
+        
+        if self.account_manager:
+            if not self.account_manager.stop_monitoring():
+                success = False
+        
+        if self.position_manager:
+            if not self.position_manager.stop_monitoring():
+                success = False
+        
+        return success
 
 
 def test_connection(
