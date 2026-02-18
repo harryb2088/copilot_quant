@@ -122,3 +122,25 @@ def render_strategy_cards(strategies):
                         with col2:
                             if st.button("Run", key=f"run_{strategy['id']}"):
                                 st.info(f"Run functionality for {strategy['name']} - Coming soon!")
+
+
+def render_trades_pnl_table(trades_pnl_df):
+    """
+    Render trade P&L summary table with styling.
+    
+    Args:
+        trades_pnl_df: DataFrame with trade P&L data including:
+                      Entry Time, Exit Time, Entry Price, Exit Price,
+                      Quantity, Side, Gross PnL, Cumulative PnL
+    """
+    if trades_pnl_df is None or trades_pnl_df.empty:
+        st.info("No trade P&L data to display")
+        return
+    
+    # Display the trade P&L table
+    st.dataframe(
+        trades_pnl_df,
+        use_container_width=True,
+        height=400,
+        hide_index=True
+    )

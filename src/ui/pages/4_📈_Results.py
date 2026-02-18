@@ -10,10 +10,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from components.sidebar import render_sidebar
-from components.charts import plot_equity_curve, plot_drawdown, plot_monthly_returns_heatmap
-from components.tables import render_trade_log
+from components.charts import plot_equity_curve, plot_drawdown, plot_monthly_returns_heatmap, plot_price_with_signals
+from components.tables import render_trade_log, render_trades_pnl_table
 from utils.session import init_session_state
-from utils.mock_data import generate_mock_backtest_results, generate_mock_trades, generate_mock_backtests
+from utils.mock_data import generate_mock_backtest_results, generate_mock_trades, generate_mock_backtests, generate_price_data_with_signals, generate_trades_pnl_table
 
 # Page configuration
 st.set_page_config(
@@ -113,7 +113,7 @@ if completed_backtests:
     # Charts section
     st.markdown("### 📈 Performance Charts")
     
-    tab1, tab2, tab3 = st.tabs(["Equity Curve", "Drawdown", "Monthly Returns"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Equity Curve", "Drawdown", "Monthly Returns", "Trade Signals"])
     
     with tab1:
         st.plotly_chart(plot_equity_curve(equity_data), use_container_width=True)
@@ -138,6 +138,36 @@ if completed_backtests:
         Monthly returns heatmap shows the distribution of returns across different 
         months and years, helping identify seasonal patterns.
         """)
+    
+    with tab4:
+        # Generate price data with signals
+        price_data, signals_data = generate_price_data_with_signals()
+        st.plotly_chart(plot_price_with_signals(price_data, signals_data), use_container_width=True)
+        
+        st.markdown("""
+        This chart shows the share price over time with buy (green ▲) and sell (red ▼) 
+        signals marked at their execution points. These signals represent entry and exit 
+        points identified by the trading strategy during the backtest period.
+        """)
+    
+    st.markdown("---")
+    
+    # Trade P&L Summary section
+    st.markdown("### 💰 Trade P&L Summary")
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        st.markdown("Profit & Loss breakdown for each completed trade (matched buy/sell pairs).")
+    
+    with col2:
+        if st.button("📥 Download P&L Report", type="secondary", use_container_width=True):
+            st.success("✅ Download started!")
+            st.info("P&L report download functionality coming soon. Will export to CSV format.")
+    
+    # Generate and display trade P&L table
+    trades_pnl_df = generate_trades_pnl_table()
+    render_trades_pnl_table(trades_pnl_df)
     
     st.markdown("---")
     
