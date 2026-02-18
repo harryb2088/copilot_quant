@@ -145,7 +145,7 @@ def get_trading_mode_config(mode: TradingMode) -> TradingModeConfig:
         # Fallback to legacy env vars for backward compatibility
         host = os.getenv('IB_PAPER_HOST') or os.getenv('IB_HOST', '127.0.0.1')
         client_id = int(os.getenv('IB_PAPER_CLIENT_ID') or os.getenv('IB_CLIENT_ID', '1'))
-        account = os.getenv('IB_PAPER_ACCOUNT') or os.getenv('IB_PAPER_ACCOUNT')
+        account = os.getenv('IB_PAPER_ACCOUNT')
         
         # Port: explicit > env var > auto-detect
         port_env = os.getenv('IB_PAPER_PORT') or os.getenv('IB_PORT')
