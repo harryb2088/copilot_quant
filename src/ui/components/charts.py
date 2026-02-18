@@ -463,3 +463,60 @@ def plot_cumulative_returns(dates, returns):
     
     return fig
 
+
+def plot_price_with_signals(price_df, signals_df):
+    """
+    Plot share price with buy/sell signal markers.
+    
+    Args:
+        price_df: DataFrame with Date and Close columns
+        signals_df: DataFrame with timestamp, type ('BUY'/'SELL'), and price columns
+    
+    Returns:
+        Plotly figure
+    """
+    fig = go.Figure()
+    
+    # Add price line
+    fig.add_trace(go.Scatter(
+        x=price_df['Date'],
+        y=price_df['Close'],
+        mode='lines',
+        name='Price',
+        line=dict(color='#1f77b4', width=2)
+    ))
+    
+    # Add buy signals
+    buy_signals = signals_df[signals_df['type'] == 'BUY']
+    if not buy_signals.empty:
+        fig.add_trace(go.Scatter(
+            x=buy_signals['timestamp'],
+            y=buy_signals['price'],
+            mode='markers',
+            marker=dict(color='green', size=10, symbol='triangle-up'),
+            name='Buy Signal'
+        ))
+    
+    # Add sell signals
+    sell_signals = signals_df[signals_df['type'] == 'SELL']
+    if not sell_signals.empty:
+        fig.add_trace(go.Scatter(
+            x=sell_signals['timestamp'],
+            y=sell_signals['price'],
+            mode='markers',
+            marker=dict(color='red', size=10, symbol='triangle-down'),
+            name='Sell Signal'
+        ))
+    
+    fig.update_layout(
+        title='Share Price & Trade Signals',
+        xaxis_title='Time',
+        yaxis_title='Price ($)',
+        hovermode='x unified',
+        template='plotly_white',
+        height=500,
+        yaxis=dict(tickformat='$.2f')
+    )
+    
+    return fig
+

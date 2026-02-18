@@ -293,3 +293,99 @@ def generate_liquidity_metrics():
         'largest_position_symbol': 'MSFT',
         'top_5_concentration': 0.405
     }
+
+
+def generate_price_data_with_signals(symbol='AAPL', days=365):
+    """
+    Generate mock price data with buy/sell signals for visualization.
+    
+    Args:
+        symbol: Stock symbol
+        days: Number of days of data to generate
+    
+    Returns:
+        Tuple of (price_df, signals_df):
+            - price_df: DataFrame with Date and Close columns
+            - signals_df: DataFrame with timestamp, type ('BUY'/'SELL'), and price columns
+    """
+    np.random.seed(42)
+    
+    # Generate price data
+    dates = pd.date_range(start='2023-01-01', periods=days, freq='D')
+    base_price = 150.0
+    
+    # Simulate price movement with trend and noise
+    trend = np.linspace(0, 20, days)
+    noise = np.random.normal(0, 2, days)
+    prices = base_price + trend + np.cumsum(noise)
+    prices = np.maximum(prices, 50)  # Ensure prices don't go too low
+    
+    price_df = pd.DataFrame({
+        'Date': dates,
+        'Close': prices
+    })
+    
+    # Generate buy/sell signals (simulate strategy signals)
+    signals = []
+    num_signals = np.random.randint(20, 40)
+    signal_indices = sorted(np.random.choice(range(10, days-10), num_signals, replace=False))
+    
+    for i, idx in enumerate(signal_indices):
+        signal_type = 'BUY' if i % 2 == 0 else 'SELL'
+        signals.append({
+            'timestamp': dates[idx],
+            'type': signal_type,
+            'price': prices[idx],
+            'quantity': np.random.randint(10, 100)
+        })
+    
+    signals_df = pd.DataFrame(signals)
+    
+    return price_df, signals_df
+
+
+def generate_trades_pnl_table():
+    """
+    Generate mock P&L table from matched buy/sell pairs.
+    
+    Returns:
+        DataFrame with columns: Entry Time, Exit Time, Entry Price, Exit Price, 
+                                Quantity, Side, Gross PnL, Cumulative PnL
+    """
+    np.random.seed(42)
+    
+    # Generate matched buy/sell pairs
+    trades = []
+    start_date = datetime(2023, 1, 1)
+    
+    num_trades = 15  # Number of complete trade pairs
+    cumulative_pnl = 0
+    
+    for i in range(num_trades):
+        # Entry
+        entry_time = start_date + timedelta(days=np.random.randint(i*20, (i+1)*20))
+        entry_price = np.random.uniform(140, 180)
+        quantity = np.random.randint(10, 100)
+        
+        # Exit (a few days later)
+        exit_time = entry_time + timedelta(days=np.random.randint(3, 15))
+        # Simulate realistic price movement
+        price_change = np.random.normal(0.02, 0.05)  # 2% average gain with 5% volatility
+        exit_price = entry_price * (1 + price_change)
+        
+        # Calculate P&L
+        gross_pnl = (exit_price - entry_price) * quantity
+        cumulative_pnl += gross_pnl
+        
+        trades.append({
+            'Entry Time': entry_time.strftime('%Y-%m-%d %H:%M'),
+            'Exit Time': exit_time.strftime('%Y-%m-%d %H:%M'),
+            'Entry Price': f'${entry_price:.2f}',
+            'Exit Price': f'${exit_price:.2f}',
+            'Quantity': quantity,
+            'Side': 'Long',
+            'Gross PnL': f'${gross_pnl:.2f}',
+            'Cumulative PnL': f'${cumulative_pnl:.2f}'
+        })
+    
+    return pd.DataFrame(trades)
