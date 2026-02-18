@@ -9,6 +9,8 @@ from .connection_manager import IBKRConnectionManager, ConnectionState
 from .account_manager import IBKRAccountManager, AccountSummary
 from .position_manager import IBKRPositionManager, Position, PositionChange
 from .live_market_data import IBKRLiveDataFeed
+from .live_data_adapter import LiveDataFeedAdapter
+from .live_broker_adapter import LiveBrokerAdapter
 
 __all__ = [
     'IBKRBroker',
@@ -21,4 +23,6 @@ __all__ = [
     'Position',
     'PositionChange',
     'IBKRLiveDataFeed',
+    'LiveDataFeedAdapter',
+    'LiveBrokerAdapter',
 ]
