@@ -240,7 +240,8 @@ with div_col1:
     if not dividend_calendar.empty:
         # Format the calendar for display
         dividend_calendar['Ex-Date'] = pd.to_datetime(dividend_calendar['ex_date']).dt.strftime('%Y-%m-%d')
-        dividend_calendar['Payment'] = dividend_calendar['estimated_payment'].apply(lambda x: f"${x:,.2f}")
+        dividend_calendar['Payment'] = dividend_calendar['total_payment'].apply(lambda x: f"${x:,.2f}")
+        dividend_calendar['Symbol'] = dividend_calendar['symbol'].str.upper()
         
         display_calendar = dividend_calendar[['Symbol', 'Ex-Date', 'Payment']].copy()
         display_calendar = display_calendar.sort_values('Ex-Date')
