@@ -139,10 +139,10 @@ The strategy includes comprehensive statistical utilities:
 ### Cointegration Testing
 
 ```python
-from copilot_quant.strategies import test_cointegration
+from copilot_quant.strategies import check_cointegration
 
 # Test if two series are cointegrated
-is_coint, p_value, test_stat = test_cointegration(prices1, prices2)
+is_coint, p_value, test_stat = check_cointegration(prices1, prices2)
 
 if is_coint:
     print(f"Series are cointegrated (p-value: {p_value:.4f})")
@@ -325,13 +325,13 @@ The strategy tracks all standard metrics:
 ### Custom Pair Selection
 
 ```python
-from copilot_quant.strategies.pairs_utils import test_cointegration
+from copilot_quant.strategies.pairs_utils import check_cointegration
 
 # Manually test specific pairs
 prices_aapl = data[data['Symbol'] == 'AAPL']['Close']
 prices_msft = data[data['Symbol'] == 'MSFT']['Close']
 
-is_coint, pval, stat = test_cointegration(prices_aapl, prices_msft)
+is_coint, pval, stat = check_cointegration(prices_aapl, prices_msft)
 
 if is_coint:
     # Use these assets in the strategy

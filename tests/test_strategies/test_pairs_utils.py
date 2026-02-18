@@ -10,8 +10,8 @@ from copilot_quant.strategies.pairs_utils import (
     calculate_hedge_ratio,
     calculate_spread,
     calculate_zscore,
+    check_cointegration,
     find_cointegrated_pairs,
-    test_cointegration,
 )
 
 
@@ -28,7 +28,7 @@ class TestCointegration:
         series1 = pd.Series(x)
         series2 = pd.Series(y)
         
-        is_coint, p_value, test_stat = test_cointegration(series1, series2)
+        is_coint, p_value, test_stat = check_cointegration(series1, series2)
         
         # Should be cointegrated (low p-value)
         assert p_value < 0.05
@@ -41,7 +41,7 @@ class TestCointegration:
         series1 = pd.Series(np.cumsum(np.random.randn(100)))
         series2 = pd.Series(np.cumsum(np.random.randn(100)))
         
-        is_coint, p_value, test_stat = test_cointegration(series1, series2)
+        is_coint, p_value, test_stat = check_cointegration(series1, series2)
         
         # Should not be cointegrated (high p-value)
         # Note: This is probabilistic, so we just check the return types
@@ -54,7 +54,7 @@ class TestCointegration:
         series1 = pd.Series([1, 2, 3])
         series2 = pd.Series([2, 4, 6])
         
-        is_coint, p_value, test_stat = test_cointegration(series1, series2)
+        is_coint, p_value, test_stat = check_cointegration(series1, series2)
         
         assert is_coint is False
         assert p_value == 1.0
