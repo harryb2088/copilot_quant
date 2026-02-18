@@ -40,7 +40,7 @@ Port Configuration:
 import logging
 import os
 import time
-from typing import Optional, Callable
+from typing import Optional, Callable, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 
@@ -145,8 +145,8 @@ class IBKRConnectionManager:
         self._connected_at: Optional[datetime] = None
         self._last_disconnect_at: Optional[datetime] = None
         self._reconnect_count = 0
-        self._disconnect_handlers: list[Callable] = []
-        self._connect_handlers: list[Callable] = []
+        self._disconnect_handlers: List[Callable] = []
+        self._connect_handlers: List[Callable] = []
         
         # Setup event handlers
         self.ib.errorEvent += self._on_error
@@ -286,7 +286,7 @@ class IBKRConnectionManager:
             raise RuntimeError("Not connected to IBKR. Call connect() first.")
         return self.ib
     
-    def get_status(self) -> dict:
+    def get_status(self) -> Dict[str, Any]:
         """
         Get detailed connection status information.
         
@@ -506,7 +506,7 @@ ERROR_PATTERNS = {
 }
 
 
-def get_error_tips(error_code: int) -> dict:
+def get_error_tips(error_code: int) -> Dict[str, Any]:
     """
     Get troubleshooting tips for a specific error code.
     

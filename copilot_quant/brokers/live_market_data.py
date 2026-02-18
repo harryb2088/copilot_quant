@@ -154,7 +154,18 @@ class IBKRLiveDataFeed:
     
     @property
     def ib(self) -> IB:
-        """Get the underlying IB instance"""
+        """
+        Get the underlying IB instance.
+        
+        Note: This property will raise a RuntimeError if not connected.
+        Always call connect() before accessing this property.
+        
+        Returns:
+            The ib_insync IB instance
+            
+        Raises:
+            RuntimeError: If not connected to IBKR
+        """
         return self.connection_manager.get_ib()
     
     def subscribe(
