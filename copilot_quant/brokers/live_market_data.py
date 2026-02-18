@@ -53,6 +53,7 @@ except ImportError as e:
         "Install it with: pip install ib_insync>=0.9.86"
     ) from e
 
+from .connection_manager import IBKRConnectionManager
 from copilot_quant.data.normalization import (
     normalize_symbol,
     standardize_column_names,
@@ -103,41 +104,32 @@ class IBKRLiveDataFeed:
             client_id: Unique client identifier (default: from IB_CLIENT_ID env or 1)
             use_gateway: If True, use IB Gateway ports, else use TWS ports
         """
-        self.ib = IB()
+        # Use connection manager to handle all connection logic
+        self.connection_manager = IBKRConnectionManager(
+            paper_trading=paper_trading,
+            host=host,
+            port=port,
+            client_id=client_id,
+            use_gateway=use_gateway,
+            auto_reconnect=True
+        )
+        
+        # Convenience properties
         self.paper_trading = paper_trading
         self.use_gateway = use_gateway
         
-        # Get configuration from environment variables or use defaults
-        self.host = host or os.getenv('IB_HOST', '127.0.0.1')
-        self.client_id = client_id or int(os.getenv('IB_CLIENT_ID', '1'))
-        
-        # Determine port
-        if port is not None:
-            self.port = port
-        elif os.getenv('IB_PORT'):
-            self.port = int(os.getenv('IB_PORT'))
-        else:
-            if use_gateway:
-                self.port = 4002 if paper_trading else 4001
-            else:
-                self.port = 7497 if paper_trading else 7496
-        
-        self._connected = False
+        # Data tracking
         self._subscriptions: Dict[str, Any] = {}  # symbol -> contract mapping
         self._latest_data: Dict[str, Dict[str, Any]] = defaultdict(dict)  # symbol -> data
         self._callbacks: Dict[str, List[Callable]] = defaultdict(list)  # symbol -> callbacks
         
-        # Setup event handlers
-        self.ib.errorEvent += self._on_error
-        self.ib.disconnectedEvent += self._on_disconnect
+        # Setup custom event handlers (in addition to connection manager's handlers)
+        self.connection_manager.add_disconnect_handler(self._on_custom_disconnect)
         
         logger.info(
             f"Initialized IBKRLiveDataFeed: "
             f"mode={'Paper' if paper_trading else 'Live'}, "
-            f"app={'Gateway' if use_gateway else 'TWS'}, "
-            f"host={self.host}, "
-            f"port={self.port}, "
-            f"client_id={self.client_id}"
+            f"app={'Gateway' if use_gateway else 'TWS'}"
         )
     
     def connect(self, timeout: int = 30, retry_count: int = 3) -> bool:
@@ -151,40 +143,19 @@ class IBKRLiveDataFeed:
         Returns:
             True if connection successful, False otherwise
         """
-        for attempt in range(retry_count):
-            try:
-                logger.info(
-                    f"Connecting to IBKR at {self.host}:{self.port} "
-                    f"(attempt {attempt + 1}/{retry_count})"
-                )
-                
-                self.ib.connect(
-                    self.host,
-                    self.port,
-                    clientId=self.client_id,
-                    timeout=timeout
-                )
-                
-                if self.ib.isConnected():
-                    self._connected = True
-                    mode = "Paper" if self.paper_trading else "Live"
-                    
-                    logger.info(f"✓ Connected to IBKR ({mode} Trading)")
-                    return True
-                    
-            except Exception as e:
-                logger.error(f"Connection attempt {attempt + 1} failed: {e}")
-                if attempt < retry_count - 1:
-                    wait_time = 5 * (attempt + 1)
-                    logger.info(f"Retrying in {wait_time} seconds...")
-                    time.sleep(wait_time)
-        
-        logger.error("Failed to connect to IBKR after all retries")
-        return False
+        try:
+            return self.connection_manager.connect(timeout=timeout, retry_count=retry_count)
+        except ConnectionError:
+            return False
     
     def is_connected(self) -> bool:
         """Check if currently connected to IBKR"""
-        return self._connected and self.ib.isConnected()
+        return self.connection_manager.is_connected()
+    
+    @property
+    def ib(self) -> IB:
+        """Get the underlying IB instance"""
+        return self.connection_manager.get_ib()
     
     def subscribe(
         self,
@@ -478,32 +449,9 @@ class IBKRLiveDataFeed:
         except Exception as e:
             logger.error(f"Error processing ticker update for {symbol}: {e}")
     
-    def _on_error(self, reqId: int, errorCode: int, errorString: str, contract: Any):
-        """
-        Handle error events from IBKR.
-        
-        Args:
-            reqId: Request ID
-            errorCode: Error code
-            errorString: Error message
-            contract: Related contract
-        """
-        # Filter out informational messages
-        if errorCode in [2104, 2106, 2158]:  # Market data farm connection messages
-            logger.debug(f"Info [{errorCode}]: {errorString}")
-        elif errorCode == 200:  # No security definition found
-            logger.warning(f"Contract not found [{errorCode}]: {errorString}")
-        elif errorCode in [10197, 10167]:  # Delayed market data warnings
-            logger.info(f"Market data info [{errorCode}]: {errorString}")
-        elif errorCode >= 1000:  # System messages
-            logger.debug(f"System [{errorCode}]: {errorString}")
-        else:
-            logger.error(f"Error [{errorCode}]: {errorString}")
-    
-    def _on_disconnect(self):
-        """Handle disconnection event"""
-        logger.warning("Disconnected from IBKR")
-        self._connected = False
+    def _on_custom_disconnect(self):
+        """Handle disconnection event - clean up subscriptions"""
+        logger.warning("Disconnected from IBKR - clearing subscriptions")
         
         # Clear subscriptions
         self._subscriptions.clear()
@@ -525,18 +473,8 @@ class IBKRLiveDataFeed:
         symbols_to_resubscribe = list(self._subscriptions.keys())
         callbacks_to_restore = {sym: cbs[:] for sym, cbs in self._callbacks.items()}
         
-        # Disconnect if still connected
-        if self.ib.isConnected():
-            try:
-                self.ib.disconnect()
-            except Exception as e:
-                logger.warning(f"Error during disconnect: {e}")
-        
-        # Wait a bit before reconnecting
-        time.sleep(2)
-        
-        # Try to reconnect
-        if not self.connect(timeout=timeout):
+        # Use connection manager to reconnect
+        if not self.connection_manager.reconnect(timeout=timeout):
             logger.error("Reconnection failed")
             return False
         
@@ -559,17 +497,12 @@ class IBKRLiveDataFeed:
     def disconnect(self):
         """Disconnect from IBKR and clean up"""
         if self.is_connected():
-            try:
-                # Unsubscribe from all symbols
-                if self._subscriptions:
-                    symbols = list(self._subscriptions.keys())
-                    self.unsubscribe(symbols)
-                
-                self.ib.disconnect()
-                self._connected = False
-                logger.info("Disconnected from IBKR")
-            except Exception as e:
-                logger.error(f"Error during disconnect: {e}")
+            # Unsubscribe from all symbols
+            if self._subscriptions:
+                symbols = list(self._subscriptions.keys())
+                self.unsubscribe(symbols)
+            
+            self.connection_manager.disconnect()
     
     def get_subscribed_symbols(self) -> List[str]:
         """
