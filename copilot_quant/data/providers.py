@@ -11,7 +11,13 @@ from datetime import datetime, timedelta
 from typing import List, Optional, Union
 
 import pandas as pd
-import yfinance as yf
+
+try:
+    import yfinance as yf
+    YFINANCE_AVAILABLE = True
+except ImportError:
+    YFINANCE_AVAILABLE = False
+    logging.warning("yfinance not available - YFinanceProvider will not work")
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +94,8 @@ class YFinanceProvider(DataProvider):
 
     def __init__(self):
         """Initialize Yahoo Finance provider."""
+        if not YFINANCE_AVAILABLE:
+            raise ImportError("yfinance is not available. Install it with: pip install yfinance")
         self.name = "Yahoo Finance (yfinance)"
         logger.info(f"Initialized {self.name} provider")
 

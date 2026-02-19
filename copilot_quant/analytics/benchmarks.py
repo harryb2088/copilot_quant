@@ -41,14 +41,18 @@ class BenchmarkComparator:
 
     SUPPORTED_BENCHMARKS = ["SPY", "QQQ", "DIA", "IWM", "VTI"]
 
-    def __init__(self, cache_days: int = 1):
+    def __init__(self, cache_days: int = 1, data_provider=None):
         """
         Initialize benchmark comparator.
 
         Args:
             cache_days: Number of days to cache benchmark data
+            data_provider: Optional data provider (e.g., LiveDataFeedAdapter for live mode).
+                         If provided, will be used to fetch benchmark data instead of yfinance.
+                         Should implement get_historical_data(symbol, start_date, end_date) method.
         """
         self.cache_days = cache_days
+        self.data_provider = data_provider
         self._benchmark_cache = {}
         logger.info("BenchmarkComparator initialized")
 
@@ -197,28 +201,53 @@ class BenchmarkComparator:
             if datetime.now() - cache_time < timedelta(days=self.cache_days):
                 return data
 
-        # Fetch from yfinance
+        # 1. Try data provider first (IBKR in live mode)
+        if self.data_provider is not None:
+            try:
+                logger.info(f"Fetching {benchmark} data using data provider")
+                df = self.data_provider.get_historical_data(benchmark, start_date, end_date)
+                
+                if df is not None and not df.empty:
+                    # Calculate returns from Close prices
+                    if "Close" in df.columns:
+                        returns = df["Close"].pct_change().dropna()
+                        
+                        # Cache the result
+                        self._benchmark_cache[cache_key] = (datetime.now(), returns)
+                        logger.info(f"Successfully fetched {len(returns)} returns for {benchmark} from data provider")
+                        return returns
+                    else:
+                        logger.warning(f"Data provider returned data without 'Close' column for {benchmark}")
+                else:
+                    logger.warning(f"Data provider returned empty data for {benchmark}")
+                    
+            except Exception as e:
+                logger.warning(f"Data provider failed for {benchmark}: {e}. Falling back to yfinance.")
+
+        # 2. Fall back to yfinance (offline/research mode)
         if YFINANCE_AVAILABLE:
             try:
+                logger.info(f"Fetching {benchmark} data using yfinance")
                 ticker = yf.Ticker(benchmark)
                 hist = ticker.history(start=start_date, end=end_date)
 
                 if hist.empty:
-                    logger.warning(f"No data returned for {benchmark}")
+                    logger.warning(f"No data returned for {benchmark} from yfinance")
                     return self._generate_mock_returns(start_date, end_date)
 
                 returns = hist["Close"].pct_change().dropna()
 
                 # Cache the result
                 self._benchmark_cache[cache_key] = (datetime.now(), returns)
-
+                logger.info(f"Successfully fetched {len(returns)} returns for {benchmark} from yfinance")
                 return returns
 
             except Exception as e:
-                logger.error(f"Error fetching {benchmark} data: {e}")
+                logger.error(f"Error fetching {benchmark} data from yfinance: {e}")
                 return self._generate_mock_returns(start_date, end_date)
         else:
-            # Use mock data if yfinance not available
+            # 3. Final fallback: mock data
+            logger.info(f"yfinance not available, using mock data for {benchmark}")
             return self._generate_mock_returns(start_date, end_date)
 
     def _generate_mock_returns(self, start_date: date, end_date: date) -> pd.Series:
