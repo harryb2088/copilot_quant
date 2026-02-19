@@ -116,10 +116,6 @@ def plot_portfolio_performance_chart(dates, values, title="Portfolio Performance
     """
     import numpy as np
     
-    # Calculate returns for coloring
-    returns = np.diff(values) / values[:-1]
-    [ACCENT_GREEN if r >= 0 else ACCENT_RED for r in returns]
-    
     fig = go.Figure()
     
     # Main line chart
