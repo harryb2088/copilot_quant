@@ -9,7 +9,13 @@ import logging
 from typing import List, Optional
 
 import pandas as pd
-import yfinance as yf
+
+try:
+    import yfinance as yf
+    YFINANCE_AVAILABLE = True
+except ImportError:
+    YFINANCE_AVAILABLE = False
+    logging.warning("yfinance not available - SecurityScanner yfinance mode will not work")
 
 from copilot_quant.data.sp500 import get_sp500_tickers
 
@@ -103,6 +109,20 @@ class SecurityScanner:
         Returns:
             Dictionary with ticker information
         """
+        if not YFINANCE_AVAILABLE:
+            logger.warning(f"yfinance not available - cannot fetch data for {ticker}")
+            return {
+                "ticker": ticker,
+                "name": None,
+                "sector": None,
+                "industry": None,
+                "market_cap": None,
+                "avg_volume": None,
+                "volatility": None,
+                "dividend_yield": None,
+                "asset_type": "equity",
+            }
+        
         try:
             stock = yf.Ticker(ticker)
             info = stock.info
