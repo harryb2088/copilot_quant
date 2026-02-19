@@ -33,7 +33,7 @@ class TestIBKRFill(unittest.TestCase):
     
     def test_ibkr_fill_creation(self):
         """Test creating an IBKRFill"""
-        fill = trade_reconciliation.trade_reconciliation.IBKRFill(
+        fill = trade_reconciliation.IBKRFill(
             execution_id="exec-123",
             order_id=1,
             symbol="AAPL",
@@ -52,7 +52,7 @@ class TestIBKRFill(unittest.TestCase):
     def test_ibkr_fill_to_dict(self):
         """Test converting IBKRFill to dictionary"""
         now = datetime.now()
-        fill = trade_reconciliation.trade_reconciliation.IBKRFill(
+        fill = trade_reconciliation.IBKRFill(
             execution_id="exec-123",
             order_id=1,
             symbol="AAPL",
@@ -74,7 +74,7 @@ class TestLocalFill(unittest.TestCase):
     
     def test_local_fill_creation(self):
         """Test creating a LocalFill"""
-        fill = trade_reconciliation.trade_reconciliation.LocalFill(
+        fill = trade_reconciliation.LocalFill(
             fill_id="fill-456",
             order_id=1,
             symbol="AAPL",
@@ -92,7 +92,7 @@ class TestLocalFill(unittest.TestCase):
     def test_local_fill_to_dict(self):
         """Test converting LocalFill to dictionary"""
         now = datetime.now()
-        fill = trade_reconciliation.trade_reconciliation.LocalFill(
+        fill = trade_reconciliation.LocalFill(
             fill_id="fill-456",
             order_id=1,
             symbol="AAPL",
@@ -114,20 +114,20 @@ class TestDiscrepancy(unittest.TestCase):
     def test_discrepancy_creation(self):
         """Test creating a Discrepancy"""
         disc = trade_reconciliation.Discrepancy(
-            type=trade_reconciliation.trade_reconciliation.DiscrepancyType.MISSING_LOCAL,
+            type=trade_reconciliation.DiscrepancyType.MISSING_LOCAL,
             order_id=1,
             symbol="AAPL",
             description="Missing in local logs"
         )
         
-        self.assertEqual(disc.type, trade_reconciliation.trade_reconciliation.DiscrepancyType.MISSING_LOCAL)
+        self.assertEqual(disc.type, trade_reconciliation.DiscrepancyType.MISSING_LOCAL)
         self.assertEqual(disc.order_id, 1)
         self.assertEqual(disc.symbol, "AAPL")
     
     def test_discrepancy_to_dict(self):
         """Test converting Discrepancy to dictionary"""
         disc = trade_reconciliation.Discrepancy(
-            type=trade_reconciliation.trade_reconciliation.DiscrepancyType.QUANTITY_MISMATCH,
+            type=trade_reconciliation.DiscrepancyType.QUANTITY_MISMATCH,
             order_id=1,
             symbol="AAPL",
             description="Quantities don't match"
@@ -143,11 +143,11 @@ class TestReconciliationReport(unittest.TestCase):
     
     def test_report_has_discrepancies(self):
         """Test checking if report has discrepancies"""
-        report = trade_reconciliation.trade_reconciliation.ReconciliationReport(reconciliation_date=date.today())
+        report = trade_reconciliation.ReconciliationReport(reconciliation_date=date.today())
         self.assertFalse(report.has_discrepancies())
         
         report.discrepancies.append(trade_reconciliation.Discrepancy(
-            type=trade_reconciliation.trade_reconciliation.DiscrepancyType.MISSING_LOCAL,
+            type=trade_reconciliation.DiscrepancyType.MISSING_LOCAL,
             order_id=1,
             symbol="AAPL"
         ))
@@ -155,13 +155,13 @@ class TestReconciliationReport(unittest.TestCase):
     
     def test_report_summary(self):
         """Test generating report summary"""
-        report = trade_reconciliation.trade_reconciliation.ReconciliationReport(
+        report = trade_reconciliation.ReconciliationReport(
             reconciliation_date=date.today(),
             ibkr_fills=[
-                trade_reconciliation.trade_reconciliation.IBKRFill("exec1", 1, "AAPL", "BUY", 100, 150.0, 1.0, datetime.now())
+                trade_reconciliation.IBKRFill("exec1", 1, "AAPL", "BUY", 100, 150.0, 1.0, datetime.now())
             ],
             local_fills=[
-                trade_reconciliation.trade_reconciliation.LocalFill("fill1", 1, "AAPL", "BUY", 100, 150.0, 1.0, datetime.now())
+                trade_reconciliation.LocalFill("fill1", 1, "AAPL", "BUY", 100, 150.0, 1.0, datetime.now())
             ]
         )
         report.matched_order_ids.add(1)

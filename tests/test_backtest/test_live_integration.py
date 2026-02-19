@@ -10,6 +10,7 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime
 import pandas as pd
 import time
+import pytest
 
 from copilot_quant.backtest.strategy import Strategy
 from copilot_quant.backtest.orders import Order
@@ -47,6 +48,7 @@ class SimpleTestStrategy(Strategy):
         pass
 
 
+@pytest.mark.integration
 class TestLiveIntegration(unittest.TestCase):
     """Integration tests for live trading system"""
     

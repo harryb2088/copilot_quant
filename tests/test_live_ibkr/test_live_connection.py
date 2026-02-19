@@ -10,6 +10,7 @@ import os
 from copilot_quant.brokers.interactive_brokers import IBKRBroker
 
 
+@pytest.mark.integration
 @pytest.mark.live_api
 class TestLiveConnection:
     """Test live connection to IBKR paper trading account"""

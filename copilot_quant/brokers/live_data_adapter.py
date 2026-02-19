@@ -469,10 +469,8 @@ class LiveDataFeedAdapter(IDataFeed):
         elif delta.days >= 30:
             months = delta.days // 30
             return f'{months} M'
-        elif delta.days >= 7:
-            weeks = delta.days // 7
-            return f'{weeks} W'
         else:
+            # Always return days for durations less than 30 days
             return f'{delta.days} D'
     
     def _normalize_for_backtest(self, df: pd.DataFrame, symbol: str) -> pd.DataFrame:
