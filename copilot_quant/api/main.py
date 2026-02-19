@@ -11,7 +11,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from .auth import verify_api_key
-from .endpoints import portfolio, positions, orders, performance, health
+from .endpoints import portfolio, positions, orders, performance, health, metrics
 from . import websocket
 
 logger = logging.getLogger(__name__)
@@ -79,6 +79,13 @@ def create_app(
         health.router,
         prefix="/health",
         tags=["health"]
+    )
+    
+    # Metrics endpoint (open for Prometheus scraping)
+    app.include_router(
+        metrics.router,
+        prefix="/metrics",
+        tags=["metrics"]
     )
     
     # WebSocket routes (no auth for now)

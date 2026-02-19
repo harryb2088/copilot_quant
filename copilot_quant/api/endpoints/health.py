@@ -10,6 +10,8 @@ from typing import Dict, Any
 
 from fastapi import APIRouter
 
+from copilot_quant.monitoring.health_monitor import get_health_monitor
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -23,8 +25,11 @@ async def health_check() -> Dict[str, Any]:
     Returns:
         Health status
     """
+    monitor = get_health_monitor()
+    status = monitor.get_health_status()
+    
     return {
-        "status": "healthy",
+        "status": status['overall_status'],
         "timestamp": datetime.now().isoformat(),
         "service": "copilot-quant-api"
     }
@@ -38,24 +43,8 @@ async def detailed_health() -> Dict[str, Any]:
     Returns:
         Detailed health information
     """
-    # TODO: Add actual health checks for:
-    # - Database connection
-    # - IBKR connection
-    # - Data freshness
-    # - System resources
-    
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "components": {
-            "api": "healthy",
-            "database": "healthy",  # TODO: Check actual database
-            "broker": "unknown",     # TODO: Check IBKR connection
-            "data_pipeline": "unknown"
-        },
-        "uptime_seconds": 0,  # TODO: Track actual uptime
-        "version": "1.0.0"
-    }
+    monitor = get_health_monitor()
+    return monitor.get_health_status()
 
 
 @router.get("/ready")
@@ -66,9 +55,11 @@ async def readiness() -> Dict[str, Any]:
     Returns:
         Readiness status
     """
-    # TODO: Check if application is ready to serve traffic
+    monitor = get_health_monitor()
+    status = monitor.get_health_status()
+    
     return {
-        "ready": True,
+        "ready": status['overall_status'] in ['healthy', 'degraded'],
         "timestamp": datetime.now().isoformat()
     }
 
