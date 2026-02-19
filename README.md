@@ -24,6 +24,10 @@ The platform is protected with email/password authentication. Environment variab
 - **Live Market Data**: Real-time price streaming via Interactive Brokers (IBKR)
 - **Historical Data Download**: Backfill capability for any timeframe via IBKR
 - **Risk Management**: Comprehensive risk controls with circuit breaker protection
+- **Trading Orchestrator**: Always-on daemon with market hours automation, health monitoring, and auto-restart
+- **Configuration Management**: Unified YAML config with runtime reload and versioning
+- **Multi-Channel Notifications**: Slack, Discord, Email, and Webhook alerts for trading events
+- **Market Calendar**: NYSE market hours and US holiday detection
 - **Data Pipeline**: Automated backfill and incremental updates for S&P500 and prediction markets
 - **Multi-Page UI**: Clean, intuitive Streamlit web interface
 - **Bloomberg-Style Professional UI**: Dark theme with chart-first design and institutional-grade aesthetics
@@ -118,6 +122,92 @@ streamlit run src/ui/app.py
 ```
 
 The application will launch in your default web browser at `http://localhost:8501`
+
+## 🤖 Trading Orchestrator (Always-On Trading)
+
+The Trading Orchestrator transforms the platform into a robust, always-on trading system with automated market hours management, health monitoring, and multi-channel notifications.
+
+### Features
+
+- **Automated Trading**: Starts/stops trading based on NYSE market hours
+- **Market Calendar**: Detects US holidays and market closures
+- **State Machine**: PRE_MARKET, TRADING, POST_MARKET, CLOSED states
+- **Health Monitoring**: Heartbeat logging and auto-restart on errors
+- **Configuration Management**: YAML-based config with hot reload and versioning
+- **Notifications**: Slack, Discord, Email, and Webhook alerts
+
+### Quick Start
+
+1. **Create configuration file** (see `config.paper.yaml` for example):
+
+```yaml
+version: "1.0.0"
+mode: paper
+
+schedule:
+  timezone: "America/New_York"
+  auto_start: true
+  auto_stop: true
+
+strategy:
+  symbols: [AAPL, MSFT, GOOGL]
+  max_positions: 10
+
+notifications:
+  enabled: true
+  channels: [slack]
+  slack_webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK"
+```
+
+2. **Run the orchestrator**:
+
+```bash
+python examples/run_orchestrator.py
+```
+
+3. **Test notifications**:
+
+```bash
+# Set environment variables
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK"
+
+# Test all notification channels
+python examples/test_notifications.py
+```
+
+### Documentation
+
+See [docs/ORCHESTRATOR.md](docs/ORCHESTRATOR.md) for comprehensive documentation including:
+
+- Configuration schema reference
+- Notification setup for all channels
+- Running as a service (systemd, Docker)
+- Monitoring and troubleshooting
+- API reference
+
+### Example: Integration with Order Handler
+
+```python
+from copilot_quant.orchestrator.notifiers import SlackNotifier, AlertLevel
+from copilot_quant.orchestrator.notification_integration import OrderNotificationAdapter
+
+# Setup notifier
+notifier = SlackNotifier(
+    webhook_url="https://hooks.slack.com/services/YOUR/WEBHOOK",
+    min_level=AlertLevel.WARNING
+)
+
+# Create adapter
+adapter = OrderNotificationAdapter(
+    notifiers=[notifier],
+    notify_on_fills=True,
+    notify_on_errors=True
+)
+
+# Register with order handler
+order_handler.register_fill_callback(adapter.on_order_filled)
+order_handler.register_error_callback(adapter.on_order_error)
+```
 
 ## ☁️ Cloud Deployment on Vercel
 
