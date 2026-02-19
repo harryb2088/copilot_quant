@@ -480,7 +480,7 @@ class LiveSignalMonitor:
                 
                 logger.info(
                     f"✓ Signal executed: {signal.side} {quantity} {signal.symbol} "
-                    f"@ ${fill.fill_price:.2f} (strategy: {signal.strategy_name})"
+                    f"@ ${fill.price:.2f} (strategy: {signal.strategy_name})"
                 )
             else:
                 logger.warning(f"Order not filled for signal: {signal.symbol}")
@@ -506,12 +506,13 @@ class LiveSignalMonitor:
             logger.warning("Cannot perform risk check - invalid account value")
             return False
         
-        # Check total exposure
+        # Check total exposure (use absolute value for long and short positions)
         positions = self.broker.get_positions()
-        total_exposure = sum(
-            abs(pos.quantity * pos.current_price)
-            for pos in positions.values()
-        )
+        total_exposure = 0.0
+        for pos in positions.values():
+            price = getattr(pos, 'current_price', None) or getattr(pos, 'avg_entry_price', 0)
+            # Use absolute value to count both long and short positions towards exposure
+            total_exposure += abs(pos.quantity * price)
         
         exposure_ratio = total_exposure / account_value
         

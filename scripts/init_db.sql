@@ -12,6 +12,6 @@ CREATE INDEX IF NOT EXISTS idx_fills_timestamp ON fills(timestamp);
 CREATE INDEX IF NOT EXISTS idx_portfolio_snapshots_date ON portfolio_snapshots(snapshot_date);
 CREATE INDEX IF NOT EXISTS idx_reconciliation_logs_date ON reconciliation_logs(reconciliation_date);
 
--- Grant necessary permissions
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO copilot;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO copilot;
+-- Grant necessary permissions (least privilege principle)
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO copilot;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO copilot;

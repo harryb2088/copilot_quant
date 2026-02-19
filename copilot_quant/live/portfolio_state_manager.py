@@ -310,8 +310,8 @@ class PortfolioStateManager:
             last_snapshot = self._get_latest_snapshot()
             local_nav = last_snapshot.nav if last_snapshot else 0.0
             
-            # Calculate difference
-            nav_diff = abs(ibkr_nav - local_nav) if last_snapshot else 0.0
+            # Calculate difference (signed - positive means IBKR > local)
+            nav_diff = (ibkr_nav - local_nav) if last_snapshot else 0.0
             nav_diff_pct = (nav_diff / local_nav * 100) if local_nav > 0 else 0.0
             
             # Log reconciliation
@@ -364,10 +364,10 @@ class PortfolioStateManager:
             positions = self.broker.get_positions()
             
             # Calculate equity value
-            equity_value = sum(
-                abs(pos.quantity * getattr(pos, 'current_price', getattr(pos, 'avg_entry_price', 0)))
-                for pos in positions.values()
-            )
+            equity_value = 0.0
+            for pos in positions.values():
+                price = getattr(pos, 'current_price', None) or getattr(pos, 'avg_entry_price', 0)
+                equity_value += abs(pos.quantity * price)
             
             # Update peak NAV
             if nav > self._peak_nav:
