@@ -6,14 +6,12 @@ These tests verify portfolio state persistence and reconciliation functionality.
 
 import unittest
 from datetime import datetime, date, timedelta
-from unittest.mock import Mock, MagicMock, patch
 
 from copilot_quant.live.portfolio_state_manager import (
     PortfolioStateManager,
     PortfolioSnapshot,
     PortfolioSnapshotModel,
     PositionSnapshotModel,
-    ReconciliationLogModel
 )
 from copilot_quant.backtest.orders import Position
 

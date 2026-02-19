@@ -46,7 +46,6 @@ class TestMonitoringModules:
     
     def test_structured_logger(self, tmp_path):
         """Test StructuredLogger"""
-        from pathlib import Path
         from copilot_quant.monitoring.structured_logger import StructuredLogger
         
         log_file = tmp_path / "test.log"
