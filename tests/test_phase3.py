@@ -5,10 +5,6 @@ Tests analytics, API, and monitoring modules.
 """
 
 import pytest
-from datetime import datetime, date, timedelta
-import pandas as pd
-import numpy as np
-from pathlib import Path
 
 
 class TestAnalyticsModules:
@@ -50,6 +46,7 @@ class TestMonitoringModules:
     
     def test_structured_logger(self, tmp_path):
         """Test StructuredLogger"""
+        from pathlib import Path
         from copilot_quant.monitoring.structured_logger import StructuredLogger
         
         log_file = tmp_path / "test.log"
@@ -86,7 +83,7 @@ class TestMonitoringModules:
     
     def test_health_monitor(self):
         """Test HealthMonitor"""
-        from copilot_quant.monitoring.health_monitor import HealthMonitor, HealthStatus
+        from copilot_quant.monitoring.health_monitor import HealthMonitor
         
         monitor = HealthMonitor()
         
