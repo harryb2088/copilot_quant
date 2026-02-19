@@ -134,6 +134,26 @@ For understanding the Streamlit UI features:
     - Troubleshooting
     - Best for: Getting started quickly with LLM
 
+### Implementation Summaries
+
+Historical implementation summaries from previous development work:
+
+17. **[Implementation Summaries](implementation-summaries/)** 📝
+    - [Account Position Sync](implementation-summaries/ACCOUNT_POSITION_SYNC_SUMMARY.md) - Position synchronization implementation
+    - [IBKR Settings Update](implementation-summaries/IBKR_SETTINGS_UPDATE.md) - IBKR configuration updates
+    - [IBKR Test Implementation](implementation-summaries/IBKR_TEST_IMPLEMENTATION_SUMMARY.md) - IBKR testing summary
+    - [IB Implementation](implementation-summaries/IB_IMPLEMENTATION_SUMMARY.md) - Interactive Brokers implementation
+    - [Implementation Details](implementation-summaries/IMPLEMENTATION_DETAILS.md) - General implementation details
+    - [Implementation Summary](implementation-summaries/IMPLEMENTATION_SUMMARY.md) - Overall implementation summary
+    - [Live Integration](implementation-summaries/LIVE_INTEGRATION_SUMMARY.md) - Live trading integration
+    - [Order Execution](implementation-summaries/ORDER_EXECUTION_SUMMARY.md) - Order execution implementation
+    - [Trade Logging](implementation-summaries/TRADE_LOGGING_IMPLEMENTATION_SUMMARY.md) - Trade logging implementation
+    - [Trading Mode Toggle](implementation-summaries/TRADING_MODE_TOGGLE_SUMMARY.md) - Trading mode toggle feature
+    - [Trading Mode UI Mockup](implementation-summaries/TRADING_MODE_TOGGLE_UI_MOCKUP.md) - UI mockup for trading mode
+
+18. **[Testing Guides](testing-guides/)** 🧪
+    - [Trading Mode Toggle Manual Test](testing-guides/TRADING_MODE_TOGGLE_MANUAL_TEST.md) - Manual testing procedures
+
 ## 🎯 Common Tasks
 
 ### "I want to run my first backtest"

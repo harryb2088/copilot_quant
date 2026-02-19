@@ -5,7 +5,7 @@ This module provides pytest fixtures for testing IBKR broker functionality.
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from tests.mocks.mock_ib import MockIB, Stock, MarketOrder, LimitOrder, MockPosition, MockContract
 
 

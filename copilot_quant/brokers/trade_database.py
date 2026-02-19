@@ -26,14 +26,14 @@ from contextlib import contextmanager
 
 from sqlalchemy import (
     create_engine, Column, Integer, String, Float, DateTime, 
-    Date, Boolean, Text, ForeignKey, Enum as SQLEnum, JSON
+    Date, Text, ForeignKey, JSON
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Session
 from sqlalchemy.pool import StaticPool
 
-from .order_execution_handler import OrderRecord, OrderStatus, Fill
-from .trade_reconciliation import ReconciliationReport, Discrepancy, DiscrepancyType
+from .order_execution_handler import OrderRecord, Fill
+from .trade_reconciliation import ReconciliationReport, DiscrepancyType
 
 logger = logging.getLogger(__name__)
 

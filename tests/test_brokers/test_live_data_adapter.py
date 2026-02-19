@@ -6,8 +6,8 @@ with IBKR live market data feed.
 """
 
 import unittest
-from unittest.mock import Mock, MagicMock, patch
-from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
+from datetime import datetime
 import pandas as pd
 
 from copilot_quant.brokers.live_data_adapter import LiveDataFeedAdapter

@@ -7,7 +7,6 @@ Displays IBKR recent orders and order status.
 import streamlit as st
 import pandas as pd
 import logging
-from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,6 @@ with warnings, confirmations, and status display.
 import streamlit as st
 import logging
 from datetime import datetime
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

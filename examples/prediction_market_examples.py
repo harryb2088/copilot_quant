@@ -9,7 +9,6 @@ Run this script to explore prediction market data:
 """
 
 import logging
-import pandas as pd
 from copilot_quant.data.prediction_markets import (
     PolymarketProvider,
     KalshiProvider,

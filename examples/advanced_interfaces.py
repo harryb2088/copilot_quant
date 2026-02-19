@@ -14,7 +14,6 @@ from copilot_quant.backtest.interfaces import (
     IBroker,
     IDataFeed,
     IPerformanceAnalyzer,
-    IPortfolioManager,
     IResultsTracker,
 )
 from copilot_quant.backtest.orders import Fill, Order, Position

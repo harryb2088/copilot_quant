@@ -45,7 +45,7 @@ def plot_equity_curve(data):
         name='Equity',
         line=dict(color=ACCENT_BLUE, width=3),
         fill='tozeroy',
-        fillcolor=f'rgba(52, 152, 219, 0.1)'
+        fillcolor='rgba(52, 152, 219, 0.1)'
     ))
     
     fig.update_layout(
@@ -83,7 +83,7 @@ def plot_drawdown(data):
         name='Drawdown',
         fill='tozeroy',
         line=dict(color=ACCENT_RED, width=3),
-        fillcolor=f'rgba(231, 76, 60, 0.2)'
+        fillcolor='rgba(231, 76, 60, 0.2)'
     ))
     
     fig.update_layout(
@@ -114,12 +114,6 @@ def plot_portfolio_performance_chart(dates, values, title="Portfolio Performance
     Returns:
         Plotly figure optimized for top-of-page display
     """
-    import numpy as np
-    
-    # Calculate returns for coloring
-    returns = np.diff(values) / values[:-1]
-    colors = [ACCENT_GREEN if r >= 0 else ACCENT_RED for r in returns]
-    
     fig = go.Figure()
     
     # Main line chart

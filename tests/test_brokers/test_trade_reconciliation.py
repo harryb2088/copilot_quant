@@ -5,11 +5,9 @@ These tests verify the trade reconciliation logic using mocks.
 """
 
 import unittest
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 from datetime import datetime, date
-from dataclasses import dataclass
 import importlib.util
-import sys
 from pathlib import Path
 
 # Import modules directly without going through __init__ to avoid circular imports

@@ -6,10 +6,8 @@ for unit and integration testing without requiring an actual IB connection.
 """
 
 import time
-from typing import List, Dict, Optional, Any, Callable
+from typing import List, Dict, Optional, Callable
 from datetime import datetime
-from unittest.mock import MagicMock
-from enum import Enum
 
 
 class MockContract:

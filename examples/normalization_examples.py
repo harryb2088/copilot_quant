@@ -10,8 +10,6 @@ Run this script to see normalization examples:
 
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
-import pytz
 
 from copilot_quant.data.normalization import (
     normalize_symbol,
@@ -158,7 +156,7 @@ def example_contract_roll_adjustment():
         method='difference'
     )
     
-    print(f"\nAfter contract roll adjustment (difference method):")
+    print("\nAfter contract roll adjustment (difference method):")
     print(adjusted[['date', 'close']].head(8))
     
     print("\nNote: Prices before the roll date are adjusted by -0.25 to maintain continuity.")
@@ -330,7 +328,7 @@ def example_outlier_removal():
     # Remove outliers using IQR method
     cleaned = remove_outliers(df, column='close', method='iqr', threshold=1.5)
     
-    print(f"\nAfter removing outliers (IQR method):")
+    print("\nAfter removing outliers (IQR method):")
     print(f"  Original: {len(df)} rows")
     print(f"  Cleaned: {len(cleaned)} rows")
     print(f"  Values: {cleaned['close'].tolist()}")
