@@ -24,6 +24,10 @@ def init_session_state():
     if 'broker_connected' not in st.session_state:
         st.session_state.broker_connected = False
     
+    # IBKR connection state
+    if 'ibkr_trading_enabled' not in st.session_state:
+        st.session_state.ibkr_trading_enabled = False
+    
     # User preferences
     if 'theme_mode' not in st.session_state:
         st.session_state.theme_mode = 'light'

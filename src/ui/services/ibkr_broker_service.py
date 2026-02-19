@@ -25,17 +25,42 @@ import sys
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from datetime import datetime
+import asyncio
+
+# Fix for eventloop issue in Streamlit with ib_insync
+# Set event loop policy for Windows/asyncio compatibility
+try:
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    else:
+        # For Unix-like systems, create a new event loop if needed
+        try:
+            asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+except Exception as e:
+    logging.debug(f"Event loop setup: {e}")
 
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-try:
-    from copilot_quant.brokers.interactive_brokers import IBKRBroker
-    from copilot_quant.brokers.connection_manager import ConnectionState
-except ImportError as e:
-    logging.warning(f"Could not import IBKR modules: {e}")
-    IBKRBroker = None
-    ConnectionState = None
+# Lazy import to avoid event loop issues at module load time
+IBKRBroker = None
+ConnectionState = None
+
+def _lazy_import_ibkr():
+    """Lazy import of IBKR modules to avoid event loop issues."""
+    global IBKRBroker, ConnectionState
+    if IBKRBroker is None:
+        try:
+            from copilot_quant.brokers.interactive_brokers import IBKRBroker as _IBKRBroker
+            from copilot_quant.brokers.connection_manager import ConnectionState as _ConnectionState
+            IBKRBroker = _IBKRBroker
+            ConnectionState = _ConnectionState
+        except ImportError as e:
+            logging.warning(f"Could not import IBKR modules: {e}")
+    return IBKRBroker, ConnectionState
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +106,10 @@ class IBKRBrokerService:
         Returns:
             True if connection successful, False otherwise
         """
-        if IBKRBroker is None:
+        # Lazy import IBKR modules
+        _IBKRBroker, _ConnectionState = _lazy_import_ibkr()
+        
+        if _IBKRBroker is None:
             self.last_error = "IBKR modules not available. Install ib_insync."
             logger.error(self.last_error)
             return False
@@ -102,7 +130,7 @@ class IBKRBrokerService:
                 f"app={'Gateway' if use_gateway else 'TWS'}"
             )
             
-            self.broker = IBKRBroker(
+            self.broker = _IBKRBroker(
                 paper_trading=paper_trading,
                 use_gateway=use_gateway,
                 enable_account_manager=True,
