@@ -12,8 +12,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from components.sidebar import render_sidebar, render_connection_status
 from components.tables import render_positions, render_orders
 from components.trading_mode_toggle import render_trading_mode_toggle, render_mode_status_banner
+from components.ibkr_connection_panel import render_ibkr_connection_panel, render_connection_info_expander
+from components.ibkr_account_panel import render_ibkr_account_panel
+from components.ibkr_positions_panel import render_ibkr_positions_panel
+from components.ibkr_orders_panel import render_ibkr_orders_panel
 from utils.session import init_session_state
 from utils.mock_data import generate_mock_positions
+from services.ibkr_broker_service import get_ibkr_service
 
 # Page configuration
 st.set_page_config(
@@ -24,6 +29,9 @@ st.set_page_config(
 
 # Initialize session state
 init_session_state()
+
+# Get IBKR broker service
+ibkr_service = get_ibkr_service()
 
 # Render sidebar
 render_sidebar()
@@ -39,123 +47,28 @@ current_mode, mode_changed = render_trading_mode_toggle()
 
 st.markdown("---")
 
-# Connection status section
-st.markdown("### 🔌 Broker Connection Status")
+# IBKR Connection Panel
+render_ibkr_connection_panel(ibkr_service, current_mode)
 
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("**Broker**")
-    st.info("Interactive Brokers")
-
-with col2:
-    st.markdown("**Status**")
-    if st.session_state.get('broker_connected', False):
-        st.success("🟢 Connected")
-    else:
-        st.error("🔴 Disconnected")
-
-with col3:
-    st.markdown("**Mode**")
-    if current_mode == "paper":
-        st.success("📝 Paper Trading")
-    else:
-        st.error("🔴 LIVE Trading")
-
-st.markdown("---")
-
-# Safety toggle and connection
-st.markdown("### 🔒 Safety Controls")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    trading_enabled = st.toggle(
-        f"Enable {'Paper' if current_mode == 'paper' else 'Live'} Trading",
-        value=st.session_state.get('trading_enabled', False),
-        help=f"Must be enabled to connect to {'paper' if current_mode == 'paper' else 'live'} trading account",
-        key="trading_toggle"
-    )
-    
-    if trading_enabled != st.session_state.get('trading_enabled', False):
-        st.session_state.trading_enabled = trading_enabled
-        if trading_enabled:
-            st.success(f"✅ {'Paper' if current_mode == 'paper' else 'Live'} trading enabled")
-        else:
-            st.warning(f"⚠️ {'Paper' if current_mode == 'paper' else 'Live'} trading disabled")
-            st.session_state.broker_connected = False
-
-with col2:
-    if st.session_state.get('trading_enabled', False):
-        if not st.session_state.get('broker_connected', False):
-            btn_label = f"🔌 Connect to {'Paper' if current_mode == 'paper' else 'Live'} Account"
-            if st.button(btn_label, type="primary", use_container_width=True):
-                with st.spinner(f"Connecting to {'paper' if current_mode == 'paper' else 'live'} trading account..."):
-                    import time
-                    time.sleep(2)  # Simulate connection
-                    st.session_state.broker_connected = True
-                    st.rerun()
-        else:
-            if st.button("🔌 Disconnect", type="secondary", use_container_width=True):
-                st.session_state.broker_connected = False
-                st.rerun()
-    else:
-        st.button(f"🔌 Connect to {'Paper' if current_mode == 'paper' else 'Live'} Account", disabled=True, use_container_width=True)
-        st.caption(f"Enable {'paper' if current_mode == 'paper' else 'live'} trading first")
+# Connection info expander
+render_connection_info_expander(ibkr_service)
 
 st.markdown("---")
 
 # Only show trading interface if connected
-if st.session_state.get('broker_connected', False):
+if ibkr_service.is_connected():
     # Account summary
-    st.markdown("### 💰 Account Summary")
-    
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        st.metric("Account Value", "$100,408")
-    
-    with col2:
-        st.metric("Cash", "$96,500")
-    
-    with col3:
-        st.metric("Buying Power", "$193,000")
-    
-    with col4:
-        st.metric("Day P&L", "+$408", delta="+0.41%")
-    
-    with col5:
-        st.metric("Total P&L", "+$408", delta="+0.41%")
+    render_ibkr_account_panel(ibkr_service)
     
     st.markdown("---")
     
     # Active positions
-    st.markdown("### 📊 Active Positions")
-    
-    positions_df = generate_mock_positions()
-    
-    if not positions_df.empty:
-        render_positions(positions_df)
-        
-        # Position actions
-        st.markdown("#### Position Actions")
-        cols = st.columns(len(positions_df))
-        for i, (col, idx) in enumerate(zip(cols, positions_df.index)):
-            with col:
-                symbol = positions_df.loc[idx, 'Symbol']
-                if st.button(f"Close {symbol}", key=f"close_{symbol}", use_container_width=True):
-                    st.success(f"✅ Close order submitted for {symbol}")
-                    st.info("Order execution simulation - Position would be closed in real paper trading")
-    else:
-        st.info("No active positions")
+    render_ibkr_positions_panel(ibkr_service)
     
     st.markdown("---")
     
     # Active orders
-    st.markdown("### 📋 Active Orders")
-    
-    # Mock empty orders table
-    render_orders(None)
+    render_ibkr_orders_panel(ibkr_service)
     
     st.markdown("---")
     
