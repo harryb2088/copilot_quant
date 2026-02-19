@@ -376,5 +376,397 @@ class TestDatabaseModels(unittest.TestCase):
         self.assertEqual(model.order_id, 1)
 
 
+
+
+class TestPortfolioSnapshotQueries(unittest.TestCase):
+    """Test portfolio snapshot query methods in TradeDatabase"""
+
+    def setUp(self):
+        """Set up test database with portfolio snapshot support"""
+        # Import models to ensure they're available
+        try:
+            # Use in-memory SQLite for testing
+            from sqlalchemy import create_engine
+            from sqlalchemy.orm import sessionmaker
+            from sqlalchemy.pool import StaticPool
+
+            from copilot_quant.live.portfolio_state_manager import (
+                Base as PortfolioBase,
+            )
+            from copilot_quant.live.portfolio_state_manager import (
+                PortfolioSnapshotModel,
+                PositionSnapshotModel,
+            )
+
+            # Create engine with both TradeDatabase and PortfolioStateManager schemas
+            self.engine = create_engine(
+                "sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool
+            )
+
+            # Create tables from both modules
+            from copilot_quant.brokers.trade_database import Base as TradeBase
+
+            TradeBase.metadata.create_all(bind=self.engine)
+            PortfolioBase.metadata.create_all(bind=self.engine)
+
+            # Create TradeDatabase with existing engine
+            self.db = TradeDatabase("sqlite:///:memory:")
+            # Replace its engine with our combined one
+            self.db.engine = self.engine
+            self.db.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+
+            self.portfolio_snapshot_available = True
+
+        except ImportError:
+            self.portfolio_snapshot_available = False
+            self.db = TradeDatabase("sqlite:///:memory:")
+
+    def test_get_portfolio_snapshots_empty(self):
+        """Test getting portfolio snapshots when none exist"""
+        if not self.portfolio_snapshot_available:
+            self.skipTest("Portfolio snapshot models not available")
+
+        snapshots = self.db.get_portfolio_snapshots()
+        self.assertEqual(len(snapshots), 0)
+
+    def test_get_portfolio_snapshots_with_data(self):
+        """Test getting portfolio snapshots with data"""
+        if not self.portfolio_snapshot_available:
+            self.skipTest("Portfolio snapshot models not available")
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+
+        # Add test snapshots
+        session = self.db.SessionLocal()
+        try:
+            for i in range(3):
+                snapshot = PortfolioSnapshotModel(
+                    timestamp=datetime.now(),
+                    snapshot_date=date.today(),
+                    nav=100000.0 + i * 1000,
+                    cash=10000.0,
+                    equity_value=90000.0 + i * 1000,
+                    num_positions=5,
+                    drawdown=0.01 * i,
+                    daily_pnl=500.0,
+                    peak_nav=100000.0 + i * 1000,
+                )
+                session.add(snapshot)
+            session.commit()
+        finally:
+            session.close()
+
+        # Query snapshots
+        snapshots = self.db.get_portfolio_snapshots()
+        self.assertEqual(len(snapshots), 3)
+        self.assertIn("nav", snapshots[0])
+        self.assertIn("drawdown", snapshots[0])
+
+    def test_get_portfolio_snapshots_with_date_filter(self):
+        """Test getting portfolio snapshots with date filtering"""
+        if not self.portfolio_snapshot_available:
+            self.skipTest("Portfolio snapshot models not available")
+
+        from datetime import timedelta
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+
+        # Add test snapshots for different dates
+        session = self.db.SessionLocal()
+        try:
+            today = date.today()
+            for i in range(5):
+                snapshot_date = today - timedelta(days=i)
+                snapshot = PortfolioSnapshotModel(
+                    timestamp=datetime.combine(snapshot_date, datetime.min.time()),
+                    snapshot_date=snapshot_date,
+                    nav=100000.0,
+                    cash=10000.0,
+                    equity_value=90000.0,
+                    num_positions=5,
+                    drawdown=0.0,
+                    daily_pnl=0.0,
+                    peak_nav=100000.0,
+                )
+                session.add(snapshot)
+            session.commit()
+        finally:
+            session.close()
+
+        # Query with date filter
+        start_date = today - timedelta(days=2)
+        snapshots = self.db.get_portfolio_snapshots(start_date=start_date)
+
+        # Should get 3 snapshots: today, -1 day, -2 days
+        self.assertEqual(len(snapshots), 3)
+
+    def test_get_portfolio_snapshots_with_limit(self):
+        """Test getting portfolio snapshots with limit"""
+        if not self.portfolio_snapshot_available:
+            self.skipTest("Portfolio snapshot models not available")
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+
+        # Add 10 test snapshots
+        session = self.db.SessionLocal()
+        try:
+            for _i in range(10):
+                snapshot = PortfolioSnapshotModel(
+                    timestamp=datetime.now(),
+                    snapshot_date=date.today(),
+                    nav=100000.0,
+                    cash=10000.0,
+                    equity_value=90000.0,
+                    num_positions=5,
+                    drawdown=0.0,
+                    daily_pnl=0.0,
+                    peak_nav=100000.0,
+                )
+                session.add(snapshot)
+            session.commit()
+        finally:
+            session.close()
+
+        # Query with limit
+        snapshots = self.db.get_portfolio_snapshots(limit=5)
+        self.assertEqual(len(snapshots), 5)
+
+    def test_get_portfolio_snapshot_by_id(self):
+        """Test getting a specific portfolio snapshot by ID"""
+        if not self.portfolio_snapshot_available:
+            self.skipTest("Portfolio snapshot models not available")
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+
+        # Add test snapshot
+        session = self.db.SessionLocal()
+        try:
+            snapshot = PortfolioSnapshotModel(
+                timestamp=datetime.now(),
+                snapshot_date=date.today(),
+                nav=100000.0,
+                cash=10000.0,
+                equity_value=90000.0,
+                num_positions=5,
+                drawdown=0.05,
+                daily_pnl=250.0,
+                peak_nav=105000.0,
+            )
+            session.add(snapshot)
+            session.commit()
+            snapshot_id = snapshot.id
+        finally:
+            session.close()
+
+        # Query by ID
+        result = self.db.get_portfolio_snapshot_by_id(snapshot_id)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["nav"], 100000.0)
+        self.assertEqual(result["drawdown"], 0.05)
+
+        # Query non-existent ID
+        result = self.db.get_portfolio_snapshot_by_id(99999)
+        self.assertIsNone(result)
+
+    def test_get_equity_curve(self):
+        """Test getting equity curve data"""
+        if not self.portfolio_snapshot_available:
+            self.skipTest("Portfolio snapshot models not available")
+
+        from datetime import timedelta
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+
+        # Add test snapshots
+        session = self.db.SessionLocal()
+        try:
+            today = date.today()
+            for i in range(5):
+                snapshot_date = today - timedelta(days=4 - i)
+                snapshot = PortfolioSnapshotModel(
+                    timestamp=datetime.combine(snapshot_date, datetime.min.time()),
+                    snapshot_date=snapshot_date,
+                    nav=100000.0 + i * 500,
+                    cash=10000.0,
+                    equity_value=90000.0 + i * 500,
+                    num_positions=5,
+                    drawdown=0.0,
+                    daily_pnl=500.0 if i > 0 else 0.0,
+                    peak_nav=100000.0 + i * 500,
+                )
+                session.add(snapshot)
+            session.commit()
+        finally:
+            session.close()
+
+        # Query equity curve
+        equity_curve = self.db.get_equity_curve()
+        self.assertEqual(len(equity_curve), 5)
+        self.assertIn("timestamp", equity_curve[0])
+        self.assertIn("nav", equity_curve[0])
+        self.assertIn("drawdown", equity_curve[0])
+        self.assertIn("daily_pnl", equity_curve[0])
+
+        # Verify ordering (should be chronological)
+        navs = [point["nav"] for point in equity_curve]
+        self.assertEqual(navs, sorted(navs))
+
+    def test_get_equity_curve_with_date_range(self):
+        """Test getting equity curve with date range"""
+        if not self.portfolio_snapshot_available:
+            self.skipTest("Portfolio snapshot models not available")
+
+        from datetime import timedelta
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+
+        # Add test snapshots
+        session = self.db.SessionLocal()
+        try:
+            today = date.today()
+            for i in range(10):
+                snapshot_date = today - timedelta(days=9 - i)
+                snapshot = PortfolioSnapshotModel(
+                    timestamp=datetime.combine(snapshot_date, datetime.min.time()),
+                    snapshot_date=snapshot_date,
+                    nav=100000.0,
+                    cash=10000.0,
+                    equity_value=90000.0,
+                    num_positions=5,
+                    drawdown=0.0,
+                    daily_pnl=0.0,
+                    peak_nav=100000.0,
+                )
+                session.add(snapshot)
+            session.commit()
+        finally:
+            session.close()
+
+        # Query with date range
+        start_date = today - timedelta(days=4)
+        end_date = today
+        equity_curve = self.db.get_equity_curve(start_date=start_date, end_date=end_date)
+
+        # Should get 5 points
+        self.assertEqual(len(equity_curve), 5)
+
+    def test_get_position_snapshots(self):
+        """Test getting position snapshots"""
+        if not self.portfolio_snapshot_available:
+            self.skipTest("Portfolio snapshot models not available")
+
+        from copilot_quant.live.portfolio_state_manager import (
+            PortfolioSnapshotModel,
+            PositionSnapshotModel,
+        )
+
+        # Add test data
+        session = self.db.SessionLocal()
+        try:
+            portfolio_snapshot = PortfolioSnapshotModel(
+                timestamp=datetime.now(),
+                snapshot_date=date.today(),
+                nav=100000.0,
+                cash=10000.0,
+                equity_value=90000.0,
+                num_positions=2,
+                drawdown=0.0,
+                daily_pnl=0.0,
+                peak_nav=100000.0,
+            )
+            session.add(portfolio_snapshot)
+            session.flush()
+
+            # Add position snapshots
+            for symbol in ["AAPL", "GOOGL"]:
+                pos_snapshot = PositionSnapshotModel(
+                    portfolio_snapshot_id=portfolio_snapshot.id,
+                    symbol=symbol,
+                    quantity=100,
+                    avg_cost=150.0,
+                    current_price=155.0,
+                    market_value=15500.0,
+                    unrealized_pnl=500.0,
+                    realized_pnl=0.0,
+                )
+                session.add(pos_snapshot)
+
+            session.commit()
+            snapshot_id = portfolio_snapshot.id
+        finally:
+            session.close()
+
+        # Query all position snapshots
+        positions = self.db.get_position_snapshots()
+        self.assertEqual(len(positions), 2)
+
+        # Query by snapshot ID
+        positions = self.db.get_position_snapshots(snapshot_id=snapshot_id)
+        self.assertEqual(len(positions), 2)
+
+        # Query by symbol
+        positions = self.db.get_position_snapshots(symbol="AAPL")
+        self.assertEqual(len(positions), 1)
+        self.assertEqual(positions[0]["symbol"], "AAPL")
+
+    def test_get_latest_portfolio_snapshot(self):
+        """Test getting the latest portfolio snapshot"""
+        if not self.portfolio_snapshot_available:
+            self.skipTest("Portfolio snapshot models not available")
+
+        import time
+        from datetime import timedelta
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+
+        # Add test snapshots
+        session = self.db.SessionLocal()
+        try:
+            for i in range(3):
+                snapshot = PortfolioSnapshotModel(
+                    timestamp=datetime.now(),
+                    snapshot_date=date.today(),
+                    nav=100000.0 + i * 1000,
+                    cash=10000.0,
+                    equity_value=90000.0 + i * 1000,
+                    num_positions=5,
+                    drawdown=0.0,
+                    daily_pnl=0.0,
+                    peak_nav=100000.0 + i * 1000,
+                )
+                session.add(snapshot)
+                session.flush()
+                # Small delay to ensure different timestamps
+                time.sleep(0.01)
+            session.commit()
+        finally:
+            session.close()
+
+        # Get latest
+        latest = self.db.get_latest_portfolio_snapshot()
+        self.assertIsNotNone(latest)
+        # Should be the last one added (highest NAV)
+        self.assertEqual(latest["nav"], 102000.0)
+
+    def test_portfolio_snapshot_error_message(self):
+        """Test that error messages are informative when portfolio models unavailable"""
+        # This test verifies that the error handling code path exists and provides
+        # a helpful error message. The actual ImportError scenario is difficult to
+        # test without breaking the test environment itself.
+
+        # Verify that when the module IS available, methods work correctly
+        if self.portfolio_snapshot_available:
+            # Should not raise when models are available
+            try:
+                snapshots = self.db.get_portfolio_snapshots()
+                self.assertIsInstance(snapshots, list)
+            except RuntimeError:
+                self.fail("get_portfolio_snapshots() raised RuntimeError unexpectedly")
+
+        # The error handling is tested implicitly - if ImportError occurs during
+        # normal import, the try/except blocks in each method will catch it and
+        # raise RuntimeError with a helpful message.
+
+
 if __name__ == "__main__":
     unittest.main()

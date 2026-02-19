@@ -1,21 +1,30 @@
 """
-Trade Database Module for Audit Trail
+Trade Database Module for Audit Trail and Portfolio Snapshots
 
-Provides SQLAlchemy-based database storage for trade logging and audit trail.
-Stores all orders, fills, and reconciliation results for compliance and analysis.
+Provides SQLAlchemy-based database storage for trade logging, audit trail,
+and historical portfolio snapshots.
 
 Features:
 - Store orders with full lifecycle tracking
 - Store individual fills with execution details
 - Store reconciliation reports and discrepancies
-- Query interface for audit trail analysis
+- Query portfolio snapshots with NAV, drawdown, equity curves
+- Query position snapshots at specific points in time
 - Export functionality for compliance reports
 
 Example:
     >>> from copilot_quant.brokers.trade_database import TradeDatabase
     >>> db = TradeDatabase("sqlite:///trades.db")
+    >>>
+    >>> # Store trade data
     >>> db.store_order(order_record)
     >>> db.store_fill(fill_record)
+    >>>
+    >>> # Query portfolio snapshots
+    >>> snapshots = db.get_portfolio_snapshots(start_date=date(2024, 1, 1))
+    >>> equity_curve = db.get_equity_curve(start_date=date(2024, 1, 1))
+    >>>
+    >>> # Get audit trail
     >>> orders = db.get_orders_by_date(date.today())
 """
 
@@ -579,3 +588,188 @@ class TradeDatabase:
                 "reconciliation_reports": [r.to_dict() for r in reports],
                 "discrepancies": [d.to_dict() for d in discrepancies],
             }
+
+    def get_portfolio_snapshots(
+        self, start_date: Optional[date] = None, end_date: Optional[date] = None, limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """
+        Get portfolio snapshots for a date range.
+
+        Retrieves historical portfolio snapshots including NAV, drawdown,
+        equity value, and position counts.
+
+        Args:
+            start_date: Start date (inclusive), None for no lower bound
+            end_date: End date (inclusive), None for no upper bound
+            limit: Maximum number of snapshots to return (default: 100)
+
+        Returns:
+            List of portfolio snapshot dictionaries with keys:
+            - id, timestamp, snapshot_date, nav, cash, equity_value,
+              num_positions, drawdown, daily_pnl, peak_nav
+
+        Raises:
+            RuntimeError: If portfolio snapshot models are not available
+        """
+        try:
+            from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+        except ImportError:
+            raise RuntimeError(
+                "Portfolio snapshot models not available. "
+                "Ensure copilot_quant.live.portfolio_state_manager is installed."
+            )
+
+        with self.get_session() as session:
+            query = session.query(PortfolioSnapshotModel)
+
+            if start_date:
+                query = query.filter(PortfolioSnapshotModel.snapshot_date >= start_date)
+            if end_date:
+                query = query.filter(PortfolioSnapshotModel.snapshot_date <= end_date)
+
+            snapshots = query.order_by(PortfolioSnapshotModel.timestamp.desc()).limit(limit).all()
+
+            session.expunge_all()
+            return [s.to_dict() for s in snapshots]
+
+    def get_portfolio_snapshot_by_id(self, snapshot_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get a specific portfolio snapshot by its ID.
+
+        Args:
+            snapshot_id: Database ID of the snapshot
+
+        Returns:
+            Portfolio snapshot dictionary or None if not found
+
+        Raises:
+            RuntimeError: If portfolio snapshot models are not available
+        """
+        try:
+            from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+        except ImportError:
+            raise RuntimeError(
+                "Portfolio snapshot models not available. "
+                "Ensure copilot_quant.live.portfolio_state_manager is installed."
+            )
+
+        with self.get_session() as session:
+            snapshot = session.query(PortfolioSnapshotModel).filter_by(id=snapshot_id).first()
+
+            if snapshot:
+                session.expunge(snapshot)
+                return snapshot.to_dict()
+            return None
+
+    def get_equity_curve(
+        self, start_date: Optional[date] = None, end_date: Optional[date] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get equity curve data for a date range.
+
+        Retrieves time-series portfolio values for charting and analysis.
+
+        Args:
+            start_date: Start date (inclusive), None for no lower bound
+            end_date: End date (inclusive), None for no upper bound
+
+        Returns:
+            List of dictionaries with timestamp, nav, drawdown, daily_pnl
+
+        Raises:
+            RuntimeError: If portfolio snapshot models are not available
+        """
+        try:
+            from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+        except ImportError:
+            raise RuntimeError(
+                "Portfolio snapshot models not available. "
+                "Ensure copilot_quant.live.portfolio_state_manager is installed."
+            )
+
+        with self.get_session() as session:
+            query = session.query(PortfolioSnapshotModel)
+
+            if start_date:
+                query = query.filter(PortfolioSnapshotModel.snapshot_date >= start_date)
+            if end_date:
+                query = query.filter(PortfolioSnapshotModel.snapshot_date <= end_date)
+
+            snapshots = query.order_by(PortfolioSnapshotModel.timestamp).all()
+
+            session.expunge_all()
+            return [
+                {
+                    "timestamp": s.timestamp.isoformat(),
+                    "nav": s.nav,
+                    "drawdown": s.drawdown,
+                    "daily_pnl": s.daily_pnl,
+                    "cash": s.cash,
+                    "equity_value": s.equity_value,
+                }
+                for s in snapshots
+            ]
+
+    def get_position_snapshots(
+        self, snapshot_id: Optional[int] = None, symbol: Optional[str] = None, limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """
+        Get position snapshots with optional filtering.
+
+        Args:
+            snapshot_id: Filter to a specific portfolio snapshot ID
+            symbol: Filter to a specific symbol
+            limit: Maximum number of position snapshots to return
+
+        Returns:
+            List of position snapshot dictionaries
+
+        Raises:
+            RuntimeError: If portfolio snapshot models are not available
+        """
+        try:
+            from copilot_quant.live.portfolio_state_manager import PositionSnapshotModel
+        except ImportError:
+            raise RuntimeError(
+                "Portfolio snapshot models not available. "
+                "Ensure copilot_quant.live.portfolio_state_manager is installed."
+            )
+
+        with self.get_session() as session:
+            query = session.query(PositionSnapshotModel)
+
+            if snapshot_id:
+                query = query.filter(PositionSnapshotModel.portfolio_snapshot_id == snapshot_id)
+            if symbol:
+                query = query.filter(PositionSnapshotModel.symbol == symbol)
+
+            positions = query.limit(limit).all()
+
+            session.expunge_all()
+            return [p.to_dict() for p in positions]
+
+    def get_latest_portfolio_snapshot(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the most recent portfolio snapshot.
+
+        Returns:
+            Latest portfolio snapshot dictionary or None if no snapshots exist
+
+        Raises:
+            RuntimeError: If portfolio snapshot models are not available
+        """
+        try:
+            from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
+        except ImportError:
+            raise RuntimeError(
+                "Portfolio snapshot models not available. "
+                "Ensure copilot_quant.live.portfolio_state_manager is installed."
+            )
+
+        with self.get_session() as session:
+            snapshot = session.query(PortfolioSnapshotModel).order_by(PortfolioSnapshotModel.timestamp.desc()).first()
+
+            if snapshot:
+                session.expunge(snapshot)
+                return snapshot.to_dict()
+            return None
