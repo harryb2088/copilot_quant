@@ -20,7 +20,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any, Dict, Tuple
 
 from copilot_quant.backtest.signals import TradingSignal
 from copilot_quant.brokers.order_execution_handler import OrderExecutionHandler, OrderRecord
@@ -429,7 +429,7 @@ class SignalExecutionPipeline:
             }
         )
     
-    def _calculate_position_size(self, signal: TradingSignal) -> tuple[int, float]:
+    def _calculate_position_size(self, signal: TradingSignal) -> Tuple[int, float]:
         """
         Calculate position size based on signal quality and risk limits.
         

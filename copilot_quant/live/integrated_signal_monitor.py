@@ -132,6 +132,10 @@ class EnhancedLiveSignalMonitor(LiveSignalMonitor):
         This overrides the base class method to use comprehensive
         risk management and execution pipeline.
         
+        Note: This method runs async pipeline in a sync context by creating
+        a new event loop. For production use with high-frequency signals,
+        consider refactoring to run pipeline in an existing async context.
+        
         Args:
             signal: TradingSignal to process
             timestamp: Current timestamp
@@ -145,6 +149,8 @@ class EnhancedLiveSignalMonitor(LiveSignalMonitor):
         # Process through pipeline (async)
         try:
             # Run async method in sync context
+            # Note: Creates new event loop per call - acceptable for low-frequency signals
+            # For high-frequency use cases, refactor to async context
             result = asyncio.run(self.pipeline.process_signal(signal))
             
             # Update stats based on result

@@ -407,8 +407,9 @@ class TestSignalExecutionPipeline:
         """Test position size calculation"""
         shares, value = pipeline._calculate_position_size(sample_signal)
         
-        # Portfolio value = 100k, max_position = 2.5%, quality = 0.6
-        # Expected: 100k * 0.025 * 0.6 = 1500 / 150 = 10 shares
+        # Portfolio value = 100k, max_position_pct = 2.5%, quality_score = 0.6
+        # Formula: (portfolio_value * max_position_pct * quality_score) / entry_price
+        # Expected: (100k * 0.025 * 0.6) / 150 = 1500 / 150 = 10 shares
         assert shares == 10
         assert value == pytest.approx(1500.0, rel=0.01)
     
