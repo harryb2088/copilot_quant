@@ -113,8 +113,7 @@ class TestYFinanceProvider:
 
         assert isinstance(data.index, pd.DatetimeIndex)
 
-    @patch("copilot_quant.data.providers.yf.download")
-    def test_get_multiple_symbols(self, mock_download, provider):
+    def test_get_multiple_symbols(self, provider):
         """Test downloading multiple symbols at once."""
         # Create mock multi-index DataFrame
         dates = pd.date_range("2024-01-01", periods=3)
@@ -129,56 +128,66 @@ class TestYFinanceProvider:
         )
         mock_data.columns = pd.MultiIndex.from_tuples(mock_data.columns)
 
-        mock_download.return_value = mock_data
+        with patch('sys.modules', {**sys.modules, 'yfinance': MagicMock()}):
+            import yfinance as yf_mock
+            yf_mock.download.return_value = mock_data
+            
+            with patch('copilot_quant.data.providers.yf', yf_mock):
+                symbols = ["AAPL", "MSFT"]
+                data = provider.get_multiple_symbols(
+                    symbols,
+                    start_date="2024-01-01",
+                    end_date="2024-01-31",
+                )
 
-        symbols = ["AAPL", "MSFT"]
-        data = provider.get_multiple_symbols(
-            symbols,
-            start_date="2024-01-01",
-            end_date="2024-01-31",
-        )
+                assert isinstance(data, pd.DataFrame)
+                assert not data.empty
 
-        assert isinstance(data, pd.DataFrame)
-        assert not data.empty
-
-    @patch("copilot_quant.data.providers.yf.Ticker")
-    def test_get_ticker_info(self, mock_ticker, provider):
+    def test_get_ticker_info(self, provider):
         """Test getting ticker information."""
-        mock_ticker.return_value.info = {
-            "longName": "Apple Inc.",
-            "sector": "Technology",
-            "marketCap": 3000000000000,
-        }
+        with patch('sys.modules', {**sys.modules, 'yfinance': MagicMock()}):
+            import yfinance as yf_mock
+            mock_ticker_instance = MagicMock()
+            mock_ticker_instance.info = {
+                "longName": "Apple Inc.",
+                "sector": "Technology",
+                "marketCap": 3000000000000,
+            }
+            yf_mock.Ticker.return_value = mock_ticker_instance
+            
+            with patch('copilot_quant.data.providers.yf', yf_mock):
+                info = provider.get_ticker_info("AAPL")
 
-        info = provider.get_ticker_info("AAPL")
+                assert isinstance(info, dict)
+                assert len(info) > 0
+                assert info["longName"] == "Apple Inc."
 
-        assert isinstance(info, dict)
-        assert len(info) > 0
-        assert info["longName"] == "Apple Inc."
-
-    @patch("copilot_quant.data.providers.yf.Ticker")
-    def test_get_sp500_index(self, mock_ticker, provider):
+    def test_get_sp500_index(self, provider):
         """Test getting S&P500 index data."""
-        mock_data = pd.DataFrame(
-            {
-                "Open": [4000, 4010, 4020],
-                "High": [4050, 4060, 4070],
-                "Low": [3990, 4000, 4010],
-                "Close": [4040, 4050, 4060],
-                "Volume": [1000000000, 1100000000, 1200000000],
-            },
-            index=pd.date_range("2024-01-01", periods=3),
-        )
+        with patch('sys.modules', {**sys.modules, 'yfinance': MagicMock()}):
+            import yfinance as yf_mock
+            mock_ticker_instance = MagicMock()
+            mock_data = pd.DataFrame(
+                {
+                    "Open": [4000, 4010, 4020],
+                    "High": [4050, 4060, 4070],
+                    "Low": [3990, 4000, 4010],
+                    "Close": [4040, 4050, 4060],
+                    "Volume": [1000000000, 1100000000, 1200000000],
+                },
+                index=pd.date_range("2024-01-01", periods=3),
+            )
+            mock_ticker_instance.history.return_value = mock_data
+            yf_mock.Ticker.return_value = mock_ticker_instance
+            
+            with patch('copilot_quant.data.providers.yf', yf_mock):
+                data = provider.get_sp500_index(
+                    start_date="2024-01-01",
+                    end_date="2024-01-31",
+                )
 
-        mock_ticker.return_value.history.return_value = mock_data
-
-        data = provider.get_sp500_index(
-            start_date="2024-01-01",
-            end_date="2024-01-31",
-        )
-
-        assert isinstance(data, pd.DataFrame)
-        assert not data.empty
+                assert isinstance(data, pd.DataFrame)
+                assert not data.empty
 
 
 class TestProviderFactory:
@@ -186,13 +195,15 @@ class TestProviderFactory:
 
     def test_get_data_provider_yfinance(self):
         """Test getting yfinance provider."""
-        provider = get_data_provider("yfinance")
-        assert isinstance(provider, YFinanceProvider)
+        with patch('copilot_quant.data.providers.YFINANCE_AVAILABLE', True):
+            provider = get_data_provider("yfinance")
+            assert isinstance(provider, YFinanceProvider)
 
     def test_get_data_provider_yahoo_alias(self):
         """Test that 'yahoo' alias works."""
-        provider = get_data_provider("yahoo")
-        assert isinstance(provider, YFinanceProvider)
+        with patch('copilot_quant.data.providers.YFINANCE_AVAILABLE', True):
+            provider = get_data_provider("yahoo")
+            assert isinstance(provider, YFinanceProvider)
 
     def test_get_data_provider_invalid_name(self):
         """Test that invalid provider name raises error."""
