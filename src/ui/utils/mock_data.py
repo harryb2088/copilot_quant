@@ -1,11 +1,24 @@
-"""Mock data generators for UI development"""
+"""Mock data generators for UI development
+
+This module provides mock data for UI development and testing.
+Set USE_MOCK_DATA=true environment variable to enable mock data.
+When disabled, functions return empty data structures.
+"""
+import os
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
 
+# Check if mock data should be used (defaults to True for backward compatibility)
+USE_MOCK_DATA = os.getenv('USE_MOCK_DATA', 'true').lower() in ('true', '1', 'yes')
+
+
 def generate_mock_strategies():
     """Returns list of mock strategy dictionaries"""
+    if not USE_MOCK_DATA:
+        return []
+    
     strategies = [
         {
             "id": "strat_001",
@@ -45,6 +58,9 @@ def generate_mock_strategies():
 
 def generate_mock_backtest_results():
     """Returns sample backtest data with equity curve"""
+    if not USE_MOCK_DATA:
+        return pd.DataFrame({'Date': [], 'Equity': []}), {}
+    
     # Generate equity curve data
     dates = pd.date_range(start='2023-01-01', end='2024-01-01', freq='D')
     np.random.seed(42)
@@ -79,6 +95,9 @@ def generate_mock_backtest_results():
 
 def generate_mock_trades():
     """Returns sample trade log DataFrame"""
+    if not USE_MOCK_DATA:
+        return pd.DataFrame(columns=['Date', 'Symbol', 'Action', 'Quantity', 'Price', 'Commission', 'P&L'])
+    
     np.random.seed(42)
     n_trades = 50
     
@@ -113,6 +132,9 @@ def generate_mock_trades():
 
 def generate_mock_positions():
     """Returns current positions DataFrame"""
+    if not USE_MOCK_DATA:
+        return pd.DataFrame(columns=['Symbol', 'Quantity', 'Avg Cost', 'Current Price', 'Market Value', 'P&L', 'P&L %'])
+    
     positions = [
         {
             'Symbol': 'AAPL',
@@ -145,6 +167,9 @@ def generate_mock_positions():
 
 def generate_mock_backtests():
     """Returns list of past backtests"""
+    if not USE_MOCK_DATA:
+        return []
+    
     backtests = [
         {
             "id": "bt_001",
@@ -180,6 +205,9 @@ def generate_mock_backtests():
 
 def generate_portfolio_metrics():
     """Generate mock portfolio-level metrics"""
+    if not USE_MOCK_DATA:
+        return {}
+    
     return {
         'portfolio_value': 1250000.00,
         'initial_capital': 1000000.00,
@@ -202,6 +230,9 @@ def generate_portfolio_metrics():
 
 def generate_cash_history(days=90):
     """Generate mock cash balance history"""
+    if not USE_MOCK_DATA:
+        return pd.DataFrame({'Date': [], 'Cash': []})
+    
     import numpy as np
     
     dates = pd.date_range(end=datetime.now(), periods=days, freq='D')
@@ -216,6 +247,9 @@ def generate_cash_history(days=90):
 
 def generate_exposure_history(days=90):
     """Generate mock exposure history"""
+    if not USE_MOCK_DATA:
+        return pd.DataFrame({'Date': [], 'Gross_Exposure': [], 'Net_Exposure': []})
+    
     import numpy as np
     
     dates = pd.date_range(end=datetime.now(), periods=days, freq='D')
@@ -237,6 +271,9 @@ def generate_exposure_history(days=90):
 
 def generate_leverage_history(days=90):
     """Generate mock leverage ratio history"""
+    if not USE_MOCK_DATA:
+        return pd.DataFrame({'Date': [], 'Leverage': []})
+    
     import numpy as np
     
     dates = pd.date_range(end=datetime.now(), periods=days, freq='D')
@@ -253,6 +290,9 @@ def generate_leverage_history(days=90):
 
 def generate_sector_breakdown():
     """Generate mock sector allocation breakdown"""
+    if not USE_MOCK_DATA:
+        return pd.DataFrame({'Sector': [], 'Exposure': [], 'P&L': []})
+    
     return pd.DataFrame({
         'Sector': ['Technology', 'Healthcare', 'Financials', 'Consumer', 'Energy'],
         'Exposure': [0.35, 0.20, 0.15, 0.15, 0.10],
@@ -262,6 +302,9 @@ def generate_sector_breakdown():
 
 def generate_asset_attribution():
     """Generate mock P&L attribution by asset"""
+    if not USE_MOCK_DATA:
+        return pd.DataFrame({'Symbol': [], 'P&L': [], 'Contribution': []})
+    
     return pd.DataFrame({
         'Symbol': ['AAPL', 'NVDA', 'MSFT', 'META', 'JPM', 'AMZN', 'GOOGL', 'TSLA'],
         'P&L': [3400, 4275, -1575, 1134, 1400, 810, 720, -710],
@@ -271,6 +314,9 @@ def generate_asset_attribution():
 
 def generate_risk_metrics():
     """Generate mock advanced risk metrics"""
+    if not USE_MOCK_DATA:
+        return {}
+    
     return {
         'var_95': -23500,
         'cvar_95': -31200,
@@ -284,6 +330,9 @@ def generate_risk_metrics():
 
 def generate_liquidity_metrics():
     """Generate mock liquidity metrics"""
+    if not USE_MOCK_DATA:
+        return {}
+    
     return {
         'turnover_30d': 0.45,
         'avg_holding_period': 87,
@@ -308,6 +357,12 @@ def generate_price_data_with_signals(symbol='AAPL', days=365):
             - price_df: DataFrame with Date and Close columns
             - signals_df: DataFrame with timestamp, type ('BUY'/'SELL'), and price columns
     """
+    if not USE_MOCK_DATA:
+        return (
+            pd.DataFrame({'Date': [], 'Close': []}),
+            pd.DataFrame({'timestamp': [], 'type': [], 'price': []})
+        )
+    
     np.random.seed(42)
     
     # Generate price data
@@ -352,6 +407,10 @@ def generate_trades_pnl_table():
         DataFrame with columns: Entry Time, Exit Time, Entry Price, Exit Price, 
                                 Quantity, Side, Gross PnL, Cumulative PnL
     """
+    if not USE_MOCK_DATA:
+        return pd.DataFrame(columns=['Entry Time', 'Exit Time', 'Entry Price', 'Exit Price', 
+                                     'Quantity', 'Side', 'Gross PnL', 'Cumulative PnL'])
+    
     np.random.seed(42)
     
     # Generate matched buy/sell pairs
