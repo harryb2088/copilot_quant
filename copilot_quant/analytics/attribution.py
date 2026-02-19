@@ -5,7 +5,7 @@ Tracks which strategies generated what percentage of profit/loss.
 """
 
 import logging
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Dict, List, Optional, Any
 from collections import defaultdict
 
@@ -217,7 +217,7 @@ class AttributionAnalyzer:
                     period_key = fill.timestamp.date()
                 elif period == 'weekly':
                     # Week starting Monday
-                    period_key = fill.timestamp.date() - datetime.timedelta(days=fill.timestamp.weekday())
+                    period_key = fill.timestamp.date() - timedelta(days=fill.timestamp.weekday())
                 elif period == 'monthly':
                     period_key = fill.timestamp.date().replace(day=1)
                 else:
