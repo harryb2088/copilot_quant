@@ -15,15 +15,15 @@ Features:
 Example:
     >>> from copilot_quant.brokers.trade_database import TradeDatabase
     >>> db = TradeDatabase("sqlite:///trades.db")
-    >>> 
+    >>>
     >>> # Store trade data
     >>> db.store_order(order_record)
     >>> db.store_fill(fill_record)
-    >>> 
+    >>>
     >>> # Query portfolio snapshots
     >>> snapshots = db.get_portfolio_snapshots(start_date=date(2024, 1, 1))
     >>> equity_curve = db.get_equity_curve(start_date=date(2024, 1, 1))
-    >>> 
+    >>>
     >>> # Get audit trail
     >>> orders = db.get_orders_by_date(date.today())
 """

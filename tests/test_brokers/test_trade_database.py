@@ -385,16 +385,18 @@ class TestPortfolioSnapshotQueries(unittest.TestCase):
         """Set up test database with portfolio snapshot support"""
         # Import models to ensure they're available
         try:
-            from copilot_quant.live.portfolio_state_manager import (
-                PortfolioSnapshotModel,
-                PositionSnapshotModel,
-                Base as PortfolioBase,
-            )
-
             # Use in-memory SQLite for testing
             from sqlalchemy import create_engine
             from sqlalchemy.orm import sessionmaker
             from sqlalchemy.pool import StaticPool
+
+            from copilot_quant.live.portfolio_state_manager import (
+                Base as PortfolioBase,
+            )
+            from copilot_quant.live.portfolio_state_manager import (
+                PortfolioSnapshotModel,
+                PositionSnapshotModel,
+            )
 
             # Create engine with both TradeDatabase and PortfolioStateManager schemas
             self.engine = create_engine(
@@ -465,8 +467,9 @@ class TestPortfolioSnapshotQueries(unittest.TestCase):
         if not self.portfolio_snapshot_available:
             self.skipTest("Portfolio snapshot models not available")
 
-        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
         from datetime import timedelta
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
 
         # Add test snapshots for different dates
         session = self.db.SessionLocal()
@@ -507,7 +510,7 @@ class TestPortfolioSnapshotQueries(unittest.TestCase):
         # Add 10 test snapshots
         session = self.db.SessionLocal()
         try:
-            for i in range(10):
+            for _i in range(10):
                 snapshot = PortfolioSnapshotModel(
                     timestamp=datetime.now(),
                     snapshot_date=date.today(),
@@ -570,8 +573,9 @@ class TestPortfolioSnapshotQueries(unittest.TestCase):
         if not self.portfolio_snapshot_available:
             self.skipTest("Portfolio snapshot models not available")
 
-        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
         from datetime import timedelta
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
 
         # Add test snapshots
         session = self.db.SessionLocal()
@@ -612,8 +616,9 @@ class TestPortfolioSnapshotQueries(unittest.TestCase):
         if not self.portfolio_snapshot_available:
             self.skipTest("Portfolio snapshot models not available")
 
-        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
         from datetime import timedelta
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
 
         # Add test snapshots
         session = self.db.SessionLocal()
@@ -709,9 +714,10 @@ class TestPortfolioSnapshotQueries(unittest.TestCase):
         if not self.portfolio_snapshot_available:
             self.skipTest("Portfolio snapshot models not available")
 
-        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
-        from datetime import timedelta
         import time
+        from datetime import timedelta
+
+        from copilot_quant.live.portfolio_state_manager import PortfolioSnapshotModel
 
         # Add test snapshots
         session = self.db.SessionLocal()
@@ -747,11 +753,11 @@ class TestPortfolioSnapshotQueries(unittest.TestCase):
         # Create a mock database that will fail the import
         # We'll test this by temporarily renaming the module (not actually possible)
         # Instead, we'll just verify the error is raised when models are missing
-        
+
         # This test verifies that the error message is correct
         # In a real scenario where portfolio_state_manager is not installed,
         # the methods would raise RuntimeError
-        
+
         # We can't easily simulate missing module in the test,
         # so we just verify the methods work when module is available
         if not self.portfolio_snapshot_available:
