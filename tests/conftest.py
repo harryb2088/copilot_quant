@@ -4,7 +4,6 @@ Pytest configuration and shared fixtures
 This file makes fixtures available to all test modules.
 """
 
-import pytest
 import sys
 from pathlib import Path
 

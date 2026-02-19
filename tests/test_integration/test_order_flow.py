@@ -245,7 +245,7 @@ class TestErrorHandlingIntegration:
         # Place order that will error
         contract = Stock('AAPL')
         order = MarketOrder('BUY', 100)
-        trade = broker.ib.placeOrder(contract, order)
+        broker.ib.placeOrder(contract, order)
         
         # Wait for error
         time.sleep(0.2)

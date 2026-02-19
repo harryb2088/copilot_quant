@@ -4,17 +4,18 @@ Tests for IBKRBroker main class
 These tests use mocking to avoid requiring an actual IBKR connection.
 """
 
-import pytest
-import time
-from unittest.mock import Mock, MagicMock, patch
 import sys
 from pathlib import Path
 
-# Add project root to path
+# Add project root to path (must be before other local imports)
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from tests.mocks.mock_ib import MockIB, Stock, MarketOrder
+import pytest  # noqa: E402
+import time  # noqa: E402
+from unittest.mock import patch  # noqa: E402
+
+from tests.mocks.mock_ib import MockIB, Stock, MarketOrder  # noqa: E402
 
 
 # Import broker module to avoid circular dependency issues
@@ -316,7 +317,7 @@ class TestIBKRBrokerErrorHandling:
         contract = Stock('AAPL')
         order = MarketOrder('BUY', 100)
         
-        trade = broker.ib.placeOrder(contract, order)
+        broker.ib.placeOrder(contract, order)
         
         # Give time for error event
         time.sleep(0.1)

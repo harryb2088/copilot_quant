@@ -42,7 +42,7 @@ class TestLiveConnection:
             assert isinstance(balance, dict), "Failed to get account balance"
             assert 'NetLiquidation' in balance, "Missing NetLiquidation in balance"
             
-            print(f"\nConnected successfully!")
+            print("\nConnected successfully!")
             print(f"Account Balance: ${balance.get('NetLiquidation', 'N/A')}")
             
         finally:
@@ -75,7 +75,7 @@ class TestLiveConnection:
             # Verify values are numeric
             assert float(balance['NetLiquidation']) > 0
             
-            print(f"\nAccount Summary:")
+            print("\nAccount Summary:")
             print(f"  Net Liquidation: ${balance['NetLiquidation']}")
             print(f"  Cash: ${balance['TotalCashValue']}")
             print(f"  Buying Power: ${balance['BuyingPower']}")

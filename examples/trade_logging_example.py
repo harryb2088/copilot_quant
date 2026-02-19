@@ -112,7 +112,7 @@ def main():
     try:
         report = audit.reconcile_today()
         
-        print(f"\nReconciliation Summary:")
+        print("\nReconciliation Summary:")
         summary = report.summary()
         print(f"  IBKR Fills: {summary['total_ibkr_fills']}")
         print(f"  Local Fills: {summary['total_local_fills']}")

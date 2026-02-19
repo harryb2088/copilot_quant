@@ -17,9 +17,7 @@ Usage:
 import logging
 import time
 from copilot_quant.brokers import (
-    IBKRBroker,
-    IBKRAccountManager,
-    IBKRPositionManager
+    IBKRBroker
 )
 
 # Configure logging
@@ -135,7 +133,7 @@ def main():
             total_value += pos.market_value
             total_pnl += pos.unrealized_pnl
         
-        print(f"Portfolio Summary:")
+        print("Portfolio Summary:")
         print(f"  Total Market Value: ${total_value:,.2f}")
         print(f"  Total Unrealized P&L: ${total_pnl:+,.2f}")
         

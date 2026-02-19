@@ -5,14 +5,13 @@ These tests verify the unified audit trail interface.
 """
 
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock
 from datetime import datetime, date
 import json
 
 from copilot_quant.brokers.audit_trail import AuditTrail
 from copilot_quant.brokers.order_execution_handler import (
     OrderRecord,
-    OrderStatus,
     Fill
 )
 from copilot_quant.brokers.trade_reconciliation import (

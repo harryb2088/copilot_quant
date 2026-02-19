@@ -31,8 +31,8 @@ Example Usage:
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from datetime import datetime
+from typing import Dict, List, Optional
 import pandas as pd
 
 from copilot_quant.backtest.interfaces import IDataFeed

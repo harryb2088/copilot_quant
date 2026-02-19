@@ -6,7 +6,7 @@ Chart-first design with dividend information prominently displayed
 import streamlit as st
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Import custom components and utilities
 from components.charts import plot_portfolio_performance_chart, plot_dividend_history

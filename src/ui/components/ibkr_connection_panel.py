@@ -6,8 +6,6 @@ Displays IBKR connection status and provides connect/disconnect controls.
 
 import streamlit as st
 import logging
-from typing import Optional
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 

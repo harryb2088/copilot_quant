@@ -15,7 +15,6 @@ import os
 import re
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
-import json
 
 
 class LLMStrategyGenerator:
@@ -217,7 +216,6 @@ class LLMStrategyGenerator:
     
     def _generate_signals_from_description(self, description: str, strategy_type: str) -> List[Dict]:
         """Generate signal definitions based on description."""
-        signals = []
         
         # Extract potential indicators mentioned
         indicators = []

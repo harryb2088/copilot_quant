@@ -9,7 +9,6 @@ Run this script to see update/backfill examples:
 """
 
 import logging
-from datetime import datetime, timedelta
 from copilot_quant.data.update_jobs import DataUpdater
 
 # Configure logging
@@ -87,7 +86,7 @@ def example_batch_update():
     # Batch update
     result = updater.batch_update(symbols, max_age_days=1)
     
-    print(f"\nResults:")
+    print("\nResults:")
     print(f"  ✓ Successful: {len(result['success'])} symbols")
     print(f"    {result['success']}")
     
@@ -143,7 +142,7 @@ def example_batch_backfill():
     # Batch backfill
     result = updater.batch_backfill(symbols, start_date=start_date)
     
-    print(f"\nResults:")
+    print("\nResults:")
     print(f"  ✓ Successful: {len(result['success'])} symbols")
     if result['failed']:
         print(f"  ✗ Failed: {len(result['failed'])} symbols")
@@ -282,7 +281,7 @@ def example_scheduled_updates():
         continue_on_error=True  # Don't stop on individual failures
     )
     
-    print(f"\nDaily update complete:")
+    print("\nDaily update complete:")
     print(f"  ✓ Updated: {len(result['success'])} symbols")
     
     if result['failed']:

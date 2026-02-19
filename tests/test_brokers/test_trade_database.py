@@ -6,7 +6,6 @@ These tests verify database storage and retrieval functionality.
 
 import unittest
 from datetime import datetime, date
-import tempfile
 
 from copilot_quant.brokers.trade_database import (
     TradeDatabase,
@@ -215,7 +214,7 @@ class TestTradeDatabase(unittest.TestCase):
             )
         ))
         
-        db_id = self.db.store_reconciliation_report(report)
+        self.db.store_reconciliation_report(report)
         
         # Verify discrepancies
         discrepancies = self.db.get_discrepancies_by_type(

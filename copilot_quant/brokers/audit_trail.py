@@ -21,12 +21,12 @@ Example:
 """
 
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date
 from typing import Optional, Dict, Any, List
 import json
 from pathlib import Path
 
-from .order_execution_handler import OrderRecord, Fill
+from .order_execution_handler import OrderRecord
 from .trade_database import TradeDatabase
 from .trade_reconciliation import TradeReconciliation, ReconciliationReport
 

@@ -10,14 +10,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from components.sidebar import render_sidebar, render_connection_status
-from components.tables import render_positions, render_orders
-from components.trading_mode_toggle import render_trading_mode_toggle, render_mode_status_banner
+from components.trading_mode_toggle import render_trading_mode_toggle
 from components.ibkr_connection_panel import render_ibkr_connection_panel, render_connection_info_expander
 from components.ibkr_account_panel import render_ibkr_account_panel
 from components.ibkr_positions_panel import render_ibkr_positions_panel
 from components.ibkr_orders_panel import render_ibkr_orders_panel
 from utils.session import init_session_state
-from utils.mock_data import generate_mock_positions
 from services.ibkr_broker_service import get_ibkr_service
 
 # Page configuration
