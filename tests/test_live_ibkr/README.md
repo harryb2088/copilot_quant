@@ -39,7 +39,7 @@ pytest -m live_api tests/test_live_ibkr/
 pytest -m live_api tests/test_live_ibkr/ -v
 
 # Run specific test
-pytest -m live_api tests/test_live_ibkr/test_live_connection.py::test_live_connect -v
+pytest -m live_api tests/test_live_ibkr/test_live_connection.py::TestLiveConnection::test_live_connect -v
 ```
 
 ## Test Markers

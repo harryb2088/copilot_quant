@@ -12,17 +12,6 @@ from unittest.mock import MagicMock
 from enum import Enum
 
 
-class MockOrderStatus(Enum):
-    """Mock order status enum"""
-    PendingSubmit = "PendingSubmit"
-    PreSubmitted = "PreSubmitted"
-    Submitted = "Submitted"
-    Filled = "Filled"
-    Cancelled = "Cancelled"
-    Inactive = "Inactive"
-    PendingCancel = "PendingCancel"
-
-
 class MockContract:
     """Mock IB Contract"""
     def __init__(self, symbol: str = "AAPL", secType: str = "STK", exchange: str = "SMART", currency: str = "USD"):
@@ -72,8 +61,8 @@ class MockFill:
         self.time = datetime.now()
 
 
-class MockOrderStatus:
-    """Mock IB Order Status"""
+class MockOrderStatusInfo:
+    """Mock IB Order Status (information about an order's status)"""
     def __init__(self, status: str = "PreSubmitted"):
         self.status = status
         self.filled = 0.0
@@ -87,7 +76,7 @@ class MockTrade:
     def __init__(self, contract: MockContract, order: MockOrder):
         self.contract = contract
         self.order = order
-        self.orderStatus = MockOrderStatus()
+        self.orderStatus = MockOrderStatusInfo()
         self.fills = []
         self.log = []
         
