@@ -11,17 +11,16 @@ import sys
 if 'yfinance' not in sys.modules:
     sys.modules['yfinance'] = MagicMock()
 
-# Import BenchmarkComparator directly from module to avoid analytics.__init__ dependencies
-import importlib.util
-spec = importlib.util.spec_from_file_location(
-    "benchmarks",
-    "copilot_quant/analytics/benchmarks.py"
-)
-benchmarks_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(benchmarks_module)
-BenchmarkComparator = benchmarks_module.BenchmarkComparator
+# Mock ib_insync to avoid import errors from analytics module
+if 'ib_insync' not in sys.modules:
+    sys.modules['ib_insync'] = MagicMock()
 
+# Now we can safely import BenchmarkComparator
+from copilot_quant.analytics.benchmarks import BenchmarkComparator
 from copilot_quant.data.factory import MockDataProvider
+
+# Get reference to the benchmarks module for patching
+import copilot_quant.analytics.benchmarks as benchmarks_module
 
 
 class TestBenchmarkComparatorDataProvider:

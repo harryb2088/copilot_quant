@@ -11,7 +11,6 @@ Features:
 """
 
 import logging
-from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Union
 
@@ -21,7 +20,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-class MockDataProvider(ABC):
+class MockDataProvider:
     """
     Mock data provider for testing purposes.
     
