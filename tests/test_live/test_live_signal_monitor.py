@@ -6,7 +6,7 @@ These tests verify signal monitoring and execution functionality.
 
 import unittest
 from datetime import datetime
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import patch
 import pandas as pd
 
 from copilot_quant.live.live_signal_monitor import LiveSignalMonitor

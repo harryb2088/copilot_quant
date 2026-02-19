@@ -8,17 +8,13 @@ import unittest
 import tempfile
 import yaml
 from pathlib import Path
-from datetime import datetime
 
 from copilot_quant.orchestrator.config_manager import (
     ConfigManager,
     TradingConfig,
     TradingScheduleConfig,
-    StrategyConfig,
     RiskConfig,
     BrokerConfig,
-    DataConfig,
-    NotificationConfig,
 )
 
 
@@ -154,7 +150,7 @@ class TestConfigManager(unittest.TestCase):
     def test_config_reload(self):
         """Test configuration hot reload"""
         manager = ConfigManager(str(self.config_path))
-        config = manager.load()
+        _ = manager.load()  # Load initial config
         
         # Modify config file externally
         external_data = self.test_config_data.copy()
