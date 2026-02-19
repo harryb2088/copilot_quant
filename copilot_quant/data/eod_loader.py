@@ -33,7 +33,13 @@ from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
-import yfinance as yf
+
+try:
+    import yfinance as yf
+    YFINANCE_AVAILABLE = True
+except ImportError:
+    YFINANCE_AVAILABLE = False
+    logging.warning("yfinance not available - SP500EODLoader will not work")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
