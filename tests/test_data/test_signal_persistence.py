@@ -307,7 +307,7 @@ class TestSignalRepository:
 
     def test_get_signals_filter_by_status(self, repo, sample_signal):
         """Test filtering signals by status."""
-        saved1 = repo.save_signal(sample_signal)
+        repo.save_signal(sample_signal)
         saved2 = repo.save_signal(
             TradingSignal(
                 symbol="MSFT",
@@ -347,7 +347,7 @@ class TestSignalRepository:
     def test_get_signals_limit(self, repo, sample_signal):
         """Test limiting number of returned signals."""
         # Save multiple signals
-        for i in range(5):
+        for _ in range(5):
             repo.save_signal(sample_signal)
 
         signals = repo.get_signals(limit=3)
@@ -404,7 +404,7 @@ class TestSignalRepository:
         # Save signals with different statuses
         saved1 = repo.save_signal(sample_signal)
         saved2 = repo.save_signal(sample_signal)
-        saved3 = repo.save_signal(sample_signal)
+        repo.save_signal(sample_signal)
 
         repo.update_signal_status(saved1.signal_id, "executed", executed_price=151.0)
         repo.update_signal_status(saved2.signal_id, "rejected", rejection_reason="risk")
@@ -524,7 +524,7 @@ class TestSignalRepository:
     def test_concurrent_writes_basic(self, repo, sample_signal):
         """Test basic thread safety with sequential writes."""
         # This is a basic test - full concurrent testing would require threading
-        for i in range(10):
+        for _ in range(10):
             repo.save_signal(sample_signal)
 
         signals = repo.get_signals()

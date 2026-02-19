@@ -8,7 +8,7 @@ throughout their lifecycle from generation to execution.
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, JSON, String
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()

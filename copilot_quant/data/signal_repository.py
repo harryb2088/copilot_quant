@@ -10,11 +10,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import create_engine, func
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from copilot_quant.backtest.signals import TradingSignal
-from copilot_quant.data.models import Base, SignalRecord, SignalStatus
+from copilot_quant.data.models import Base, SignalRecord
 
 
 class SignalRepository:
