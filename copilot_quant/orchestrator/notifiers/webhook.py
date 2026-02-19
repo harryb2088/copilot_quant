@@ -5,10 +5,11 @@ Sends notifications to a custom webhook endpoint.
 """
 
 import logging
-import requests
 from typing import Dict, Optional
 
-from copilot_quant.orchestrator.notifiers.base import Notifier, NotificationMessage, AlertLevel
+import requests
+
+from copilot_quant.orchestrator.notifiers.base import AlertLevel, NotificationMessage, Notifier
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +17,9 @@ logger = logging.getLogger(__name__)
 class WebhookNotifier(Notifier):
     """
     Send notifications to a custom webhook endpoint.
-    
+
     Sends JSON payload to the specified webhook URL.
-    
+
     Example:
         >>> notifier = WebhookNotifier(
         ...     webhook_url="https://example.com/webhook/trading-alerts",
@@ -31,18 +32,18 @@ class WebhookNotifier(Notifier):
         ... )
         >>> notifier.notify(message)
     """
-    
+
     def __init__(
         self,
         webhook_url: str,
         headers: Optional[Dict[str, str]] = None,
         timeout: int = 10,
         enabled: bool = True,
-        min_level: AlertLevel = AlertLevel.INFO
+        min_level: AlertLevel = AlertLevel.INFO,
     ):
         """
         Initialize webhook notifier.
-        
+
         Args:
             webhook_url: Webhook endpoint URL
             headers: Optional HTTP headers (e.g., authentication)
@@ -54,36 +55,31 @@ class WebhookNotifier(Notifier):
         self.webhook_url = webhook_url
         self.headers = headers or {}
         self.timeout = timeout
-        
+
         # Set default content type if not provided
-        if 'Content-Type' not in self.headers:
-            self.headers['Content-Type'] = 'application/json'
-    
+        if "Content-Type" not in self.headers:
+            self.headers["Content-Type"] = "application/json"
+
     def send(self, message: NotificationMessage) -> bool:
         """
         Send notification to webhook.
-        
+
         Args:
             message: NotificationMessage to send
-            
+
         Returns:
             True if sent successfully
         """
         # Build payload
         payload = message.to_dict()
-        
+
         try:
-            response = requests.post(
-                self.webhook_url,
-                json=payload,
-                headers=self.headers,
-                timeout=self.timeout
-            )
+            response = requests.post(self.webhook_url, json=payload, headers=self.headers, timeout=self.timeout)
             response.raise_for_status()
-            
+
             logger.info(f"Webhook notification sent: {message.title}")
             return True
-            
+
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to send webhook notification: {e}")
             return False

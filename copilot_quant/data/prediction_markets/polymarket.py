@@ -26,10 +26,7 @@ class PolymarketProvider(PredictionMarketProvider):
         self.base_url = "https://clob.polymarket.com"
         self.gamma_url = "https://gamma-api.polymarket.com"
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'copilot_quant/1.0.0',
-            'Accept': 'application/json'
-        })
+        self.session.headers.update({"User-Agent": "copilot_quant/1.0.0", "Accept": "application/json"})
 
     def list_markets(self, limit: Optional[int] = None) -> pd.DataFrame:
         """
@@ -46,9 +43,9 @@ class PolymarketProvider(PredictionMarketProvider):
             url = f"{self.gamma_url}/markets"
             params = {}
             if limit:
-                params['limit'] = limit
+                params["limit"] = limit
             else:
-                params['limit'] = 100  # Default limit
+                params["limit"] = 100  # Default limit
 
             response = self.session.get(url, params=params, timeout=30)
             response.raise_for_status()
@@ -56,20 +53,22 @@ class PolymarketProvider(PredictionMarketProvider):
 
             markets = []
             for market in data:
-                markets.append({
-                    'market_id': market.get('condition_id', ''),
-                    'title': market.get('question', ''),
-                    'category': market.get('category', ''),
-                    'close_time': market.get('end_date_iso', ''),
-                    'status': 'active' if market.get('active', False) else 'closed',
-                    'volume': float(market.get('volume', 0)),
-                    'liquidity': float(market.get('liquidity', 0)),
-                })
+                markets.append(
+                    {
+                        "market_id": market.get("condition_id", ""),
+                        "title": market.get("question", ""),
+                        "category": market.get("category", ""),
+                        "close_time": market.get("end_date_iso", ""),
+                        "status": "active" if market.get("active", False) else "closed",
+                        "volume": float(market.get("volume", 0)),
+                        "liquidity": float(market.get("liquidity", 0)),
+                    }
+                )
 
             df = pd.DataFrame(markets)
-            if not df.empty and 'close_time' in df.columns:
-                df['close_time'] = pd.to_datetime(df['close_time'], errors='coerce')
-            
+            if not df.empty and "close_time" in df.columns:
+                df["close_time"] = pd.to_datetime(df["close_time"], errors="coerce")
+
             logger.info(f"Retrieved {len(df)} markets from Polymarket")
             return df
 
@@ -101,16 +100,16 @@ class PolymarketProvider(PredictionMarketProvider):
             # Polymarket uses token_id for price history
             # First, get market details to find token_id
             market_details = self.get_market_details(market_id)
-            if not market_details or 'tokens' not in market_details:
+            if not market_details or "tokens" not in market_details:
                 logger.warning(f"Could not find token info for market {market_id}")
                 return pd.DataFrame()
 
             # Get price history for the first token (usually "Yes")
-            tokens = market_details['tokens']
+            tokens = market_details["tokens"]
             if not tokens:
                 return pd.DataFrame()
 
-            token_id = tokens[0].get('token_id', '')
+            token_id = tokens[0].get("token_id", "")
             if not token_id:
                 return pd.DataFrame()
 
@@ -118,8 +117,8 @@ class PolymarketProvider(PredictionMarketProvider):
             # This is a simplified implementation
             url = f"{self.gamma_url}/prices"
             params = {
-                'market': market_id,
-                'interval': 'max'  # Get all available data
+                "market": market_id,
+                "interval": "max",  # Get all available data
             }
 
             response = self.session.get(url, params=params, timeout=30)
@@ -130,16 +129,18 @@ class PolymarketProvider(PredictionMarketProvider):
             prices = []
             if isinstance(data, list):
                 for point in data:
-                    prices.append({
-                        'timestamp': point.get('t', ''),
-                        'price': float(point.get('p', 0)),
-                        'volume': float(point.get('v', 0)),
-                    })
+                    prices.append(
+                        {
+                            "timestamp": point.get("t", ""),
+                            "price": float(point.get("p", 0)),
+                            "volume": float(point.get("v", 0)),
+                        }
+                    )
 
             df = pd.DataFrame(prices)
             if not df.empty:
-                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
-                df = df.set_index('timestamp').sort_index()
+                df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", errors="coerce")
+                df = df.set_index("timestamp").sort_index()
 
                 # Filter by date range if provided
                 if start_date:
@@ -178,17 +179,17 @@ class PolymarketProvider(PredictionMarketProvider):
             data = response.json()
 
             return {
-                'market_id': data.get('condition_id', ''),
-                'title': data.get('question', ''),
-                'description': data.get('description', ''),
-                'category': data.get('category', ''),
-                'outcomes': data.get('outcomes', []),
-                'tokens': data.get('tokens', []),
-                'volume': float(data.get('volume', 0)),
-                'liquidity': float(data.get('liquidity', 0)),
-                'close_time': data.get('end_date_iso', ''),
-                'resolution_time': data.get('closed', ''),
-                'active': data.get('active', False),
+                "market_id": data.get("condition_id", ""),
+                "title": data.get("question", ""),
+                "description": data.get("description", ""),
+                "category": data.get("category", ""),
+                "outcomes": data.get("outcomes", []),
+                "tokens": data.get("tokens", []),
+                "volume": float(data.get("volume", 0)),
+                "liquidity": float(data.get("liquidity", 0)),
+                "close_time": data.get("end_date_iso", ""),
+                "resolution_time": data.get("closed", ""),
+                "active": data.get("active", False),
             }
 
         except requests.RequestException as e:

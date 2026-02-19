@@ -31,7 +31,8 @@ jobs:
 
     - name: Lint with ruff
       run: |
-        ruff check copilot_quant/ tests/
+        ruff check copilot_quant/ src/ tests/
+        ruff format --check copilot_quant/ src/ tests/
 
   test:
     runs-on: ubuntu-latest

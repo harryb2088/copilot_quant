@@ -4,10 +4,10 @@
 def test_import_modules():
     """Test that all main modules can be imported."""
     import copilot_quant
-    import copilot_quant.data
     import copilot_quant.backtest
-    import copilot_quant.strategies
     import copilot_quant.brokers
+    import copilot_quant.data
+    import copilot_quant.strategies
     import copilot_quant.ui
     import copilot_quant.utils
 

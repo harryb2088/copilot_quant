@@ -31,12 +31,9 @@ class KalshiProvider(PredictionMarketProvider):
         self.base_url = "https://api.elections.kalshi.com/trade-api/v2"
         self.api_key = api_key
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'copilot_quant/1.0.0',
-            'Accept': 'application/json'
-        })
+        self.session.headers.update({"User-Agent": "copilot_quant/1.0.0", "Accept": "application/json"})
         if api_key:
-            self.session.headers['Authorization'] = f'Bearer {api_key}'
+            self.session.headers["Authorization"] = f"Bearer {api_key}"
 
     def list_markets(self, limit: Optional[int] = None) -> pd.DataFrame:
         """
@@ -50,37 +47,36 @@ class KalshiProvider(PredictionMarketProvider):
         """
         try:
             url = f"{self.base_url}/events"
-            params = {
-                'status': 'open',
-                'limit': limit if limit else 100
-            }
+            params = {"status": "open", "limit": limit if limit else 100}
 
             response = self.session.get(url, params=params, timeout=30)
             response.raise_for_status()
             data = response.json()
 
             markets = []
-            events = data.get('events', [])
-            
+            events = data.get("events", [])
+
             for event in events:
                 # Each event can have multiple markets
-                markets_data = event.get('markets', [])
-                
+                markets_data = event.get("markets", [])
+
                 for market in markets_data:
-                    markets.append({
-                        'market_id': market.get('ticker', ''),
-                        'title': market.get('title', ''),
-                        'category': event.get('category', ''),
-                        'close_time': market.get('close_time', ''),
-                        'status': market.get('status', ''),
-                        'volume': float(market.get('volume', 0)),
-                        'liquidity': 0,  # Kalshi doesn't provide liquidity in listing
-                    })
+                    markets.append(
+                        {
+                            "market_id": market.get("ticker", ""),
+                            "title": market.get("title", ""),
+                            "category": event.get("category", ""),
+                            "close_time": market.get("close_time", ""),
+                            "status": market.get("status", ""),
+                            "volume": float(market.get("volume", 0)),
+                            "liquidity": 0,  # Kalshi doesn't provide liquidity in listing
+                        }
+                    )
 
             df = pd.DataFrame(markets)
-            if not df.empty and 'close_time' in df.columns:
-                df['close_time'] = pd.to_datetime(df['close_time'], errors='coerce')
-            
+            if not df.empty and "close_time" in df.columns:
+                df["close_time"] = pd.to_datetime(df["close_time"], errors="coerce")
+
             logger.info(f"Retrieved {len(df)} markets from Kalshi")
             return df
 
@@ -111,37 +107,39 @@ class KalshiProvider(PredictionMarketProvider):
         try:
             url = f"{self.base_url}/markets/{market_id}/history"
             params = {}
-            
+
             if start_date:
                 if isinstance(start_date, str):
-                    params['start_time'] = start_date
+                    params["start_time"] = start_date
                 else:
-                    params['start_time'] = start_date.isoformat()
-            
+                    params["start_time"] = start_date.isoformat()
+
             if end_date:
                 if isinstance(end_date, str):
-                    params['end_time'] = end_date
+                    params["end_time"] = end_date
                 else:
-                    params['end_time'] = end_date.isoformat()
+                    params["end_time"] = end_date.isoformat()
 
             response = self.session.get(url, params=params, timeout=30)
             response.raise_for_status()
             data = response.json()
 
             prices = []
-            history = data.get('history', [])
-            
+            history = data.get("history", [])
+
             for point in history:
-                prices.append({
-                    'timestamp': point.get('ts', ''),
-                    'price': float(point.get('yes_price', 0)) / 100,  # Convert cents to dollars
-                    'volume': float(point.get('volume', 0)),
-                })
+                prices.append(
+                    {
+                        "timestamp": point.get("ts", ""),
+                        "price": float(point.get("yes_price", 0)) / 100,  # Convert cents to dollars
+                        "volume": float(point.get("volume", 0)),
+                    }
+                )
 
             df = pd.DataFrame(prices)
             if not df.empty:
-                df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-                df = df.set_index('timestamp').sort_index()
+                df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+                df = df.set_index("timestamp").sort_index()
 
             logger.info(f"Retrieved {len(df)} data points for market {market_id}")
             return df
@@ -169,21 +167,21 @@ class KalshiProvider(PredictionMarketProvider):
             response.raise_for_status()
             data = response.json()
 
-            market = data.get('market', {})
-            
+            market = data.get("market", {})
+
             return {
-                'market_id': market.get('ticker', ''),
-                'title': market.get('title', ''),
-                'description': market.get('subtitle', ''),
-                'category': market.get('category', ''),
-                'outcomes': ['Yes', 'No'],  # Kalshi markets are binary
-                'volume': float(market.get('volume', 0)),
-                'liquidity': float(market.get('liquidity', 0)),
-                'close_time': market.get('close_time', ''),
-                'resolution_time': market.get('expiration_time', ''),
-                'status': market.get('status', ''),
-                'yes_price': float(market.get('yes_bid', 0)) / 100,
-                'no_price': float(market.get('no_bid', 0)) / 100,
+                "market_id": market.get("ticker", ""),
+                "title": market.get("title", ""),
+                "description": market.get("subtitle", ""),
+                "category": market.get("category", ""),
+                "outcomes": ["Yes", "No"],  # Kalshi markets are binary
+                "volume": float(market.get("volume", 0)),
+                "liquidity": float(market.get("liquidity", 0)),
+                "close_time": market.get("close_time", ""),
+                "resolution_time": market.get("expiration_time", ""),
+                "status": market.get("status", ""),
+                "yes_price": float(market.get("yes_bid", 0)) / 100,
+                "no_price": float(market.get("no_bid", 0)) / 100,
             }
 
         except requests.RequestException as e:

@@ -1,38 +1,39 @@
 """Session state management for Streamlit app"""
+
 import streamlit as st
 
 
 def init_session_state():
     """Initialize session state variables if they don't exist"""
-    
+
     # Navigation state
-    if 'current_page' not in st.session_state:
-        st.session_state.current_page = 'Home'
-    
+    if "current_page" not in st.session_state:
+        st.session_state.current_page = "Home"
+
     # Strategy selection
-    if 'selected_strategy' not in st.session_state:
+    if "selected_strategy" not in st.session_state:
         st.session_state.selected_strategy = None
-    
+
     # Backtest selection
-    if 'selected_backtest' not in st.session_state:
+    if "selected_backtest" not in st.session_state:
         st.session_state.selected_backtest = None
-    
+
     # Paper trading connection status
-    if 'paper_trading_enabled' not in st.session_state:
+    if "paper_trading_enabled" not in st.session_state:
         st.session_state.paper_trading_enabled = False
-    
-    if 'broker_connected' not in st.session_state:
+
+    if "broker_connected" not in st.session_state:
         st.session_state.broker_connected = False
-    
+
     # IBKR connection state
-    if 'ibkr_trading_enabled' not in st.session_state:
+    if "ibkr_trading_enabled" not in st.session_state:
         st.session_state.ibkr_trading_enabled = False
-    
+
     # User preferences
-    if 'theme_mode' not in st.session_state:
-        st.session_state.theme_mode = 'light'
-    
-    if 'show_advanced_metrics' not in st.session_state:
+    if "theme_mode" not in st.session_state:
+        st.session_state.theme_mode = "light"
+
+    if "show_advanced_metrics" not in st.session_state:
         st.session_state.show_advanced_metrics = False
 
 

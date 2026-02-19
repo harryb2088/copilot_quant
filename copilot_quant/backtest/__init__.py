@@ -35,64 +35,84 @@ __all__ = [
 
 def __getattr__(name):
     """Lazy load attributes to avoid circular imports"""
-    if name == 'BacktestEngine':
+    if name == "BacktestEngine":
         from copilot_quant.backtest.engine import BacktestEngine
+
         return BacktestEngine
-    elif name == 'PerformanceAnalyzer':
+    elif name == "PerformanceAnalyzer":
         from copilot_quant.backtest.metrics import PerformanceAnalyzer
+
         return PerformanceAnalyzer
-    elif name == 'MultiStrategyEngine':
+    elif name == "MultiStrategyEngine":
         from copilot_quant.backtest.multi_strategy import MultiStrategyEngine
+
         return MultiStrategyEngine
-    elif name == 'StrategyAttribution':
+    elif name == "StrategyAttribution":
         from copilot_quant.backtest.multi_strategy import StrategyAttribution
+
         return StrategyAttribution
-    elif name == 'Fill':
+    elif name == "Fill":
         from copilot_quant.backtest.orders import Fill
+
         return Fill
-    elif name == 'Order':
+    elif name == "Order":
         from copilot_quant.backtest.orders import Order
+
         return Order
-    elif name == 'Position':
+    elif name == "Position":
         from copilot_quant.backtest.orders import Position
+
         return Position
-    elif name == 'BacktestResult':
+    elif name == "BacktestResult":
         from copilot_quant.backtest.results import BacktestResult
+
         return BacktestResult
-    elif name == 'SignalBasedStrategy':
+    elif name == "SignalBasedStrategy":
         from copilot_quant.backtest.signals import SignalBasedStrategy
+
         return SignalBasedStrategy
-    elif name == 'TradingSignal':
+    elif name == "TradingSignal":
         from copilot_quant.backtest.signals import TradingSignal
+
         return TradingSignal
-    elif name == 'Strategy':
+    elif name == "Strategy":
         from copilot_quant.backtest.strategy import Strategy
+
         return Strategy
-    elif name == 'LiveStrategyEngine':
+    elif name == "LiveStrategyEngine":
         from copilot_quant.backtest.live_engine import LiveStrategyEngine
+
         return LiveStrategyEngine
-    elif name == 'BacktestConfig':
+    elif name == "BacktestConfig":
         from copilot_quant.backtest.interfaces import BacktestConfig
+
         return BacktestConfig
-    elif name == 'BrokerConfig':
+    elif name == "BrokerConfig":
         from copilot_quant.backtest.interfaces import BrokerConfig
+
         return BrokerConfig
-    elif name == 'IBroker':
+    elif name == "IBroker":
         from copilot_quant.backtest.interfaces import IBroker
+
         return IBroker
-    elif name == 'IDataFeed':
+    elif name == "IDataFeed":
         from copilot_quant.backtest.interfaces import IDataFeed
+
         return IDataFeed
-    elif name == 'IPerformanceAnalyzer':
+    elif name == "IPerformanceAnalyzer":
         from copilot_quant.backtest.interfaces import IPerformanceAnalyzer
+
         return IPerformanceAnalyzer
-    elif name == 'IPortfolioManager':
+    elif name == "IPortfolioManager":
         from copilot_quant.backtest.interfaces import IPortfolioManager
+
         return IPortfolioManager
-    elif name == 'IResultsTracker':
+    elif name == "IResultsTracker":
         from copilot_quant.backtest.interfaces import IResultsTracker
+
         return IResultsTracker
-    elif name == 'IStrategy':
+    elif name == "IStrategy":
         from copilot_quant.backtest.interfaces import IStrategy
+
         return IStrategy
     raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

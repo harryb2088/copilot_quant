@@ -5,10 +5,10 @@ Provides endpoints for performance metrics and analytics.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
 from datetime import date
+from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ router = APIRouter()
 async def get_performance() -> Dict[str, Any]:
     """
     Get current performance snapshot.
-    
+
     Returns:
         Current performance metrics
     """
@@ -42,7 +42,7 @@ async def get_performance() -> Dict[str, Any]:
         "profit_factor": 1.85,
         "num_trades": 245,
         "num_winning_trades": 153,
-        "num_losing_trades": 92
+        "num_losing_trades": 92,
     }
 
 
@@ -50,16 +50,16 @@ async def get_performance() -> Dict[str, Any]:
 async def get_equity_curve(
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
-    frequency: str = Query("daily", regex="^(daily|weekly|monthly)$")
+    frequency: str = Query("daily", regex="^(daily|weekly|monthly)$"),
 ) -> Dict[str, Any]:
     """
     Get equity curve data.
-    
+
     Args:
         start_date: Start date
         end_date: End date
         frequency: Data frequency
-        
+
     Returns:
         Equity curve data points
     """
@@ -70,7 +70,7 @@ async def get_equity_curve(
         "frequency": frequency,
         "data": [
             # Example: {"date": "2024-01-01", "equity": 1000000.00}
-        ]
+        ],
     }
 
 
@@ -78,16 +78,16 @@ async def get_equity_curve(
 async def get_returns(
     start_date: Optional[date] = Query(None),
     end_date: Optional[date] = Query(None),
-    frequency: str = Query("daily", regex="^(daily|weekly|monthly)$")
+    frequency: str = Query("daily", regex="^(daily|weekly|monthly)$"),
 ) -> Dict[str, Any]:
     """
     Get returns data.
-    
+
     Args:
         start_date: Start date
         end_date: End date
         frequency: Return frequency
-        
+
     Returns:
         Returns data
     """
@@ -99,22 +99,21 @@ async def get_returns(
         "total_return": 0.176,
         "annualized_return": 0.245,
         "volatility": 0.185,
-        "data": []
+        "data": [],
     }
 
 
 @router.get("/drawdown")
 async def get_drawdown(
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None)
+    start_date: Optional[date] = Query(None), end_date: Optional[date] = Query(None)
 ) -> Dict[str, Any]:
     """
     Get drawdown analysis.
-    
+
     Args:
         start_date: Start date
         end_date: End date
-        
+
     Returns:
         Drawdown data and metrics
     """
@@ -127,20 +126,18 @@ async def get_drawdown(
         "current_drawdown": -0.023,
         "current_drawdown_pct": -2.3,
         "max_drawdown_duration_days": 45,
-        "data": []
+        "data": [],
     }
 
 
 @router.get("/risk-metrics")
-async def get_risk_metrics(
-    lookback_days: int = Query(30, ge=1, le=365)
-) -> Dict[str, Any]:
+async def get_risk_metrics(lookback_days: int = Query(30, ge=1, le=365)) -> Dict[str, Any]:
     """
     Get risk metrics.
-    
+
     Args:
         lookback_days: Number of days for rolling calculations
-        
+
     Returns:
         Risk metrics
     """
@@ -155,7 +152,7 @@ async def get_risk_metrics(
         "downside_deviation": 0.123,
         "var_95": -23500.00,
         "cvar_95": -31200.00,
-        "timestamp": date.today().isoformat()
+        "timestamp": date.today().isoformat(),
     }
 
 
@@ -163,16 +160,16 @@ async def get_risk_metrics(
 async def compare_to_benchmark(
     benchmark: str = Query("SPY", regex="^(SPY|QQQ|DIA|IWM|VTI)$"),
     start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None)
+    end_date: Optional[date] = Query(None),
 ) -> Dict[str, Any]:
     """
     Compare performance to benchmark.
-    
+
     Args:
         benchmark: Benchmark ticker
         start_date: Start date
         end_date: End date
-        
+
     Returns:
         Benchmark comparison metrics
     """
@@ -193,24 +190,22 @@ async def compare_to_benchmark(
         "benchmark_return": 0.091,
         "benchmark_return_pct": 9.1,
         "relative_return": 0.085,
-        "relative_return_pct": 8.5
+        "relative_return_pct": 8.5,
     }
 
 
 @router.get("/export")
 async def export_performance(
-    start_date: date = Query(...),
-    end_date: date = Query(...),
-    format: str = Query("json", regex="^(json|csv)$")
+    start_date: date = Query(...), end_date: date = Query(...), format: str = Query("json", regex="^(json|csv)$")
 ) -> Dict[str, Any]:
     """
     Export performance report.
-    
+
     Args:
         start_date: Report start date
         end_date: Report end date
         format: Export format
-        
+
     Returns:
         Export data or download link
     """
@@ -220,11 +215,8 @@ async def export_performance(
             "format": "json",
             "start_date": start_date.isoformat(),
             "end_date": end_date.isoformat(),
-            "data": {}  # TODO: Add actual data
+            "data": {},  # TODO: Add actual data
         }
     else:
         # For CSV, return a download link or stream
-        return {
-            "format": "csv",
-            "download_url": "/api/v1/performance/download/report.csv"
-        }
+        return {"format": "csv", "download_url": "/api/v1/performance/download/report.csv"}
