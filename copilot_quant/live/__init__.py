@@ -5,6 +5,7 @@ This module provides components for live trading including:
 - LiveSignalMonitor: Continuous signal generation and monitoring
 - Portfolio state persistence and reconciliation
 - SignalExecutionPipeline: Risk-aware signal execution pipeline
+- EnhancedLiveSignalMonitor: Integrated monitor with full pipeline
 - Real-time trading dashboard
 """
 
@@ -15,6 +16,10 @@ from .signal_execution_pipeline import (
     ExecutionResult,
     SignalStatus,
 )
+from .integrated_signal_monitor import (
+    EnhancedLiveSignalMonitor,
+    create_production_signal_monitor,
+)
 
 __all__ = [
     'LiveSignalMonitor',
@@ -22,4 +27,6 @@ __all__ = [
     'SignalExecutionPipeline',
     'ExecutionResult',
     'SignalStatus',
+    'EnhancedLiveSignalMonitor',
+    'create_production_signal_monitor',
 ]
