@@ -1,9 +1,14 @@
 """Tests for SecurityScanner class."""
 
 from unittest.mock import MagicMock, patch
+import sys
 
 import pandas as pd
 import pytest
+
+# Mock yfinance if not available
+if 'yfinance' not in sys.modules:
+    sys.modules['yfinance'] = MagicMock()
 
 from copilot_quant.research.scanner import SecurityScanner
 

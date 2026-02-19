@@ -1,13 +1,18 @@
 """Tests for data update and backfill utilities."""
 
 import shutil
+import sys
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, MagicMock, patch
 
 import pandas as pd
 import pytest
+
+# Mock yfinance if not available
+if 'yfinance' not in sys.modules:
+    sys.modules['yfinance'] = MagicMock()
 
 from copilot_quant.data.update_jobs import DataUpdater
 
