@@ -25,10 +25,7 @@ class MetaculusProvider(PredictionMarketProvider):
         super().__init__("Metaculus")
         self.base_url = "https://www.metaculus.com/api2"
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'copilot_quant/1.0.0',
-            'Accept': 'application/json'
-        })
+        self.session.headers.update({"User-Agent": "copilot_quant/1.0.0", "Accept": "application/json"})
 
     def list_markets(self, limit: Optional[int] = None) -> pd.DataFrame:
         """
@@ -43,9 +40,9 @@ class MetaculusProvider(PredictionMarketProvider):
         try:
             url = f"{self.base_url}/questions/"
             params = {
-                'status': 'open',
-                'order_by': '-activity',
-                'limit': limit if limit else 100,
+                "status": "open",
+                "order_by": "-activity",
+                "limit": limit if limit else 100,
             }
 
             response = self.session.get(url, params=params, timeout=30)
@@ -53,25 +50,27 @@ class MetaculusProvider(PredictionMarketProvider):
             data = response.json()
 
             markets = []
-            results = data.get('results', [])
-            
+            results = data.get("results", [])
+
             for question in results:
-                markets.append({
-                    'market_id': str(question.get('id', '')),
-                    'title': question.get('title', ''),
-                    'category': question.get('category', ''),
-                    'close_time': question.get('close_time', ''),
-                    'status': question.get('status', ''),
-                    'volume': 0,  # Metaculus doesn't have volume (it's not a market)
-                    'liquidity': 0,
-                    'num_predictions': question.get('number_of_predictions', 0),
-                    'community_prediction': question.get('community_prediction', {}).get('q2', None),
-                })
+                markets.append(
+                    {
+                        "market_id": str(question.get("id", "")),
+                        "title": question.get("title", ""),
+                        "category": question.get("category", ""),
+                        "close_time": question.get("close_time", ""),
+                        "status": question.get("status", ""),
+                        "volume": 0,  # Metaculus doesn't have volume (it's not a market)
+                        "liquidity": 0,
+                        "num_predictions": question.get("number_of_predictions", 0),
+                        "community_prediction": question.get("community_prediction", {}).get("q2", None),
+                    }
+                )
 
             df = pd.DataFrame(markets)
-            if not df.empty and 'close_time' in df.columns:
-                df['close_time'] = pd.to_datetime(df['close_time'], errors='coerce')
-            
+            if not df.empty and "close_time" in df.columns:
+                df["close_time"] = pd.to_datetime(df["close_time"], errors="coerce")
+
             logger.info(f"Retrieved {len(df)} questions from Metaculus")
             return df
 
@@ -107,33 +106,35 @@ class MetaculusProvider(PredictionMarketProvider):
             data = response.json()
 
             predictions = []
-            
+
             # Metaculus returns prediction history with timestamps
             for entry in data:
-                timestamp = entry.get('t', '')
-                distribution = entry.get('distribution', {})
-                
+                timestamp = entry.get("t", "")
+                distribution = entry.get("distribution", {})
+
                 # For binary questions, use the probability
                 # For continuous questions, use the median (q2)
                 prediction_value = None
-                if 'x' in entry:  # Binary question
-                    prediction_value = entry.get('x', None)
-                elif 'q2' in distribution:  # Continuous question median
-                    prediction_value = distribution.get('q2', None)
-                
+                if "x" in entry:  # Binary question
+                    prediction_value = entry.get("x", None)
+                elif "q2" in distribution:  # Continuous question median
+                    prediction_value = distribution.get("q2", None)
+
                 if prediction_value is not None:
-                    predictions.append({
-                        'timestamp': timestamp,
-                        'prediction': float(prediction_value),
-                        'q1': distribution.get('q1', None),  # 25th percentile
-                        'q2': distribution.get('q2', None),  # 50th percentile (median)
-                        'q3': distribution.get('q3', None),  # 75th percentile
-                    })
+                    predictions.append(
+                        {
+                            "timestamp": timestamp,
+                            "prediction": float(prediction_value),
+                            "q1": distribution.get("q1", None),  # 25th percentile
+                            "q2": distribution.get("q2", None),  # 50th percentile (median)
+                            "q3": distribution.get("q3", None),  # 75th percentile
+                        }
+                    )
 
             df = pd.DataFrame(predictions)
             if not df.empty:
-                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s', errors='coerce')
-                df = df.set_index('timestamp').sort_index()
+                df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", errors="coerce")
+                df = df.set_index("timestamp").sort_index()
 
                 # Filter by date range if provided
                 if start_date:
@@ -171,26 +172,26 @@ class MetaculusProvider(PredictionMarketProvider):
             response.raise_for_status()
             data = response.json()
 
-            community_pred = data.get('community_prediction', {})
-            
+            community_pred = data.get("community_prediction", {})
+
             return {
-                'market_id': str(data.get('id', '')),
-                'title': data.get('title', ''),
-                'description': data.get('description', ''),
-                'category': data.get('category', ''),
-                'type': data.get('type', ''),  # 'binary', 'continuous', etc.
-                'resolution_criteria': data.get('resolution_criteria', ''),
-                'close_time': data.get('close_time', ''),
-                'resolution_time': data.get('resolve_time', ''),
-                'status': data.get('status', ''),
-                'num_predictions': data.get('number_of_predictions', 0),
-                'community_prediction': community_pred.get('q2', None),
-                'prediction_range': {
-                    'q1': community_pred.get('q1', None),
-                    'q2': community_pred.get('q2', None),
-                    'q3': community_pred.get('q3', None),
+                "market_id": str(data.get("id", "")),
+                "title": data.get("title", ""),
+                "description": data.get("description", ""),
+                "category": data.get("category", ""),
+                "type": data.get("type", ""),  # 'binary', 'continuous', etc.
+                "resolution_criteria": data.get("resolution_criteria", ""),
+                "close_time": data.get("close_time", ""),
+                "resolution_time": data.get("resolve_time", ""),
+                "status": data.get("status", ""),
+                "num_predictions": data.get("number_of_predictions", 0),
+                "community_prediction": community_pred.get("q2", None),
+                "prediction_range": {
+                    "q1": community_pred.get("q1", None),
+                    "q2": community_pred.get("q2", None),
+                    "q3": community_pred.get("q3", None),
                 },
-                'outcomes': data.get('possibilities', {}).get('type', 'unknown'),
+                "outcomes": data.get("possibilities", {}).get("type", "unknown"),
             }
 
         except requests.RequestException as e:

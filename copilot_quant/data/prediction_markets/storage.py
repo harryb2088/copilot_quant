@@ -100,17 +100,17 @@ class PredictionMarketStorage:
 
         elif self.storage_type == "sqlite":
             conn = sqlite3.connect(self.db_path)
-            
+
             # Add provider column
             markets_df = markets_df.copy()
-            markets_df['provider'] = provider
-            markets_df['last_updated'] = pd.Timestamp.now().isoformat()
-            
+            markets_df["provider"] = provider
+            markets_df["last_updated"] = pd.Timestamp.now().isoformat()
+
             # Delete existing records for this provider
             conn.execute("DELETE FROM markets WHERE provider = ?", (provider,))
-            
+
             # Insert new records
-            markets_df.to_sql('markets', conn, if_exists='append', index=False)
+            markets_df.to_sql("markets", conn, if_exists="append", index=False)
             conn.commit()
             conn.close()
             logger.info(f"Saved {len(markets_df)} markets to SQLite database")
@@ -143,42 +143,39 @@ class PredictionMarketStorage:
 
         elif self.storage_type == "sqlite":
             conn = sqlite3.connect(self.db_path)
-            
+
             # Prepare data
             data_df = data_df.copy()
             if isinstance(data_df.index, pd.DatetimeIndex):
                 data_df = data_df.reset_index()
-                data_df.rename(columns={data_df.columns[0]: 'timestamp'}, inplace=True)
-            
-            data_df['provider'] = provider
-            data_df['market_id'] = market_id
-            
+                data_df.rename(columns={data_df.columns[0]: "timestamp"}, inplace=True)
+
+            data_df["provider"] = provider
+            data_df["market_id"] = market_id
+
             # Ensure we have the required columns
-            required_cols = ['provider', 'market_id', 'timestamp', 'price']
+            required_cols = ["provider", "market_id", "timestamp", "price"]
             for col in required_cols:
                 if col not in data_df.columns:
-                    if col == 'price' and 'prediction' in data_df.columns:
-                        data_df['price'] = data_df['prediction']
-                    elif col not in ['price', 'volume']:
+                    if col == "price" and "prediction" in data_df.columns:
+                        data_df["price"] = data_df["prediction"]
+                    elif col not in ["price", "volume"]:
                         logger.error(f"Missing required column: {col}")
                         return
-            
+
             # Add volume if missing
-            if 'volume' not in data_df.columns:
-                data_df['volume'] = 0.0
-            
+            if "volume" not in data_df.columns:
+                data_df["volume"] = 0.0
+
             # Select only the columns we need
-            cols_to_save = ['provider', 'market_id', 'timestamp', 'price', 'volume']
+            cols_to_save = ["provider", "market_id", "timestamp", "price", "volume"]
             data_df = data_df[[col for col in cols_to_save if col in data_df.columns]]
-            
+
             # Delete existing records for this market
-            conn.execute(
-                "DELETE FROM price_history WHERE provider = ? AND market_id = ?",
-                (provider, market_id)
-            )
-            
+            conn.execute("DELETE FROM price_history WHERE provider = ? AND market_id = ?", (provider, market_id))
+
             # Insert new records
-            data_df.to_sql('price_history', conn, if_exists='append', index=False)
+            data_df.to_sql("price_history", conn, if_exists="append", index=False)
             conn.commit()
             conn.close()
             logger.info(f"Saved {len(data_df)} data points to SQLite database")
@@ -233,42 +230,42 @@ class PredictionMarketStorage:
             if not filepath.exists():
                 logger.warning(f"Market data file not found: {filepath}")
                 return pd.DataFrame()
-            
+
             df = pd.read_csv(filepath, index_col=0, parse_dates=True)
-            
+
             # Apply date filters
             if start_date:
                 df = df[df.index >= start_date]
             if end_date:
                 df = df[df.index <= end_date]
-            
+
             return df
 
         elif self.storage_type == "sqlite":
             conn = sqlite3.connect(self.db_path)
-            
+
             query = """
-                SELECT timestamp, price, volume 
-                FROM price_history 
+                SELECT timestamp, price, volume
+                FROM price_history
                 WHERE provider = ? AND market_id = ?
             """
             params = [provider, market_id]
-            
+
             if start_date:
                 query += " AND timestamp >= ?"
                 params.append(start_date)
             if end_date:
                 query += " AND timestamp <= ?"
                 params.append(end_date)
-            
+
             query += " ORDER BY timestamp"
-            
-            df = pd.read_sql_query(query, conn, params=params, parse_dates=['timestamp'])
+
+            df = pd.read_sql_query(query, conn, params=params, parse_dates=["timestamp"])
             conn.close()
-            
+
             if not df.empty:
-                df = df.set_index('timestamp')
-            
+                df = df.set_index("timestamp")
+
             return df
 
     def _normalize_filename(self, market_id: str) -> str:
@@ -282,10 +279,11 @@ class PredictionMarketStorage:
             Normalized filename-safe string
         """
         import re
+
         # Replace non-alphanumeric characters with underscores
-        normalized = re.sub(r'[^a-zA-Z0-9]+', '_', market_id)
+        normalized = re.sub(r"[^a-zA-Z0-9]+", "_", market_id)
         # Remove leading/trailing underscores
-        normalized = normalized.strip('_')
+        normalized = normalized.strip("_")
         # Limit length
         if len(normalized) > 100:
             normalized = normalized[:100]

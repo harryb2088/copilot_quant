@@ -1,0 +1,25 @@
+target-version = "py312"
+line-length = 120
+
+[lint]
+# Select a pragmatic rule set: pyflakes, pycodestyle errors/warnings, isort, flake8-bugbear
+select = ["E", "F", "W", "I", "B"]
+# Ignore rules that conflict with formatter or are too noisy
+ignore = [
+    "E501",   # line length — handled by ruff format
+    "E731",   # lambda assignment — common in quant code
+    "B008",   # function call in default argument — common with FastAPI Depends()
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["F401", "F811"]  # allow unused imports and redefinitions in test fixtures
+"copilot_quant/brokers/*" = ["B904"]  # allow raise without from in broker error handling
+"copilot_quant/backtest/strategy.py" = ["B027"]  # optional hook methods in base class
+"examples/*" = ["F401", "E402"]  # examples may have non-standard import patterns
+
+[lint.isort]
+known-first-party = ["copilot_quant", "src"]
+
+[format]
+quote-style = "double"
+indent-style = "space"

@@ -6,11 +6,11 @@ Sends notifications via SMTP email.
 
 import logging
 import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import List, Optional
+from email.mime.text import MIMEText
+from typing import List
 
-from copilot_quant.orchestrator.notifiers.base import Notifier, NotificationMessage, AlertLevel
+from copilot_quant.orchestrator.notifiers.base import AlertLevel, NotificationMessage, Notifier
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class EmailNotifier(Notifier):
     """
     Send notifications via SMTP email.
-    
+
     Example:
         >>> notifier = EmailNotifier(
         ...     smtp_host="smtp.gmail.com",
@@ -35,7 +35,7 @@ class EmailNotifier(Notifier):
         ... )
         >>> notifier.notify(message)
     """
-    
+
     def __init__(
         self,
         smtp_host: str,
@@ -46,11 +46,11 @@ class EmailNotifier(Notifier):
         to_emails: List[str],
         use_tls: bool = True,
         enabled: bool = True,
-        min_level: AlertLevel = AlertLevel.INFO
+        min_level: AlertLevel = AlertLevel.INFO,
     ):
         """
         Initialize email notifier.
-        
+
         Args:
             smtp_host: SMTP server hostname
             smtp_port: SMTP server port
@@ -70,52 +70,52 @@ class EmailNotifier(Notifier):
         self.from_email = from_email
         self.to_emails = to_emails
         self.use_tls = use_tls
-    
+
     def send(self, message: NotificationMessage) -> bool:
         """
         Send notification via email.
-        
+
         Args:
             message: NotificationMessage to send
-            
+
         Returns:
             True if sent successfully
         """
         # Create email message
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = f"[{message.level.value.upper()}] {message.title}"
-        msg['From'] = self.from_email
-        msg['To'] = ', '.join(self.to_emails)
-        
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"[{message.level.value.upper()}] {message.title}"
+        msg["From"] = self.from_email
+        msg["To"] = ", ".join(self.to_emails)
+
         # Create HTML body
         html_body = self._create_html_body(message)
-        
+
         # Create plain text alternative
         text_body = self._create_text_body(message)
-        
+
         # Attach both versions
-        msg.attach(MIMEText(text_body, 'plain'))
-        msg.attach(MIMEText(html_body, 'html'))
-        
+        msg.attach(MIMEText(text_body, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
+
         try:
             # Connect to SMTP server
             with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30) as server:
                 if self.use_tls:
                     server.starttls()
-                
+
                 # Login
                 server.login(self.username, self.password)
-                
+
                 # Send email
                 server.send_message(msg)
-            
+
             logger.info(f"Email notification sent to {len(self.to_emails)} recipients: {message.title}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send email notification: {e}")
             return False
-    
+
     def _create_text_body(self, message: NotificationMessage) -> str:
         """Create plain text email body"""
         body = f"{message.title}\n"
@@ -123,14 +123,14 @@ class EmailNotifier(Notifier):
         body += f"{message.message}\n\n"
         body += f"Alert Level: {message.level.value.upper()}\n"
         body += f"Time: {message.timestamp.strftime('%Y-%m-%d %H:%M:%S')}\n"
-        
+
         if message.metadata:
             body += "\nDetails:\n"
             for key, value in message.metadata.items():
                 body += f"  {key}: {value}\n"
-        
+
         return body
-    
+
     def _create_html_body(self, message: NotificationMessage) -> str:
         """Create HTML email body"""
         # Map alert levels to colors
@@ -139,31 +139,31 @@ class EmailNotifier(Notifier):
             AlertLevel.WARNING: "#ff9900",
             AlertLevel.CRITICAL: "#ff0000",
         }
-        
+
         color = color_map.get(message.level, "#808080")
-        
+
         html = f"""
         <html>
           <head>
             <style>
               body {{ font-family: Arial, sans-serif; }}
-              .header {{ 
-                background-color: {color}; 
-                color: white; 
-                padding: 10px; 
+              .header {{
+                background-color: {color};
+                color: white;
+                padding: 10px;
                 border-radius: 5px;
               }}
               .content {{ padding: 20px; }}
-              .metadata {{ 
-                background-color: #f5f5f5; 
-                padding: 10px; 
+              .metadata {{
+                background-color: #f5f5f5;
+                padding: 10px;
                 border-radius: 5px;
                 margin-top: 20px;
               }}
               .metadata-item {{ margin: 5px 0; }}
-              .footer {{ 
-                color: #666; 
-                font-size: 12px; 
+              .footer {{
+                color: #666;
+                font-size: 12px;
                 margin-top: 20px;
                 border-top: 1px solid #ddd;
                 padding-top: 10px;
@@ -176,25 +176,25 @@ class EmailNotifier(Notifier):
             </div>
             <div class="content">
               <p>{message.message}</p>
-              
+
               <div class="footer">
                 <p>
                   <strong>Alert Level:</strong> {message.level.value.upper()}<br>
-                  <strong>Time:</strong> {message.timestamp.strftime('%Y-%m-%d %H:%M:%S')}
+                  <strong>Time:</strong> {message.timestamp.strftime("%Y-%m-%d %H:%M:%S")}
                 </p>
               </div>
         """
-        
+
         if message.metadata:
             html += '<div class="metadata"><h3>Details</h3>'
             for key, value in message.metadata.items():
                 html += f'<div class="metadata-item"><strong>{key}:</strong> {value}</div>'
-            html += '</div>'
-        
+            html += "</div>"
+
         html += """
             </div>
           </body>
         </html>
         """
-        
+
         return html

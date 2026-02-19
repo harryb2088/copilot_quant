@@ -6,7 +6,7 @@ Provides system health and status endpoints.
 
 import logging
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 
 from fastapi import APIRouter
 
@@ -21,25 +21,21 @@ router = APIRouter()
 async def health_check() -> Dict[str, Any]:
     """
     Basic health check endpoint.
-    
+
     Returns:
         Health status
     """
     monitor = get_health_monitor()
     status = monitor.get_health_status()
-    
-    return {
-        "status": status['overall_status'],
-        "timestamp": datetime.now().isoformat(),
-        "service": "copilot-quant-api"
-    }
+
+    return {"status": status["overall_status"], "timestamp": datetime.now().isoformat(), "service": "copilot-quant-api"}
 
 
 @router.get("/detailed")
 async def detailed_health() -> Dict[str, Any]:
     """
     Detailed health check with component status.
-    
+
     Returns:
         Detailed health information
     """
@@ -51,28 +47,22 @@ async def detailed_health() -> Dict[str, Any]:
 async def readiness() -> Dict[str, Any]:
     """
     Kubernetes-style readiness probe.
-    
+
     Returns:
         Readiness status
     """
     monitor = get_health_monitor()
     status = monitor.get_health_status()
-    
-    return {
-        "ready": status['overall_status'] in ['healthy', 'degraded'],
-        "timestamp": datetime.now().isoformat()
-    }
+
+    return {"ready": status["overall_status"] in ["healthy", "degraded"], "timestamp": datetime.now().isoformat()}
 
 
 @router.get("/live")
 async def liveness() -> Dict[str, Any]:
     """
     Kubernetes-style liveness probe.
-    
+
     Returns:
         Liveness status
     """
-    return {
-        "alive": True,
-        "timestamp": datetime.now().isoformat()
-    }
+    return {"alive": True, "timestamp": datetime.now().isoformat()}

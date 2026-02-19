@@ -5,10 +5,10 @@ Sends notifications to Discord via webhook.
 """
 
 import logging
-import requests
-from typing import Optional
 
-from copilot_quant.orchestrator.notifiers.base import Notifier, NotificationMessage, AlertLevel
+import requests
+
+from copilot_quant.orchestrator.notifiers.base import AlertLevel, NotificationMessage, Notifier
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class DiscordNotifier(Notifier):
     """
     Send notifications to Discord via webhook.
-    
+
     Example:
         >>> notifier = DiscordNotifier(
         ...     webhook_url="https://discord.com/api/webhooks/YOUR/WEBHOOK"
@@ -28,17 +28,17 @@ class DiscordNotifier(Notifier):
         ... )
         >>> notifier.notify(message)
     """
-    
+
     def __init__(
         self,
         webhook_url: str,
         username: str = "Trading Bot",
         enabled: bool = True,
-        min_level: AlertLevel = AlertLevel.INFO
+        min_level: AlertLevel = AlertLevel.INFO,
     ):
         """
         Initialize Discord notifier.
-        
+
         Args:
             webhook_url: Discord webhook URL
             username: Bot username to display
@@ -48,14 +48,14 @@ class DiscordNotifier(Notifier):
         super().__init__(enabled=enabled, min_level=min_level)
         self.webhook_url = webhook_url
         self.username = username
-    
+
     def send(self, message: NotificationMessage) -> bool:
         """
         Send notification to Discord.
-        
+
         Args:
             message: NotificationMessage to send
-            
+
         Returns:
             True if sent successfully
         """
@@ -65,17 +65,13 @@ class DiscordNotifier(Notifier):
             AlertLevel.WARNING: 16750080,  # Orange (#ff9900)
             AlertLevel.CRITICAL: 16711680,  # Red (#ff0000)
         }
-        
+
         # Build embed fields from metadata
         fields = []
         if message.metadata:
             for key, value in message.metadata.items():
-                fields.append({
-                    "name": key,
-                    "value": str(value),
-                    "inline": True
-                })
-        
+                fields.append({"name": key, "value": str(value), "inline": True})
+
         # Build Discord webhook payload
         payload = {
             "username": self.username,
@@ -85,25 +81,19 @@ class DiscordNotifier(Notifier):
                     "description": message.message,
                     "color": color_map.get(message.level, 8421504),  # Gray default
                     "timestamp": message.timestamp.isoformat(),
-                    "footer": {
-                        "text": f"Alert Level: {message.level.value.upper()}"
-                    },
-                    "fields": fields
+                    "footer": {"text": f"Alert Level: {message.level.value.upper()}"},
+                    "fields": fields,
                 }
-            ]
+            ],
         }
-        
+
         try:
-            response = requests.post(
-                self.webhook_url,
-                json=payload,
-                timeout=10
-            )
+            response = requests.post(self.webhook_url, json=payload, timeout=10)
             response.raise_for_status()
-            
+
             logger.info(f"Discord notification sent: {message.title}")
             return True
-            
+
         except requests.exceptions.RequestException as e:
             logger.error(f"Failed to send Discord notification: {e}")
             return False
