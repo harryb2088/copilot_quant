@@ -14,7 +14,7 @@ Features:
 import logging
 from datetime import datetime, time, timedelta
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 from zoneinfo import ZoneInfo
 
 logger = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ class MarketCalendar:
         
         logger.info(f"MarketCalendar initialized with timezone: {self.timezone}")
     
-    def _get_us_market_holidays(self, year: int) -> list[datetime]:
+    def _get_us_market_holidays(self, year: int) -> List[datetime]:
         """
         Get list of NYSE market holidays for a given year.
         

@@ -98,6 +98,7 @@ class TradingOrchestrator:
         
         self._last_heartbeat = datetime.now()
         self._last_health_check = datetime.now()
+        self._start_time: Optional[datetime] = None
         self._restart_attempts = 0
         self._last_restart_time: Optional[datetime] = None
         
@@ -258,6 +259,7 @@ class TradingOrchestrator:
         
         self._running = True
         self._stop_event.clear()
+        self._start_time = datetime.now()
         
         logger.info("Starting Trading Orchestrator...")
         self._notify(NotificationMessage(
@@ -477,14 +479,15 @@ class TradingOrchestrator:
             self._last_heartbeat = now
             
             # Send heartbeat notification for trading state only
-            if self.state == OrchestratorState.TRADING:
+            if self.state == OrchestratorState.TRADING and self._start_time:
+                uptime_seconds = (now - self._start_time).total_seconds()
                 self._notify(NotificationMessage(
                     title="Trading Heartbeat",
                     message=f"Trading orchestrator is active and healthy",
                     level=AlertLevel.INFO,
                     metadata={
                         "state": self.state.value,
-                        "uptime": str(timedelta(seconds=int((now - self._last_heartbeat).total_seconds())))
+                        "uptime": str(timedelta(seconds=int(uptime_seconds)))
                     }
                 ))
     
