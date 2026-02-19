@@ -96,6 +96,8 @@ Additional styling is applied via `st.markdown()` for:
 - Python 3.8 or higher
 - pip (Python package installer)
 
+> **📚 Complete Setup Guide**: See **[BOOTSTRAPPING.md](docs/BOOTSTRAPPING.md)** for comprehensive setup instructions covering local development, Docker Compose, and cloud deployment.
+
 ## 🛠️ Installation
 
 1. Clone the repository:
@@ -1717,6 +1719,16 @@ We use **pip-tools** for dependency management:
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code style, and pull request process.
 
 ## 📚 Documentation
+
+### Setup & Deployment
+- **[🚀 Bootstrapping Guide](docs/BOOTSTRAPPING.md)** - **⭐ COMPLETE SETUP GUIDE** - Set up the entire platform from scratch
+  - Local development setup (Python environment)
+  - Docker Compose deployment (production-ready)
+  - Cloud deployment (Vercel)
+  - Service verification and troubleshooting
+  - Configuration reference
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Quick Vercel deployment reference
+- **[Docker Deployment](docs/DOCKER_DEPLOYMENT.md)** - Advanced Docker configuration
 
 ### Core Documentation
 - [Backtesting Engine Architecture](docs/architecture.md) - System design and component interactions

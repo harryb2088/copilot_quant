@@ -1,6 +1,17 @@
-# Backtesting Engine Documentation Index
+# Copilot Quant Platform Documentation Index
 
-This document serves as the entry point to the comprehensive backtesting engine documentation.
+This document serves as the entry point to the comprehensive platform documentation.
+
+## 🚀 Getting Started
+
+**New to the platform? Start here:**
+
+1. **[Bootstrapping Guide](BOOTSTRAPPING.md)** 🎯 **← START HERE FOR SETUP**
+   - Complete setup guide for local, Docker, and cloud deployments
+   - Step-by-step instructions for all services (database, orchestrator, UI)
+   - Configuration and verification procedures
+   - Troubleshooting common issues
+   - **Best for: Setting up the platform from scratch**
 
 ## 📖 Documentation Structure
 
@@ -155,6 +166,9 @@ Historical implementation summaries from previous development work:
     - [Trading Mode Toggle Manual Test](testing-guides/TRADING_MODE_TOGGLE_MANUAL_TEST.md) - Manual testing procedures
 
 ## 🎯 Common Tasks
+
+### "I want to set up the platform from scratch"
+→ Start with [Bootstrapping Guide](BOOTSTRAPPING.md) for complete setup
 
 ### "I want to run my first backtest"
 → Start with [Quick Reference](quick_reference.md#quick-start)
