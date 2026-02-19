@@ -8,8 +8,13 @@ This module provides:
 - Data normalization and quality utilities
 - Data backfill and incremental update utilities
 - Data caching and storage utilities
+- Signal persistence and database models
 """
 
+from copilot_quant.data.models import (
+    SignalRecord,
+    SignalStatus,
+)
 from copilot_quant.data.normalization import (
     adjust_for_contract_roll,
     adjust_for_splits,
@@ -34,6 +39,9 @@ from copilot_quant.data.providers import (
     DataProvider,
     YFinanceProvider,
     get_data_provider,
+)
+from copilot_quant.data.signal_repository import (
+    SignalRepository,
 )
 from copilot_quant.data.sp500 import (
     DOW_30_TICKERS,
@@ -79,4 +87,8 @@ __all__ = [
     "resample_data",
     # Update utilities
     "DataUpdater",
+    # Signal persistence
+    "SignalRecord",
+    "SignalStatus",
+    "SignalRepository",
 ]
