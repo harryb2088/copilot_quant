@@ -1,6 +1,11 @@
 # Interactive Brokers (IBKR) - Comprehensive Setup & Usage Guide
 
-**Complete documentation for IBKR integration with Copilot Quant Platform**
+**Complete end-to-end documentation for IBKR integration with Copilot Quant Platform**
+
+> 🎯 **New to IBKR?** Start with the [5-Minute Quick Start](#quick-start-5-minutes)  
+> 🔧 **Having issues?** Jump to [Troubleshooting](#troubleshooting)  
+> 💡 **Need examples?** See [Usage Examples](#usage-examples)  
+> 📚 **Looking for details?** Check [Additional Resources](#additional-resources)
 
 ---
 
@@ -29,14 +34,41 @@
 
 ## Overview
 
-This guide covers everything you need to integrate Interactive Brokers (IBKR) with the Copilot Quant platform for:
-- **Real-time market data streaming**
-- **Historical data downloads**
-- **Paper trading (simulated)**
-- **Live trading (real money)**
-- **Order execution and portfolio management**
+This guide provides **complete, step-by-step instructions** for integrating Interactive Brokers (IBKR) with the Copilot Quant platform. Whether you're setting up paper trading for testing or live trading with real money, this guide has you covered.
 
-### What You'll Learn
+### What This Guide Covers
+
+✅ **Installation & Setup**
+- Installing TWS or IB Gateway
+- Configuring API access
+- Setting up environment variables
+- Testing your connection
+
+✅ **Trading Modes**
+- Paper trading (risk-free testing with simulated money)
+- Live trading (real money trading)
+- How to switch between modes safely
+
+✅ **Service Requirements**
+- System requirements
+- Network configuration
+- Running as a background service
+- Auto-restart configuration
+- High availability setup
+
+✅ **Usage & Integration**
+- Real-time market data streaming
+- Historical data downloads
+- Order execution
+- Portfolio management
+- Live strategy execution
+
+✅ **Troubleshooting & Support**
+- Common issues and solutions
+- Debug techniques
+- Getting help
+
+### What You'll Be Able to Do
 
 - ✅ How to install and configure TWS or IB Gateway
 - ✅ How to enable API access for automated trading
@@ -1063,6 +1095,67 @@ If you're still having issues:
 - [TWS User Guide](https://www.interactivebrokers.com/en/trading/tws-guide.php)
 - [ib_insync Documentation](https://ib-insync.readthedocs.io/)
 - [IBKR Webinars](https://www.interactivebrokers.com/en/index.php?f=7235)
+
+### Copilot Quant Documentation Map
+
+This comprehensive guide is part of a larger documentation ecosystem. Here's how all the IBKR docs fit together:
+
+```
+📚 IBKR Documentation Structure
+│
+├── 🎯 IBKR_COMPREHENSIVE_GUIDE.md (YOU ARE HERE) ⭐
+│   └── Best for: New users, complete setup from scratch
+│       • Quick start (5 minutes)
+│       • All essential information in one place
+│       • Step-by-step tutorials
+│       • Troubleshooting
+│
+├── 📘 ibkr_setup_guide.md
+│   └── Best for: Developers needing technical details
+│       • Detailed API reference
+│       • Advanced configuration options
+│       • Rate limits and restrictions
+│       • Advanced code examples
+│
+├── 🔌 IBKR_CONNECTION_MANAGER.md
+│   └── Best for: Understanding connection management
+│       • Connection manager API
+│       • Auto-reconnection features
+│       • Health monitoring
+│       • Event handlers
+│
+├── 🔧 IBKR_CONNECTION_TROUBLESHOOTING.md
+│   └── Best for: Solving connection issues
+│       • Common problems and solutions
+│       • Debug techniques
+│       • Network diagnostics
+│
+├── 🚀 LIVE_INTEGRATION_GUIDE.md
+│   └── Best for: Integrating with strategy engine
+│       • Live trading integration
+│       • Adapter pattern
+│       • Strategy execution
+│
+├── 📡 live_market_data_guide.md
+│   └── Best for: Working with market data
+│       • Real-time data streaming
+│       • Historical data downloads
+│       • Subscription management
+│
+└── ⚡ examples/IBKR_SETUP.md
+    └── Best for: Quick 5-minute setup
+        • Minimal instructions
+        • Quick reference
+```
+
+**Which guide should you read?**
+
+- **Never used IBKR before?** → Start with this guide (IBKR_COMPREHENSIVE_GUIDE.md)
+- **Already have IBKR setup?** → Jump to [Usage Examples](#usage-examples)
+- **Having connection issues?** → See [Troubleshooting](#troubleshooting) or IBKR_CONNECTION_TROUBLESHOOTING.md
+- **Need API details?** → See ibkr_setup_guide.md
+- **Want to integrate with strategies?** → See LIVE_INTEGRATION_GUIDE.md
+- **Working with market data?** → See live_market_data_guide.md
 
 ### Copilot Quant Specific Docs
 
