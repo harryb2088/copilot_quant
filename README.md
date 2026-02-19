@@ -20,6 +20,8 @@ The platform is protected with email/password authentication. Environment variab
 - **Pairs Trading**: Statistical arbitrage with automatic pair identification and mean-reversion signals
 - **Backtesting Engine**: Test strategies against historical market data
 - **Performance Analytics**: Comprehensive metrics, charts, and visualizations
+- **REST API**: FastAPI-based API for programmatic access to portfolio, positions, and performance data
+- **WebSocket Streaming**: Real-time updates for portfolio, positions, and orders
 - **Paper Trading**: Safe testing environment with real market data
 - **Live Market Data**: Real-time price streaming via Interactive Brokers (IBKR)
 - **Historical Data Download**: Backfill capability for any timeframe via IBKR
@@ -32,6 +34,7 @@ The platform is protected with email/password authentication. Environment variab
 - **Multi-Page UI**: Clean, intuitive Streamlit web interface
 - **Bloomberg-Style Professional UI**: Dark theme with chart-first design and institutional-grade aesthetics
 - **Dividend Tracking**: Comprehensive dividend yield, calendar, and payout history monitoring
+- **Monitoring & Observability**: Structured JSON logging, Prometheus metrics, health checks
 
 ## 🎨 UI Design System
 
@@ -208,6 +211,122 @@ adapter = OrderNotificationAdapter(
 order_handler.register_fill_callback(adapter.on_order_filled)
 order_handler.register_error_callback(adapter.on_order_error)
 ```
+
+## 📡 REST API and WebSocket Streaming
+
+The platform includes a comprehensive REST API built with FastAPI for programmatic access to portfolio data, positions, orders, and performance metrics.
+
+### Quick Start
+
+1. **Start the API server**:
+
+```bash
+python scripts/run_api.py
+```
+
+The API will be available at `http://localhost:8000`
+
+2. **View interactive documentation**:
+   - Swagger UI: http://localhost:8000/docs
+   - ReDoc: http://localhost:8000/redoc
+
+3. **Test the API**:
+
+```bash
+# Health check
+curl http://localhost:8000/health/
+
+# Get portfolio summary
+curl http://localhost:8000/api/v1/portfolio/
+
+# Get performance metrics
+curl http://localhost:8000/api/v1/performance/
+```
+
+### Key Features
+
+- **Portfolio Endpoints**: Real-time portfolio value, metrics, exposure, and attribution
+- **Positions Endpoints**: Current positions, historical data, sector breakdown
+- **Orders Endpoints**: Order history, fills, execution statistics
+- **Performance Endpoints**: Live metrics, equity curve, risk analysis, benchmark comparison
+- **WebSocket Streams**: Real-time updates for portfolio, positions, orders, and performance
+- **Prometheus Metrics**: OpenMetrics export at `/metrics/prometheus`
+- **Health Monitoring**: System health checks and readiness probes
+
+### Example: Python Client
+
+```python
+import requests
+
+# Get current portfolio
+response = requests.get("http://localhost:8000/api/v1/portfolio/")
+portfolio = response.json()
+print(f"Portfolio Value: ${portfolio['portfolio_value']:,.2f}")
+
+# Get performance metrics
+response = requests.get("http://localhost:8000/api/v1/performance/")
+perf = response.json()
+print(f"Sharpe Ratio: {perf['sharpe_ratio']:.2f}")
+print(f"Win Rate: {perf['win_rate']:.1%}")
+
+# Compare to benchmark
+response = requests.get("http://localhost:8000/api/v1/performance/benchmark-comparison?benchmark=SPY")
+comparison = response.json()
+print(f"Alpha: {comparison['alpha_pct']:.2f}%")
+print(f"Beta: {comparison['beta']:.2f}")
+```
+
+### Example: WebSocket Client
+
+```python
+import websockets
+import asyncio
+import json
+
+async def subscribe_to_portfolio():
+    uri = "ws://localhost:8000/ws/portfolio"
+    
+    async with websockets.connect(uri) as websocket:
+        while True:
+            message = await websocket.recv()
+            data = json.loads(message)
+            print(f"Portfolio Update: ${data['portfolio_value']:,.2f}")
+
+asyncio.run(subscribe_to_portfolio())
+```
+
+### Authentication
+
+Enable API key authentication for production:
+
+```bash
+python scripts/run_api.py --auth
+```
+
+Generate API keys:
+
+```python
+from copilot_quant.api.auth import get_api_key_manager
+
+manager = get_api_key_manager()
+api_key = manager.generate_key("my-app", expiry_days=30)
+print(f"API Key: {api_key}")
+```
+
+Use API key in requests:
+
+```python
+headers = {"X-API-Key": "your-api-key-here"}
+response = requests.get(
+    "http://localhost:8000/api/v1/portfolio/",
+    headers=headers
+)
+```
+
+### Documentation
+
+- **API Reference**: [docs/API.md](docs/API.md) - Complete API documentation with all endpoints
+- **Monitoring Guide**: [docs/MONITORING.md](docs/MONITORING.md) - Setup guide for logging, metrics, and observability
 
 ## ☁️ Cloud Deployment on Vercel
 
