@@ -106,12 +106,13 @@ class PredictionMarketProvider(ABC):
             Normalized title (lowercase, alphanumeric, underscores)
         """
         import re
+
         # Convert to lowercase
         normalized = market_title.lower()
         # Replace non-alphanumeric with underscores
-        normalized = re.sub(r'[^a-z0-9]+', '_', normalized)
+        normalized = re.sub(r"[^a-z0-9]+", "_", normalized)
         # Remove leading/trailing underscores
-        normalized = normalized.strip('_')
+        normalized = normalized.strip("_")
         # Limit length
         if len(normalized) > 100:
             normalized = normalized[:100]

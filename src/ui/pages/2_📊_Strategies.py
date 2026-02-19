@@ -2,24 +2,21 @@
 Strategies Page - View and manage trading strategies
 """
 
-import streamlit as st
 import sys
 from pathlib import Path
+
+import streamlit as st
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from components.sidebar import render_sidebar
 from components.tables import render_strategy_cards
-from utils.session import init_session_state
 from utils.mock_data import generate_mock_strategies
+from utils.session import init_session_state
 
 # Page configuration
-st.set_page_config(
-    page_title="Strategies - Copilot Quant",
-    page_icon="📊",
-    layout="wide"
-)
+st.set_page_config(page_title="Strategies - Copilot Quant", page_icon="📊", layout="wide")
 
 # Initialize session state
 init_session_state()
@@ -65,14 +62,15 @@ strategies = generate_mock_strategies()
 
 # Apply filters
 if status_filter != "All":
-    strategies = [s for s in strategies if s['status'] == status_filter]
+    strategies = [s for s in strategies if s["status"] == status_filter]
 
 if type_filter != "All":
-    strategies = [s for s in strategies if s['type'] == type_filter]
+    strategies = [s for s in strategies if s["type"] == type_filter]
 
 if search_query:
-    strategies = [s for s in strategies if search_query.lower() in s['name'].lower() or 
-                  search_query.lower() in s['type'].lower()]
+    strategies = [
+        s for s in strategies if search_query.lower() in s["name"].lower() or search_query.lower() in s["type"].lower()
+    ]
 
 # Display strategies count
 st.markdown(f"### Showing {len(strategies)} strategies")
@@ -121,23 +119,23 @@ st.markdown("---")
 with st.expander("ℹ️ About Trading Strategies"):
     st.markdown("""
     ### What is a Trading Strategy?
-    
+
     A trading strategy is a set of rules that define when to buy and sell assets. Strategies can be based on:
-    
+
     - **Technical Indicators**: Moving averages, RSI, MACD, etc.
     - **Statistical Models**: Mean reversion, cointegration, etc.
     - **Machine Learning**: Predictive models and pattern recognition
     - **Fundamental Data**: Earnings, valuations, economic indicators
-    
+
     ### Strategy Components
-    
+
     1. **Entry Rules**: When to open a position
     2. **Exit Rules**: When to close a position
     3. **Position Sizing**: How much capital to allocate
     4. **Risk Management**: Stop-loss and take-profit levels
-    
+
     ### Best Practices
-    
+
     - Always backtest before deploying
     - Use proper risk management
     - Monitor performance regularly

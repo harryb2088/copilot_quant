@@ -26,16 +26,17 @@ tests/test_data/mock_prediction_markets/mock_data.py
 """
 
 from unittest.mock import Mock, patch
+
 import pandas as pd
 import pytest
 
 from copilot_quant.data.prediction_markets import (
-    PolymarketProvider,
     KalshiProvider,
-    get_prediction_market_provider,
-    PredictItProvider,
     MetaculusProvider,
+    PolymarketProvider,
     PredictionMarketStorage,
+    PredictItProvider,
+    get_prediction_market_provider,
 )
 from tests.test_data.mock_prediction_markets.mock_data import (
     generate_mock_polymarket_markets,
@@ -45,8 +46,9 @@ from tests.test_data.mock_prediction_markets.mock_data import (
 
 class TestPolymarketProvider:
     """Tests for Polymarket data provider."""
+
     """Tests for Polymarket data provider.
-    
+
     NOTE: All tests use mocks. To add live API tests in the future:
     1. Add @pytest.mark.live_api decorator to the test
     2. Remove the @patch decorator and make real API calls
@@ -64,44 +66,44 @@ class TestPolymarketProvider:
         assert provider.gamma_url == "https://gamma-api.polymarket.com"
         assert provider.name == "Polymarket"
 
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_get_active_markets_returns_dataframe(self, mock_get, provider):
         """Test that get_active_markets returns a DataFrame."""
         # Mock the API response
         mock_response = Mock()
         mock_response.json.return_value = [
             {
-                'id': 'market1',
-                'question': 'Will BTC reach $100k?',
-                'tags': ['crypto'],
-                'end_date_iso': '2024-12-31',
-                'volume': 100000,
-                'liquidity': 50000,
-                'created_at': '2024-01-01',
-                'active': True,
+                "id": "market1",
+                "question": "Will BTC reach $100k?",
+                "tags": ["crypto"],
+                "end_date_iso": "2024-12-31",
+                "volume": 100000,
+                "liquidity": 50000,
+                "created_at": "2024-01-01",
+                "active": True,
             }
         ]
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
 
         markets = provider.list_markets(limit=10)
-        
+
         assert isinstance(markets, pd.DataFrame)
         assert not markets.empty
 
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_list_markets_returns_dataframe(self, mock_get, provider):
         """Test that list_markets returns a DataFrame."""
         mock_response = Mock()
         mock_response.json.return_value = [
             {
-                'condition_id': 'mock_123',
-                'question': 'Test Question?',
-                'category': 'Test',
-                'end_date_iso': '2024-12-31T23:59:59Z',
-                'active': True,
-                'volume': 1000.0,
-                'liquidity': 500.0,
+                "condition_id": "mock_123",
+                "question": "Test Question?",
+                "category": "Test",
+                "end_date_iso": "2024-12-31T23:59:59Z",
+                "active": True,
+                "volume": 1000.0,
+                "liquidity": 500.0,
             }
         ]
         mock_response.raise_for_status = Mock()
@@ -111,33 +113,33 @@ class TestPolymarketProvider:
 
         assert isinstance(markets, pd.DataFrame)
         assert not markets.empty
-        assert 'market_id' in markets.columns
-        assert 'title' in markets.columns
-        assert 'category' in markets.columns
+        assert "market_id" in markets.columns
+        assert "title" in markets.columns
+        assert "category" in markets.columns
 
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_get_active_markets_with_category_filter(self, mock_get, provider):
         """Test filtering markets by category."""
         mock_response = Mock()
         mock_response.json.return_value = [
             {
-                'condition_id': 'market1',
-                'question': 'Will BTC reach $100k?',
-                'category': 'crypto',
-                'end_date_iso': '2024-12-31',
-                'volume': 100000,
-                'liquidity': 50000,
-                'active': True,
+                "condition_id": "market1",
+                "question": "Will BTC reach $100k?",
+                "category": "crypto",
+                "end_date_iso": "2024-12-31",
+                "volume": 100000,
+                "liquidity": 50000,
+                "active": True,
             },
             {
-                'condition_id': 'market2',
-                'question': 'Who will win the election?',
-                'category': 'politics',
-                'end_date_iso': '2024-11-05',
-                'volume': 200000,
-                'liquidity': 100000,
-                'active': True,
-            }
+                "condition_id": "market2",
+                "question": "Who will win the election?",
+                "category": "politics",
+                "end_date_iso": "2024-11-05",
+                "volume": 200000,
+                "liquidity": 100000,
+                "active": True,
+            },
         ]
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
@@ -148,14 +150,14 @@ class TestPolymarketProvider:
         assert isinstance(markets, pd.DataFrame)
         assert len(markets) == 2
 
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_get_market_prices_returns_dataframe(self, mock_get, provider):
         """Test that get_market_prices returns a DataFrame."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            'price': 0.65,
-            'volume': 100000,
-            'liquidity': 50000,
+            "price": 0.65,
+            "volume": 100000,
+            "liquidity": 50000,
         }
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
@@ -164,7 +166,7 @@ class TestPolymarketProvider:
         # For now, just test that provider exists
         assert provider is not None
 
-    @patch('requests.Session.get')
+    @patch("requests.Session.get")
     def test_list_markets_handles_empty_response(self, mock_get, provider):
         """Test that list_markets handles empty API response."""
         mock_response = Mock()
@@ -173,54 +175,54 @@ class TestPolymarketProvider:
         mock_get.return_value = mock_response
 
         markets = provider.list_markets()
-        
+
         assert isinstance(markets, pd.DataFrame)
         assert markets.empty
 
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_get_market_details(self, mock_get, provider):
         """Test getting market details."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            'condition_id': 'mock_123',
-            'question': 'Test Question?',
-            'description': 'Test description',
-            'category': 'Test',
-            'outcomes': ['Yes', 'No'],
-            'tokens': [{'token_id': 'token_1'}],
-            'volume': 1000.0,
-            'liquidity': 500.0,
+            "condition_id": "mock_123",
+            "question": "Test Question?",
+            "description": "Test description",
+            "category": "Test",
+            "outcomes": ["Yes", "No"],
+            "tokens": [{"token_id": "token_1"}],
+            "volume": 1000.0,
+            "liquidity": 500.0,
         }
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
 
-        details = provider.get_market_details('market1')
+        details = provider.get_market_details("market1")
 
         assert isinstance(details, dict)
-        assert 'market_id' in details or 'condition_id' in details
-        assert 'title' in details or 'question' in details
+        assert "market_id" in details or "condition_id" in details
+        assert "title" in details or "question" in details
 
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_get_market_data_returns_dataframe(self, mock_get, provider):
         """Test that get_market_data returns price history as DataFrame."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            'history': [
-                {'t': 1640000000, 'p': 0.65},
-                {'t': 1640010000, 'p': 0.67},
+            "history": [
+                {"t": 1640000000, "p": 0.65},
+                {"t": 1640010000, "p": 0.67},
             ]
         }
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
 
-        data = provider.get_market_data('market1')
+        data = provider.get_market_data("market1")
 
         assert isinstance(data, pd.DataFrame)
 
 
 class TestKalshiProvider:
     """Tests for Kalshi data provider.
-    
+
     NOTE: All tests use mocks. To add live API tests in the future:
     1. Add @pytest.mark.live_api decorator to the test
     2. Remove the @patch decorator and make real API calls
@@ -239,26 +241,26 @@ class TestKalshiProvider:
 
     def test_provider_initialization_with_api_key(self):
         """Test initialization with API key."""
-        provider = KalshiProvider(api_key='test_key')
-        assert 'Authorization' in provider.session.headers
+        provider = KalshiProvider(api_key="test_key")
+        assert "Authorization" in provider.session.headers
 
-    @patch('copilot_quant.data.prediction_markets.kalshi.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.kalshi.requests.Session.get")
     def test_get_active_markets_returns_dataframe(self, mock_get, provider):
         """Test that get_active_markets returns a DataFrame."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            'events': [
+            "events": [
                 {
-                    'category': 'economics',
-                    'markets': [
+                    "category": "economics",
+                    "markets": [
                         {
-                            'ticker': 'TICKER1',
-                            'title': 'Will unemployment be above 5%?',
-                            'status': 'open',
-                            'close_time': '2024-12-31',
-                            'volume': 10000,
+                            "ticker": "TICKER1",
+                            "title": "Will unemployment be above 5%?",
+                            "status": "open",
+                            "close_time": "2024-12-31",
+                            "volume": 10000,
                         }
-                    ]
+                    ],
                 }
             ]
         }
@@ -266,28 +268,28 @@ class TestKalshiProvider:
         mock_get.return_value = mock_response
 
         markets = provider.list_markets(limit=10)
-        
+
         assert isinstance(markets, pd.DataFrame)
         assert not markets.empty
 
-    @patch('copilot_quant.data.prediction_markets.kalshi.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.kalshi.requests.Session.get")
     def test_list_markets_returns_dataframe(self, mock_get, provider):
         """Test that list_markets returns a DataFrame."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            'events': [
+            "events": [
                 {
-                    'event_ticker': 'INX',
-                    'category': 'Finance',
-                    'markets': [
+                    "event_ticker": "INX",
+                    "category": "Finance",
+                    "markets": [
                         {
-                            'ticker': 'INX-24DEC31-T5000',
-                            'title': 'S&P 500 above 5000',
-                            'status': 'open',
-                            'volume': 50000.0,
-                            'close_time': '2024-12-31',
+                            "ticker": "INX-24DEC31-T5000",
+                            "title": "S&P 500 above 5000",
+                            "status": "open",
+                            "volume": 50000.0,
+                            "close_time": "2024-12-31",
                         }
-                    ]
+                    ],
                 }
             ]
         }
@@ -298,36 +300,36 @@ class TestKalshiProvider:
 
         assert isinstance(markets, pd.DataFrame)
         assert not markets.empty
-        assert 'market_id' in markets.columns
-        assert 'title' in markets.columns
+        assert "market_id" in markets.columns
+        assert "title" in markets.columns
 
-    @patch('copilot_quant.data.prediction_markets.kalshi.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.kalshi.requests.Session.get")
     def test_get_market_data_returns_dataframe(self, mock_get, provider):
         """Test that get_market_data returns price history."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            'history': [
+            "history": [
                 {
-                    'ts': '2024-01-01T12:00:00Z',
-                    'yes_bid': 0.45,
-                    'yes_ask': 0.48,
-                    'no_bid': 0.52,
-                    'no_ask': 0.55,
-                    'volume': 1000,
+                    "ts": "2024-01-01T12:00:00Z",
+                    "yes_bid": 0.45,
+                    "yes_ask": 0.48,
+                    "no_bid": 0.52,
+                    "no_ask": 0.55,
+                    "volume": 1000,
                 }
             ]
         }
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
 
-        data = provider.get_market_data('TICKER1')
-        
+        data = provider.get_market_data("TICKER1")
+
         assert isinstance(data, pd.DataFrame)
 
 
 class TestPredictItProvider:
     """Tests for PredictIt data provider.
-    
+
     NOTE: All tests use mocks. To add live API tests in the future:
     1. Add @pytest.mark.live_api decorator to the test
     2. Remove the @patch decorator and make real API calls
@@ -344,18 +346,18 @@ class TestPredictItProvider:
         assert provider.name == "PredictIt"
         assert provider.base_url == "https://www.predictit.org/api/marketdata"
 
-    @patch('requests.Session.get')
+    @patch("requests.Session.get")
     def test_list_markets_returns_dataframe(self, mock_get, provider):
         """Test that list_markets returns a DataFrame."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            'markets': [
+            "markets": [
                 {
-                    'id': 7890,
-                    'name': 'Test Market',
-                    'url': 'politics/test',
-                    'dateEnd': '2024-12-31T23:59:59',
-                    'status': 'Open',
+                    "id": 7890,
+                    "name": "Test Market",
+                    "url": "politics/test",
+                    "dateEnd": "2024-12-31T23:59:59",
+                    "status": "Open",
                 }
             ]
         }
@@ -366,35 +368,35 @@ class TestPredictItProvider:
 
         assert isinstance(markets, pd.DataFrame)
         assert not markets.empty
-        assert 'market_id' in markets.columns
-        assert 'title' in markets.columns
+        assert "market_id" in markets.columns
+        assert "title" in markets.columns
 
-    @patch('copilot_quant.data.prediction_markets.predictit.PredictItProvider.get_market_details')
+    @patch("copilot_quant.data.prediction_markets.predictit.PredictItProvider.get_market_details")
     def test_get_market_data_returns_dataframe(self, mock_get_details, provider):
         """Test that get_market_data returns contract data."""
         mock_get_details.return_value = {
-            'contracts': [
+            "contracts": [
                 {
-                    'id': 12345,
-                    'name': 'Yes',
-                    'lastTradePrice': 0.52,
-                    'bestBuyYesCost': 0.53,
-                    'bestBuyNoCost': 0.48,
-                    'bestSellYesCost': 0.54,
-                    'bestSellNoCost': 0.47,
+                    "id": 12345,
+                    "name": "Yes",
+                    "lastTradePrice": 0.52,
+                    "bestBuyYesCost": 0.53,
+                    "bestBuyNoCost": 0.48,
+                    "bestSellYesCost": 0.54,
+                    "bestSellNoCost": 0.47,
                 }
             ]
         }
 
-        data = provider.get_market_data('7890')
-        
+        data = provider.get_market_data("7890")
+
         assert isinstance(data, pd.DataFrame)
         assert not data.empty
 
 
 class TestMetaculusProvider:
     """Tests for Metaculus data provider.
-    
+
     NOTE: All tests use mocks. To add live API tests in the future:
     1. Add @pytest.mark.live_api decorator to the test
     2. Remove the @patch decorator and make real API calls
@@ -411,20 +413,20 @@ class TestMetaculusProvider:
         assert provider.name == "Metaculus"
         assert provider.base_url == "https://www.metaculus.com/api2"
 
-    @patch('copilot_quant.data.prediction_markets.metaculus.requests.Session.get')
+    @patch("copilot_quant.data.prediction_markets.metaculus.requests.Session.get")
     def test_list_markets_returns_dataframe(self, mock_get, provider):
         """Test that list_markets returns a DataFrame."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            'results': [
+            "results": [
                 {
-                    'id': 10001,
-                    'title': 'Test Question',
-                    'category': 'AI',
-                    'close_time': '2030-01-01T00:00:00Z',
-                    'status': 'open',
-                    'number_of_predictions': 450,
-                    'community_prediction': {'q2': 0.35},
+                    "id": 10001,
+                    "title": "Test Question",
+                    "category": "AI",
+                    "close_time": "2030-01-01T00:00:00Z",
+                    "status": "open",
+                    "number_of_predictions": 450,
+                    "community_prediction": {"q2": 0.35},
                 }
             ]
         }
@@ -435,8 +437,8 @@ class TestMetaculusProvider:
 
         assert isinstance(markets, pd.DataFrame)
         assert not markets.empty
-        assert 'market_id' in markets.columns
-        assert 'title' in markets.columns
+        assert "market_id" in markets.columns
+        assert "title" in markets.columns
 
 
 class TestProviderFactory:
@@ -444,27 +446,24 @@ class TestProviderFactory:
 
     def test_get_polymarket_provider(self):
         """Test getting Polymarket provider."""
-        provider = get_prediction_market_provider('polymarket')
+        provider = get_prediction_market_provider("polymarket")
         assert isinstance(provider, PolymarketProvider)
 
     def test_get_kalshi_provider(self):
         """Test getting Kalshi provider."""
-        provider = get_prediction_market_provider('kalshi')
+        provider = get_prediction_market_provider("kalshi")
         assert isinstance(provider, KalshiProvider)
 
     def test_get_provider_invalid_name(self):
         """Test that invalid provider name raises error."""
         with pytest.raises(ValueError):
-            get_prediction_market_provider('invalid_provider')
+            get_prediction_market_provider("invalid_provider")
 
     def test_get_provider_with_kwargs(self):
         """Test passing kwargs to provider."""
-        provider = get_prediction_market_provider(
-            'kalshi',
-            api_key='test_key'
-        )
+        provider = get_prediction_market_provider("kalshi", api_key="test_key")
         assert isinstance(provider, KalshiProvider)
-        assert provider.api_key == 'test_key'
+        assert provider.api_key == "test_key"
 
 
 class TestPredictionMarketStorage:
@@ -473,77 +472,69 @@ class TestPredictionMarketStorage:
     @pytest.fixture
     def csv_storage(self, tmp_path):
         """Create a CSV storage instance."""
-        return PredictionMarketStorage(
-            storage_type='csv',
-            base_path=str(tmp_path / 'prediction_markets')
-        )
+        return PredictionMarketStorage(storage_type="csv", base_path=str(tmp_path / "prediction_markets"))
 
     @pytest.fixture
     def sqlite_storage(self, tmp_path):
         """Create a SQLite storage instance."""
-        return PredictionMarketStorage(
-            storage_type='sqlite',
-            db_path=str(tmp_path / 'markets.db')
-        )
+        return PredictionMarketStorage(storage_type="sqlite", db_path=str(tmp_path / "markets.db"))
 
     def test_csv_storage_initialization(self, csv_storage):
         """Test CSV storage initialization."""
-        assert csv_storage.storage_type == 'csv'
+        assert csv_storage.storage_type == "csv"
         assert csv_storage.base_path.exists()
 
     def test_sqlite_storage_initialization(self, sqlite_storage):
         """Test SQLite storage initialization."""
-        assert sqlite_storage.storage_type == 'sqlite'
+        assert sqlite_storage.storage_type == "sqlite"
         from pathlib import Path
+
         assert Path(sqlite_storage.db_path).exists()
 
     def test_invalid_storage_type_raises_error(self, tmp_path):
         """Test that invalid storage type raises error."""
         with pytest.raises(ValueError):
-            PredictionMarketStorage(
-                storage_type='invalid',
-                base_path=str(tmp_path)
-            )
+            PredictionMarketStorage(storage_type="invalid", base_path=str(tmp_path))
 
     def test_save_and_load_markets_csv(self, csv_storage):
         """Test saving and loading markets to CSV."""
         markets = generate_mock_polymarket_markets()
-        csv_storage.save_markets('polymarket', markets)
-        
-        loaded = csv_storage.load_markets('polymarket')
+        csv_storage.save_markets("polymarket", markets)
+
+        loaded = csv_storage.load_markets("polymarket")
         assert isinstance(loaded, pd.DataFrame)
         assert len(loaded) == len(markets)
 
     def test_save_and_load_markets_sqlite(self, sqlite_storage):
         """Test saving and loading markets to SQLite."""
         markets = generate_mock_polymarket_markets()
-        sqlite_storage.save_markets('polymarket', markets)
-        
-        loaded = sqlite_storage.load_markets('polymarket')
+        sqlite_storage.save_markets("polymarket", markets)
+
+        loaded = sqlite_storage.load_markets("polymarket")
         assert isinstance(loaded, pd.DataFrame)
         assert len(loaded) == len(markets)
 
     def test_save_and_load_market_data_csv(self, csv_storage):
         """Test saving and loading market data to CSV."""
         data = generate_mock_polymarket_price_data()
-        csv_storage.save_market_data('polymarket', 'mock_123', data)
-        
-        loaded = csv_storage.load_market_data('polymarket', 'mock_123')
+        csv_storage.save_market_data("polymarket", "mock_123", data)
+
+        loaded = csv_storage.load_market_data("polymarket", "mock_123")
         assert isinstance(loaded, pd.DataFrame)
         assert len(loaded) == len(data)
 
     def test_save_and_load_market_data_sqlite(self, sqlite_storage):
         """Test saving and loading market data to SQLite."""
         data = generate_mock_polymarket_price_data()
-        sqlite_storage.save_market_data('polymarket', 'mock_123', data)
-        
-        loaded = sqlite_storage.load_market_data('polymarket', 'mock_123')
+        sqlite_storage.save_market_data("polymarket", "mock_123", data)
+
+        loaded = sqlite_storage.load_market_data("polymarket", "mock_123")
         assert isinstance(loaded, pd.DataFrame)
         assert len(loaded) == len(data)
 
     def test_load_nonexistent_markets_returns_empty(self, csv_storage):
         """Test that loading nonexistent markets returns empty DataFrame."""
-        loaded = csv_storage.load_markets('nonexistent')
+        loaded = csv_storage.load_markets("nonexistent")
         assert isinstance(loaded, pd.DataFrame)
         assert loaded.empty
 
@@ -551,108 +542,108 @@ class TestPredictionMarketStorage:
         """Test filename normalization."""
         normalized = csv_storage._normalize_filename("Market-ID/123:456")
         assert isinstance(normalized, str)
-        assert '/' not in normalized
-        assert ':' not in normalized
+        assert "/" not in normalized
+        assert ":" not in normalized
 
 
 class TestSchemaValidation:
     """
     Test schema validation for prediction market data.
-    
+
     These tests ensure that data returned from providers conforms to expected
     schemas, which is critical for data pipeline reliability.
     """
-    
+
     @pytest.fixture
     def polymarket_provider(self):
         """Create a Polymarket provider for testing."""
         return PolymarketProvider()
-    
+
     @pytest.fixture
     def kalshi_provider(self):
         """Create a Kalshi provider for testing."""
         return KalshiProvider()
-    
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_polymarket_markets_schema(self, mock_get, polymarket_provider):
         """
         Test that Polymarket list_markets returns correct schema.
-        
+
         Validates all required columns are present and have correct types.
         """
         mock_response = Mock()
         mock_response.json.return_value = [
             {
-                'condition_id': 'test_123',
-                'question': 'Test Question?',
-                'category': 'Test',
-                'end_date_iso': '2024-12-31T23:59:59Z',
-                'active': True,
-                'volume': 1000.0,
-                'liquidity': 500.0,
+                "condition_id": "test_123",
+                "question": "Test Question?",
+                "category": "Test",
+                "end_date_iso": "2024-12-31T23:59:59Z",
+                "active": True,
+                "volume": 1000.0,
+                "liquidity": 500.0,
             }
         ]
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
-        
+
         markets = polymarket_provider.list_markets()
-        
+
         # Validate schema
         assert isinstance(markets, pd.DataFrame)
-        required_cols = ['market_id', 'title', 'category', 'status']
+        required_cols = ["market_id", "title", "category", "status"]
         for col in required_cols:
             assert col in markets.columns, f"Missing required column: {col}"
-        
+
         # Validate data types
         assert not markets.empty
-        assert isinstance(markets['market_id'].iloc[0], str)
-        assert isinstance(markets['title'].iloc[0], str)
-        assert isinstance(markets['status'].iloc[0], str)
-        
+        assert isinstance(markets["market_id"].iloc[0], str)
+        assert isinstance(markets["title"].iloc[0], str)
+        assert isinstance(markets["status"].iloc[0], str)
+
         # Note: Polymarket transforms 'condition_id' to 'market_id' in list_markets()
-    
-    @patch('copilot_quant.data.prediction_markets.kalshi.requests.Session.get')
+
+    @patch("copilot_quant.data.prediction_markets.kalshi.requests.Session.get")
     def test_kalshi_markets_schema(self, mock_get, kalshi_provider):
         """
         Test that Kalshi list_markets returns correct schema.
         """
         mock_response = Mock()
         mock_response.json.return_value = {
-            'events': [
+            "events": [
                 {
-                    'category': 'Finance',
-                    'markets': [
+                    "category": "Finance",
+                    "markets": [
                         {
-                            'ticker': 'TEST-TICKER',
-                            'title': 'Test Market',
-                            'status': 'open',
-                            'close_time': '2024-12-31',
-                            'volume': 50000.0,
+                            "ticker": "TEST-TICKER",
+                            "title": "Test Market",
+                            "status": "open",
+                            "close_time": "2024-12-31",
+                            "volume": 50000.0,
                         }
-                    ]
+                    ],
                 }
             ]
         }
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
-        
+
         markets = kalshi_provider.list_markets()
-        
+
         # Validate schema
         assert isinstance(markets, pd.DataFrame)
-        required_cols = ['market_id', 'title', 'category', 'status']
+        required_cols = ["market_id", "title", "category", "status"]
         for col in required_cols:
             assert col in markets.columns, f"Missing required column: {col}"
-        
+
         # Validate data types
         assert not markets.empty
-        assert isinstance(markets['market_id'].iloc[0], str)
+        assert isinstance(markets["market_id"].iloc[0], str)
 
 
 class TestBadDataHandling:
     """
     Test handling of malformed or unexpected API responses.
-    
+
     These tests ensure the data pipeline is resilient to:
     - Malformed JSON
     - Missing required fields
@@ -660,86 +651,86 @@ class TestBadDataHandling:
     - Empty responses
     - API errors
     """
-    
+
     @pytest.fixture
     def polymarket_provider(self):
         return PolymarketProvider()
-    
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_malformed_json_response(self, mock_get, polymarket_provider):
         """
         Test handling of malformed JSON response.
-        
+
         Provider should return empty DataFrame rather than crashing.
         """
         mock_response = Mock()
         mock_response.json.side_effect = ValueError("Invalid JSON")
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
-        
+
         markets = polymarket_provider.list_markets()
-        
+
         # Should return empty DataFrame, not crash
         assert isinstance(markets, pd.DataFrame)
         assert markets.empty
-    
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_missing_required_fields(self, mock_get, polymarket_provider):
         """
         Test handling of response missing required fields.
-        
+
         Provider should handle missing fields gracefully.
         """
         mock_response = Mock()
         mock_response.json.return_value = [
             {
                 # Missing 'condition_id' and 'question' fields
-                'category': 'Test',
-                'end_date_iso': '2024-12-31',
+                "category": "Test",
+                "end_date_iso": "2024-12-31",
             }
         ]
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
-        
+
         markets = polymarket_provider.list_markets()
-        
+
         # Should handle gracefully - may return data with empty values
         assert isinstance(markets, pd.DataFrame)
         # Just verify it doesn't crash
-    
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_api_error_response(self, mock_get, polymarket_provider):
         """
         Test handling of API error (500, 404, etc).
         """
         import requests
-        
+
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = requests.HTTPError("500 Server Error")
         mock_get.return_value = mock_response
-        
+
         markets = polymarket_provider.list_markets()
-        
+
         # Should return empty DataFrame on API error
         assert isinstance(markets, pd.DataFrame)
         assert markets.empty
-    
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_timeout_handling(self, mock_get, polymarket_provider):
         """
         Test handling of request timeout.
         """
         import requests
-        
+
         mock_get.side_effect = requests.Timeout("Connection timed out")
-        
+
         markets = polymarket_provider.list_markets()
-        
+
         # Should return empty DataFrame on timeout
         assert isinstance(markets, pd.DataFrame)
         assert markets.empty
-    
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_unexpected_data_types(self, mock_get, polymarket_provider):
         """
         Test handling of unexpected data types in response.
@@ -747,22 +738,22 @@ class TestBadDataHandling:
         mock_response = Mock()
         mock_response.json.return_value = [
             {
-                'condition_id': 123,  # Should be string
-                'question': ['Invalid', 'Type'],  # Should be string
-                'category': None,  # Unexpected None
-                'volume': 'not_a_number',  # Should be float
+                "condition_id": 123,  # Should be string
+                "question": ["Invalid", "Type"],  # Should be string
+                "category": None,  # Unexpected None
+                "volume": "not_a_number",  # Should be float
             }
         ]
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
-        
+
         markets = polymarket_provider.list_markets()
-        
+
         # Should handle gracefully
         assert isinstance(markets, pd.DataFrame)
         # Don't crash - that's the main goal
-    
-    @patch('copilot_quant.data.prediction_markets.polymarket.requests.Session.get')
+
+    @patch("copilot_quant.data.prediction_markets.polymarket.requests.Session.get")
     def test_empty_array_response(self, mock_get, polymarket_provider):
         """
         Test handling of empty array response (no markets available).
@@ -771,9 +762,9 @@ class TestBadDataHandling:
         mock_response.json.return_value = []
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
-        
+
         markets = polymarket_provider.list_markets()
-        
+
         # Should return empty DataFrame
         assert isinstance(markets, pd.DataFrame)
         assert markets.empty

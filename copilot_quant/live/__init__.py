@@ -10,4 +10,4 @@ This module provides components for live trading including:
 from .live_signal_monitor import LiveSignalMonitor
 from .portfolio_state_manager import PortfolioStateManager
 
-__all__ = ['LiveSignalMonitor', 'PortfolioStateManager']
+__all__ = ["LiveSignalMonitor", "PortfolioStateManager"]

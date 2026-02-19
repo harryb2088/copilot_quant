@@ -5,6 +5,7 @@ Provides endpoints for Prometheus metrics export.
 """
 
 import logging
+
 from fastapi import APIRouter, Response
 
 from copilot_quant.monitoring.metrics_exporter import get_metrics_exporter
@@ -18,24 +19,21 @@ router = APIRouter()
 async def prometheus_metrics():
     """
     Export metrics in Prometheus format.
-    
+
     Returns:
         Prometheus-formatted metrics
     """
     exporter = get_metrics_exporter()
     metrics_text = exporter.export_metrics()
-    
-    return Response(
-        content=metrics_text,
-        media_type="text/plain; version=0.0.4"
-    )
+
+    return Response(content=metrics_text, media_type="text/plain; version=0.0.4")
 
 
 @router.get("/json")
 async def json_metrics():
     """
     Export metrics as JSON.
-    
+
     Returns:
         JSON-formatted metrics
     """

@@ -12,10 +12,7 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def get_sp500_tickers(
-    include_index: bool = False,
-    source: str = "wikipedia"
-) -> List[str]:
+def get_sp500_tickers(include_index: bool = False, source: str = "wikipedia") -> List[str]:
     """
     Get list of S&P500 constituent ticker symbols.
 
@@ -60,7 +57,7 @@ def _get_sp500_from_wikipedia(include_index: bool = False) -> List[str]:
         url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
 
         # Read the first table which contains current constituents
-        tables = pd.read_html(url, flavor='lxml')
+        tables = pd.read_html(url, flavor="lxml")
         sp500_table = tables[0]
 
         # Extract ticker symbols
@@ -82,6 +79,7 @@ def _get_sp500_from_wikipedia(include_index: bool = False) -> List[str]:
         logger.warning("Falling back to manual list")
         return _get_sp500_manual_list(include_index)
 
+
 def _get_sp500_manual_list(include_index: bool = False) -> List[str]:
     """
     Fallback manual list of major S&P500 constituents.
@@ -97,23 +95,122 @@ def _get_sp500_manual_list(include_index: bool = False) -> List[str]:
     # Major S&P500 stocks (top holdings by weight) - for testing/fallback
     tickers = [
         # Technology
-        "AAPL", "MSFT", "NVDA", "GOOGL", "GOOG", "AMZN", "META", "TSLA", "AVGO", "ORCL",
-        "ADBE", "CRM", "CSCO", "ACN", "AMD", "INTC", "TXN", "QCOM", "INTU", "IBM",
+        "AAPL",
+        "MSFT",
+        "NVDA",
+        "GOOGL",
+        "GOOG",
+        "AMZN",
+        "META",
+        "TSLA",
+        "AVGO",
+        "ORCL",
+        "ADBE",
+        "CRM",
+        "CSCO",
+        "ACN",
+        "AMD",
+        "INTC",
+        "TXN",
+        "QCOM",
+        "INTU",
+        "IBM",
         # Financials
-        "BRK-B", "JPM", "V", "MA", "BAC", "WFC", "GS", "MS", "SPGI", "BLK",
-        "C", "AXP", "SCHW", "CB", "PGR", "MMC", "ICE", "CME", "AON", "TFC",
+        "BRK-B",
+        "JPM",
+        "V",
+        "MA",
+        "BAC",
+        "WFC",
+        "GS",
+        "MS",
+        "SPGI",
+        "BLK",
+        "C",
+        "AXP",
+        "SCHW",
+        "CB",
+        "PGR",
+        "MMC",
+        "ICE",
+        "CME",
+        "AON",
+        "TFC",
         # Healthcare
-        "UNH", "JNJ", "LLY", "ABBV", "MRK", "PFE", "TMO", "ABT", "DHR", "CVS",
-        "AMGN", "BMY", "MDT", "GILD", "CI", "ISRG", "REGN", "VRTX", "HCA", "SYK",
+        "UNH",
+        "JNJ",
+        "LLY",
+        "ABBV",
+        "MRK",
+        "PFE",
+        "TMO",
+        "ABT",
+        "DHR",
+        "CVS",
+        "AMGN",
+        "BMY",
+        "MDT",
+        "GILD",
+        "CI",
+        "ISRG",
+        "REGN",
+        "VRTX",
+        "HCA",
+        "SYK",
         # Consumer
-        "WMT", "HD", "COST", "PG", "KO", "PEP", "MCD", "NKE", "DIS", "SBUX",
-        "PM", "LOW", "TGT", "TJX", "CMG", "BKNG", "ABNB", "MAR", "YUM", "MO",
+        "WMT",
+        "HD",
+        "COST",
+        "PG",
+        "KO",
+        "PEP",
+        "MCD",
+        "NKE",
+        "DIS",
+        "SBUX",
+        "PM",
+        "LOW",
+        "TGT",
+        "TJX",
+        "CMG",
+        "BKNG",
+        "ABNB",
+        "MAR",
+        "YUM",
+        "MO",
         # Communication
-        "T", "VZ", "NFLX", "CMCSA", "CHTR", "EA", "TTWO", "MTCH", "NWSA", "FOXA",
+        "T",
+        "VZ",
+        "NFLX",
+        "CMCSA",
+        "CHTR",
+        "EA",
+        "TTWO",
+        "MTCH",
+        "NWSA",
+        "FOXA",
         # Industrials
-        "BA", "CAT", "HON", "UNP", "RTX", "UPS", "DE", "LMT", "GE", "MMM",
+        "BA",
+        "CAT",
+        "HON",
+        "UNP",
+        "RTX",
+        "UPS",
+        "DE",
+        "LMT",
+        "GE",
+        "MMM",
         # Energy
-        "XOM", "CVX", "COP", "SLB", "EOG", "MPC", "PSX", "VLO", "OXY", "KMI",
+        "XOM",
+        "CVX",
+        "COP",
+        "SLB",
+        "EOG",
+        "MPC",
+        "PSX",
+        "VLO",
+        "OXY",
+        "KMI",
     ]
 
     logger.info(f"Using manual list with {len(tickers)} major S&P500 stocks")
@@ -140,7 +237,7 @@ def get_sp500_info() -> pd.DataFrame:
     """
     try:
         url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-        tables = pd.read_html(url, flavor='lxml')
+        tables = pd.read_html(url, flavor="lxml")
         sp500_info = tables[0]
 
         # Clean up ticker symbols (avoid FutureWarning with regex=False)
@@ -152,16 +249,18 @@ def get_sp500_info() -> pd.DataFrame:
     except Exception as e:
         logger.error(f"Error fetching S&P500 info: {e}")
         logger.warning("Falling back to manual list for get_sp500_info")
-        
+
         # Fallback: Create a basic DataFrame from manual list
         tickers = _get_sp500_manual_list(include_index=False)
         # Create minimal DataFrame with Symbol column
-        fallback_info = pd.DataFrame({
-            'Symbol': tickers,
-            'Security': ['N/A'] * len(tickers),
-            'GICS Sector': ['N/A'] * len(tickers),
-            'GICS Sub-Industry': ['N/A'] * len(tickers),
-        })
+        fallback_info = pd.DataFrame(
+            {
+                "Symbol": tickers,
+                "Security": ["N/A"] * len(tickers),
+                "GICS Sector": ["N/A"] * len(tickers),
+                "GICS Sub-Industry": ["N/A"] * len(tickers),
+            }
+        )
         logger.info(f"Using manual fallback with {len(fallback_info)} stocks")
         return fallback_info
 
@@ -200,9 +299,36 @@ def get_sp500_by_sector() -> dict:
 FAANG = ["META", "AAPL", "AMZN", "NFLX", "GOOGL"]
 MAGNIFICENT_7 = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA"]
 DOW_30_TICKERS = [
-    "AAPL", "AMGN", "AXP", "BA", "CAT", "CRM", "CSCO", "CVX", "DIS", "DOW",
-    "GS", "HD", "HON", "IBM", "INTC", "JNJ", "JPM", "KO", "MCD", "MMM",
-    "MRK", "MSFT", "NKE", "PG", "TRV", "UNH", "V", "VZ", "WBA", "WMT",
+    "AAPL",
+    "AMGN",
+    "AXP",
+    "BA",
+    "CAT",
+    "CRM",
+    "CSCO",
+    "CVX",
+    "DIS",
+    "DOW",
+    "GS",
+    "HD",
+    "HON",
+    "IBM",
+    "INTC",
+    "JNJ",
+    "JPM",
+    "KO",
+    "MCD",
+    "MMM",
+    "MRK",
+    "MSFT",
+    "NKE",
+    "PG",
+    "TRV",
+    "UNH",
+    "V",
+    "VZ",
+    "WBA",
+    "WMT",
 ]
 
 
@@ -215,12 +341,12 @@ if __name__ == "__main__":
     print(f"\nFound {len(tickers)} S&P500 stocks")
     print(f"First 10: {tickers[:10]}")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Fetching S&P500 info by sector...")
     sectors = get_sp500_by_sector()
     for sector, stocks in sorted(sectors.items(), key=lambda x: len(x[1]), reverse=True):
         print(f"  {sector}: {len(stocks)} stocks")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print(f"FAANG stocks: {FAANG}")
     print(f"Magnificent 7: {MAGNIFICENT_7}")

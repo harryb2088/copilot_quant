@@ -3,12 +3,12 @@
 from copilot_quant.strategies.pairs_trading import PairsTradingStrategy
 from copilot_quant.strategies.pairs_utils import (
     calculate_correlation,
+    calculate_half_life,
     calculate_hedge_ratio,
     calculate_spread,
     calculate_zscore,
     check_cointegration,
     find_cointegrated_pairs,
-    calculate_half_life,
 )
 
 __all__ = [

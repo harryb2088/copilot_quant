@@ -144,9 +144,7 @@ class YFinanceProvider(DataProvider):
                 logger.warning(f"No data returned for {symbol}")
                 return pd.DataFrame()
 
-            logger.info(
-                f"Downloaded {len(data)} rows for {symbol} from {start_date} to {end_date}"
-            )
+            logger.info(f"Downloaded {len(data)} rows for {symbol} from {start_date} to {end_date}")
             return data
 
         except Exception as e:
@@ -207,9 +205,7 @@ class YFinanceProvider(DataProvider):
                 logger.warning(f"No data returned for symbols: {symbols}")
                 return pd.DataFrame()
 
-            logger.info(
-                f"Downloaded data for {len(symbols)} symbols from {start_date} to {end_date}"
-            )
+            logger.info(f"Downloaded data for {len(symbols)} symbols from {start_date} to {end_date}")
             return data
 
         except Exception as e:
@@ -292,8 +288,6 @@ def get_data_provider(provider_name: str = "yfinance") -> DataProvider:
 
     provider_class = providers.get(provider_name.lower())
     if provider_class is None:
-        raise ValueError(
-            f"Unknown provider: {provider_name}. Available: {list(providers.keys())}"
-        )
+        raise ValueError(f"Unknown provider: {provider_name}. Available: {list(providers.keys())}")
 
     return provider_class()
