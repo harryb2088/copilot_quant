@@ -414,11 +414,9 @@ class LiveBrokerAdapter(IBroker):
                 position = Position(symbol=symbol)
                 position.quantity = quantity
                 position.avg_entry_price = avg_cost
-                position.cost_basis = quantity * avg_cost
                 
-                # Note: market_value needs current price, which we don't have here
-                # It will be updated when we get market data
-                position.market_value = position.cost_basis
+                # Note: market_value is a computed property, no need to set it
+                # It will be calculated from avg_entry_price and unrealized_pnl
                 position.unrealized_pnl = 0.0
                 
                 self._positions[symbol] = position
