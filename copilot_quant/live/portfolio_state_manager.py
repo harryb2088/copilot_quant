@@ -365,7 +365,7 @@ class PortfolioStateManager:
             
             # Calculate equity value
             equity_value = sum(
-                abs(pos.quantity * pos.current_price)
+                abs(pos.quantity * getattr(pos, 'current_price', getattr(pos, 'avg_entry_price', 0)))
                 for pos in positions.values()
             )
             
@@ -571,13 +571,17 @@ class PortfolioStateManager:
             
             # Store position snapshots
             for symbol, position in positions.items():
+                # Handle different position attribute names
+                avg_cost = getattr(position, 'avg_cost', getattr(position, 'avg_entry_price', 0))
+                current_price = getattr(position, 'current_price', getattr(position, 'avg_entry_price', 0))
+                
                 pos_snapshot = PositionSnapshotModel(
                     portfolio_snapshot_id=snapshot.id,
                     symbol=symbol,
                     quantity=position.quantity,
-                    avg_cost=position.avg_cost,
-                    current_price=position.current_price,
-                    market_value=position.quantity * position.current_price,
+                    avg_cost=avg_cost,
+                    current_price=current_price,
+                    market_value=position.quantity * current_price,
                     unrealized_pnl=position.unrealized_pnl,
                     realized_pnl=position.realized_pnl
                 )
