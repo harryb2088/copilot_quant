@@ -114,8 +114,6 @@ def plot_portfolio_performance_chart(dates, values, title="Portfolio Performance
     Returns:
         Plotly figure optimized for top-of-page display
     """
-    import numpy as np
-    
     fig = go.Figure()
     
     # Main line chart
