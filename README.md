@@ -662,14 +662,33 @@ python scripts/daily_update.py --storage sqlite --db-path data/market_data.db
 - **Scheduling Guide**: [`docs/SCHEDULING.md`](docs/SCHEDULING.md) - Automated execution setup
 - **Sample Logs**: [`data/logs/`](data/logs/) - Example log files from script execution
 
-## 📡 Live Market Data Feed (IBKR)
+## 📡 Live Market Data Feed & Trading (IBKR)
 
-The platform now supports **real-time market data streaming** and **historical data downloads** via Interactive Brokers (IBKR).
+The platform supports **real-time market data streaming**, **historical data downloads**, and **automated trading** via Interactive Brokers (IBKR).
+
+### 🎯 Quick Start - Get Trading in 5 Minutes!
+
+**New to IBKR integration?** Follow our comprehensive guide:
+
+👉 **[IBKR Comprehensive Setup & Usage Guide](docs/IBKR_COMPREHENSIVE_GUIDE.md)** ⭐
+
+This guide covers:
+- ✅ **5-minute quick start** to paper trading
+- ✅ TWS vs IB Gateway comparison
+- ✅ Step-by-step setup instructions
+- ✅ Paper and live trading modes
+- ✅ Service requirements and prerequisites
+- ✅ Complete usage examples
+- ✅ Troubleshooting guide
+- ✅ Best practices for safe trading
 
 ### Features
 
 - ✅ Real-time price streaming for multiple symbols
 - ✅ Historical bar data download for backfilling
+- ✅ Paper trading (risk-free testing)
+- ✅ Live trading (real money)
+- ✅ Order execution and portfolio management
 - ✅ Automatic data normalization to internal format
 - ✅ Subscription management (subscribe/unsubscribe)
 - ✅ Automatic reconnection handling
