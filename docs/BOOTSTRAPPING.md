@@ -232,7 +232,7 @@ sudo systemctl start postgresql
 
 #### Start Streamlit UI
 ```bash
-streamlit run copilot_quant/ui/app.py
+streamlit run src/ui/app.py
 ```
 
 The UI will open automatically at `http://localhost:8501`
@@ -919,7 +919,7 @@ docker compose restart ui
 # Kill existing process
 pkill -f streamlit
 # Restart
-streamlit run copilot_quant/ui/app.py
+streamlit run src/ui/app.py
 ```
 
 ### Permission Denied Errors
@@ -1111,7 +1111,7 @@ source venv/bin/activate  # macOS/Linux
 venv\Scripts\activate     # Windows
 
 # Start UI
-streamlit run copilot_quant/ui/app.py
+streamlit run src/ui/app.py
 
 # Start orchestrator
 python -m copilot_quant.orchestrator
