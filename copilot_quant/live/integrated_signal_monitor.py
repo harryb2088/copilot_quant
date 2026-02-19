@@ -9,13 +9,13 @@ This shows the recommended approach for production deployments.
 
 import asyncio
 import logging
-from typing import List, Optional
 from datetime import datetime
+from typing import Optional
 
-from copilot_quant.backtest.signals import SignalBasedStrategy, TradingSignal
+from copilot_quant.backtest.signals import TradingSignal
+from copilot_quant.brokers.order_execution_handler import OrderExecutionHandler
 from copilot_quant.live import LiveSignalMonitor, SignalExecutionPipeline
 from copilot_quant.live.portfolio_state_manager import PortfolioStateManager
-from copilot_quant.brokers.order_execution_handler import OrderExecutionHandler
 from copilot_quant.orchestrator.notifiers.base import Notifier
 from src.risk import RiskManager, RiskSettings
 
@@ -25,23 +25,23 @@ logger = logging.getLogger(__name__)
 class EnhancedLiveSignalMonitor(LiveSignalMonitor):
     """
     Enhanced LiveSignalMonitor with integrated SignalExecutionPipeline.
-    
+
     This class extends LiveSignalMonitor to use the SignalExecutionPipeline
     for comprehensive risk management, position sizing, and order execution.
-    
+
     Features over base LiveSignalMonitor:
     - Full RiskManager integration (drawdown caps, position limits, correlation)
     - OrderExecutionHandler for professional order management
     - PortfolioStateManager for persistent state tracking
     - Notification integration for all events
     - Structured logging for audit trails
-    
+
     Example:
         >>> # Initialize components
         >>> risk_manager = RiskManager(RiskSettings.get_conservative_profile())
         >>> order_handler = OrderExecutionHandler()
         >>> portfolio_state = PortfolioStateManager(database_url="...")
-        >>> 
+        >>>
         >>> # Create enhanced monitor
         >>> monitor = EnhancedLiveSignalMonitor(
         ...     risk_manager=risk_manager,
@@ -49,13 +49,13 @@ class EnhancedLiveSignalMonitor(LiveSignalMonitor):
         ...     portfolio_state=portfolio_state,
         ...     paper_trading=True
         ... )
-        >>> 
+        >>>
         >>> # Use like regular LiveSignalMonitor
         >>> monitor.add_strategy(MyStrategy())
         >>> monitor.connect()
         >>> monitor.start(['AAPL', 'MSFT'])
     """
-    
+
     def __init__(
         self,
         risk_manager: RiskManager,
@@ -68,7 +68,7 @@ class EnhancedLiveSignalMonitor(LiveSignalMonitor):
     ):
         """
         Initialize enhanced live signal monitor with execution pipeline.
-        
+
         Args:
             risk_manager: RiskManager for comprehensive risk checks
             order_handler: OrderExecutionHandler for order management
@@ -80,7 +80,7 @@ class EnhancedLiveSignalMonitor(LiveSignalMonitor):
         """
         # Initialize base monitor
         super().__init__(**kwargs)
-        
+
         # Create execution pipeline
         self.pipeline = SignalExecutionPipeline(
             risk_manager=risk_manager,
@@ -91,26 +91,26 @@ class EnhancedLiveSignalMonitor(LiveSignalMonitor):
             max_position_pct=max_position_pct,
             max_portfolio_deployment=max_portfolio_deployment
         )
-        
+
         logger.info(
             "EnhancedLiveSignalMonitor initialized with SignalExecutionPipeline"
         )
-    
+
     def connect(self, timeout: int = 30, retry_count: int = 3) -> bool:
         """
         Establish connections and wire IB connection to pipeline.
-        
+
         Args:
             timeout: Connection timeout in seconds
             retry_count: Number of retry attempts
-            
+
         Returns:
             True if connections successful
         """
         # Connect base monitor
         if not super().connect(timeout, retry_count):
             return False
-        
+
         # Wire IB connection to pipeline
         # Note: LiveBrokerAdapter has an internal ib_connection
         # We need to access it for the pipeline
@@ -122,37 +122,37 @@ class EnhancedLiveSignalMonitor(LiveSignalMonitor):
                 "Could not wire IB connection to pipeline - "
                 "order execution may not work properly"
             )
-        
+
         return True
-    
+
     def _process_signal(self, signal: TradingSignal, timestamp: datetime) -> None:
         """
         Process signal through SignalExecutionPipeline instead of basic logic.
-        
+
         This overrides the base class method to use comprehensive
         risk management and execution pipeline.
-        
+
         Note: This method runs async pipeline in a sync context by creating
         a new event loop. For production use with high-frequency signals,
         consider refactoring to run pipeline in an existing async context.
-        
+
         Args:
             signal: TradingSignal to process
             timestamp: Current timestamp
         """
         # Persist signal to database (even if not executed)
         self._persist_signal(signal, timestamp)
-        
+
         # Add to history for dashboard
         self._add_to_history(signal, timestamp)
-        
+
         # Process through pipeline (async)
         try:
             # Run async method in sync context
             # Note: Creates new event loop per call - acceptable for low-frequency signals
             # For high-frequency use cases, refactor to async context
             result = asyncio.run(self.pipeline.process_signal(signal))
-            
+
             # Update stats based on result
             if result.status.value == 'executed':
                 self.stats['signals_executed'] += 1
@@ -161,24 +161,24 @@ class EnhancedLiveSignalMonitor(LiveSignalMonitor):
                 self.stats['signals_rejected'] += 1
             elif result.status.value == 'failed':
                 self.stats['errors'] += 1
-            
+
         except Exception as e:
             logger.error(f"Error processing signal through pipeline: {e}", exc_info=True)
             self.stats['errors'] += 1
-    
+
     def get_dashboard_summary(self) -> dict:
         """
         Get enhanced dashboard summary including pipeline stats.
-        
+
         Returns:
             Dictionary with dashboard data
         """
         # Get base summary
         summary = super().get_dashboard_summary()
-        
+
         # Add pipeline stats
         summary['pipeline_stats'] = self.pipeline.get_stats()
-        
+
         return summary
 
 
@@ -191,19 +191,19 @@ def create_production_signal_monitor(
 ) -> EnhancedLiveSignalMonitor:
     """
     Create a production-ready signal monitor with full pipeline integration.
-    
+
     This is a convenience function that sets up all required components
     with sensible defaults.
-    
+
     Args:
         database_url: Database URL for persistence
         risk_profile: Risk profile ("conservative", "balanced", "aggressive")
         paper_trading: Whether to use paper trading
         notifier: Optional notifier for alerts
-        
+
     Returns:
         Configured EnhancedLiveSignalMonitor ready to use
-        
+
     Example:
         >>> monitor = create_production_signal_monitor(
         ...     risk_profile="balanced",
@@ -222,7 +222,7 @@ def create_production_signal_monitor(
         risk_settings = RiskSettings.get_aggressive_profile()
     else:
         raise ValueError(f"Unknown risk profile: {risk_profile}")
-    
+
     # Create components
     risk_manager = RiskManager(risk_settings)
     order_handler = OrderExecutionHandler()
@@ -230,7 +230,7 @@ def create_production_signal_monitor(
         database_url=database_url,
         broker=None  # Will be set during connection
     )
-    
+
     # Create enhanced monitor
     monitor = EnhancedLiveSignalMonitor(
         risk_manager=risk_manager,
@@ -243,9 +243,9 @@ def create_production_signal_monitor(
         max_position_pct=risk_settings.max_position_size,
         max_portfolio_deployment=0.80
     )
-    
+
     logger.info(
         f"Production signal monitor created with {risk_profile} risk profile"
     )
-    
+
     return monitor
