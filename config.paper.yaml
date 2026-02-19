@@ -1,0 +1,121 @@
+# Trading Configuration - Paper Trading Mode
+#
+# This configuration file defines all settings for the trading orchestrator,
+# including strategy parameters, risk controls, broker settings, and notifications.
+#
+# Configuration Reference:
+# - mode: Trading mode ('paper' or 'live')
+# - version: Configuration version for tracking changes
+
+version: "1.0.0"
+mode: paper  # Use 'paper' for paper trading, 'live' for live trading (USE WITH CAUTION)
+
+# Trading Schedule Configuration
+schedule:
+  timezone: "America/New_York"  # Market timezone (NYSE is Eastern Time)
+  enable_pre_market: false  # Enable pre-market trading (4:00 AM - 9:30 AM ET)
+  enable_post_market: false  # Enable post-market trading (4:00 PM - 8:00 PM ET)
+  auto_start: true  # Automatically start trading when market opens
+  auto_stop: true  # Automatically stop trading when market closes
+
+# Strategy Configuration
+strategy:
+  # List of symbols to trade
+  symbols:
+    - AAPL
+    - MSFT
+    - GOOGL
+    - AMZN
+    - TSLA
+  
+  max_positions: 10  # Maximum number of concurrent positions
+  position_size_pct: 0.10  # Position size as percentage of portfolio (10%)
+  rebalance_frequency: daily  # Rebalancing frequency: daily, weekly, intraday
+
+# Risk Management Configuration
+risk:
+  # Portfolio-level controls
+  max_portfolio_drawdown: 0.12  # Maximum allowed drawdown (12%)
+  min_cash_buffer: 0.20  # Minimum cash reserve (20% of portfolio)
+  max_cash_buffer: 0.80  # Maximum cash allocation (80% of portfolio)
+  
+  # Circuit breaker
+  enable_circuit_breaker: true  # Enable automatic liquidation on breach
+  circuit_breaker_threshold: 0.10  # Drawdown threshold that triggers circuit breaker (10%)
+  
+  # Position-level controls
+  max_position_size: 0.10  # Maximum position size (10% of portfolio)
+  position_stop_loss: 0.05  # Per-position stop loss (5%)
+  
+  # Correlation and diversification
+  max_correlation: 0.80  # Maximum correlation between positions
+  
+  # Volatility targeting
+  enable_volatility_targeting: true  # Enable volatility-based position sizing
+  target_portfolio_volatility: 0.15  # Target annual volatility (15%)
+
+# Broker Configuration
+broker:
+  broker_type: ibkr  # Broker type: ibkr, alpaca, etc.
+  
+  # IBKR Connection Settings
+  host: 127.0.0.1  # IB Gateway/TWS host
+  port: 7497  # Port: 7497 (TWS Paper), 7496 (TWS Live), 4002 (Gateway Paper), 4001 (Gateway Live)
+  client_id: 1  # Unique client ID for this connection
+  account_number: null  # Optional: Specify account number
+  use_gateway: false  # Use IB Gateway (true) or TWS (false)
+  
+  # Trading mode
+  paper_trading: true  # Paper trading mode (ALWAYS true for safety in this config)
+  
+  # Execution parameters
+  commission: 0.001  # Commission per share (0.1 cents)
+  slippage: 0.0005  # Estimated slippage (0.05%)
+
+# Data Feed Configuration
+data:
+  primary_source: ibkr  # Data source: ibkr, polygon, yahoo, etc.
+  update_interval: 1.0  # Data update interval in seconds
+  enable_reconnect: true  # Auto-reconnect on disconnection
+  cache_enabled: true  # Enable data caching
+  cache_dir: ./data/cache  # Cache directory path
+
+# Notification & Alerting Configuration
+notifications:
+  enabled: true  # Enable notifications
+  
+  # Alert channels to use (slack, discord, email, webhook)
+  channels:
+    - slack
+    # - discord
+    # - email
+    # - webhook
+  
+  # Alert levels to send: info, warning, critical
+  # Only alerts at or above the first level will be sent
+  alert_levels:
+    - warning  # Send warning and critical alerts only
+    - critical
+  
+  # Slack Configuration
+  slack_webhook_url: null  # Set to your Slack webhook URL
+  slack_channel: "#trading-alerts"  # Optional: Override webhook's default channel
+  
+  # Discord Configuration
+  discord_webhook_url: null  # Set to your Discord webhook URL
+  
+  # Email (SMTP) Configuration
+  smtp_host: null  # SMTP server (e.g., smtp.gmail.com)
+  smtp_port: 587  # SMTP port (587 for TLS, 465 for SSL)
+  smtp_username: null  # SMTP username
+  smtp_password: null  # SMTP password (use environment variable for security)
+  email_from: null  # From email address
+  email_to: []  # List of recipient emails
+  
+  # Webhook Configuration
+  webhook_url: null  # Custom webhook URL
+  webhook_headers: {}  # Optional headers (e.g., {"Authorization": "Bearer TOKEN"})
+
+# Metadata (automatically managed)
+created_at: null
+updated_at: null
