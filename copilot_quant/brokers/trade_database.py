@@ -661,7 +661,9 @@ class TradeDatabase:
                 return snapshot.to_dict()
             return None
 
-    def get_equity_curve(self, start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[Dict[str, Any]]:
+    def get_equity_curve(
+        self, start_date: Optional[date] = None, end_date: Optional[date] = None
+    ) -> List[Dict[str, Any]]:
         """
         Get equity curve data for a date range.
 
