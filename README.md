@@ -662,14 +662,33 @@ python scripts/daily_update.py --storage sqlite --db-path data/market_data.db
 - **Scheduling Guide**: [`docs/SCHEDULING.md`](docs/SCHEDULING.md) - Automated execution setup
 - **Sample Logs**: [`data/logs/`](data/logs/) - Example log files from script execution
 
-## 📡 Live Market Data Feed (IBKR)
+## 📡 Live Market Data Feed & Trading (IBKR)
 
-The platform now supports **real-time market data streaming** and **historical data downloads** via Interactive Brokers (IBKR).
+The platform supports **real-time market data streaming**, **historical data downloads**, and **automated trading** via Interactive Brokers (IBKR).
+
+### 🎯 Quick Start - Get Trading in 5 Minutes!
+
+**New to IBKR integration?** Follow our comprehensive guide:
+
+👉 **[IBKR Comprehensive Setup & Usage Guide](docs/IBKR_COMPREHENSIVE_GUIDE.md)** ⭐
+
+This guide covers:
+- ✅ **5-minute quick start** to paper trading
+- ✅ TWS vs IB Gateway comparison
+- ✅ Step-by-step setup instructions
+- ✅ Paper and live trading modes
+- ✅ Service requirements and prerequisites
+- ✅ Complete usage examples
+- ✅ Troubleshooting guide
+- ✅ Best practices for safe trading
 
 ### Features
 
 - ✅ Real-time price streaming for multiple symbols
 - ✅ Historical bar data download for backfilling
+- ✅ Paper trading (risk-free testing)
+- ✅ Live trading (real money)
+- ✅ Order execution and portfolio management
 - ✅ Automatic data normalization to internal format
 - ✅ Subscription management (subscribe/unsubscribe)
 - ✅ Automatic reconnection handling
@@ -734,8 +753,9 @@ See [`examples/ibkr_live_data_example.py`](examples/ibkr_live_data_example.py) f
 ### Documentation
 
 For detailed documentation, see:
+- **[🎯 IBKR Comprehensive Setup & Usage Guide](docs/IBKR_COMPREHENSIVE_GUIDE.md)** - Complete end-to-end setup guide ⭐
+- **[IBKR Setup Guide](docs/ibkr_setup_guide.md)** - Detailed technical reference and API documentation
 - **[Live Market Data Guide](docs/live_market_data_guide.md)** - Complete API reference and usage guide
-- **[IBKR Setup Guide](docs/ibkr_setup_guide.md)** - TWS/Gateway setup instructions
 
 ### Changing Symbol Universe
 
@@ -1497,11 +1517,20 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines, code style, a
 
 ### Additional Resources
 - **Interactive Brokers Integration**
-  - [IBKR Integration Epic](issues/ibkr-epic-master.md) - Complete roadmap for live trading integration
-  - [IBKR Setup Guide](docs/ibkr_setup_guide.md) - Complete IBKR API setup and configuration
+  - **[🎯 IBKR Comprehensive Setup & Usage Guide](docs/IBKR_COMPREHENSIVE_GUIDE.md)** - **⭐ START HERE** - Complete end-to-end guide
+    - Quick start (5 minutes to paper trading)
+    - Detailed setup and configuration
+    - Paper and live trading modes
+    - Service requirements
+    - Usage examples
+    - Troubleshooting and best practices
+  - [IBKR Setup Guide](docs/ibkr_setup_guide.md) - Detailed technical reference and API documentation
+  - [IBKR Connection Manager](docs/IBKR_CONNECTION_MANAGER.md) - Connection management API
+  - [Live Integration Guide](docs/LIVE_INTEGRATION_GUIDE.md) - Live trading integration
   - [Quick Start Guide](examples/IBKR_SETUP.md) - Quick setup for paper trading
   - **Quick Start**: Run `python examples/test_ibkr_connection.py` to test your IB connection
   - **Working Implementation**: See `copilot_quant/brokers/interactive_brokers.py`
+  - [IBKR Integration Epic](issues/ibkr-epic-master.md) - Complete roadmap for live trading integration
   - **Child Issues**: See [issues/README.md](issues/README.md) for all 11 implementation tasks
 - [Prediction Markets Guide](docs/prediction_markets_guide.md) - Integration with prediction market data
 - [Data Management Guide](docs/data_management_guide.md) - Data pipeline and normalization

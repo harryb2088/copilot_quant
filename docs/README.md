@@ -72,26 +72,62 @@ For customization and extension:
 
 For connecting to live markets:
 
-9. **[Interactive Brokers Setup Guide](ibkr_setup_guide.md)** 🔴
-   - TWS/Gateway installation and configuration
-   - API setup and security best practices
-   - Paper trading vs live trading
-   - Rate limits and restrictions
-   - Connection code examples
-   - Troubleshooting common issues
-   - Best for: Setting up live/paper trading with IBKR
+9. **[🎯 IBKR Comprehensive Setup & Usage Guide](IBKR_COMPREHENSIVE_GUIDE.md)** 🔴 **← START HERE**
+   - Complete end-to-end guide for IBKR integration
+   - Quick start (5 minutes to paper trading)
+   - TWS vs IB Gateway comparison
+   - Detailed setup instructions
+   - Paper and live trading modes
+   - Service requirements and system setup
+   - Usage examples and code snippets
+   - Troubleshooting and best practices
+   - **Best for: New users setting up IBKR from scratch**
+
+10. **[Interactive Brokers Setup Guide](ibkr_setup_guide.md)** 📘
+    - Detailed technical reference
+    - TWS/Gateway installation and configuration
+    - API setup and security best practices
+    - Rate limits and restrictions
+    - Advanced connection code examples
+    - **Best for: Developers needing technical details**
+
+11. **[IBKR Connection Manager](IBKR_CONNECTION_MANAGER.md)** 🔌
+    - Connection manager API documentation
+    - Auto-reconnection features
+    - Health monitoring
+    - Event handlers
+    - **Best for: Understanding connection management**
+
+12. **[IBKR Connection Troubleshooting](IBKR_CONNECTION_TROUBLESHOOTING.md)** 🔧
+    - Common connection issues and solutions
+    - Debug techniques
+    - Network diagnostics
+    - **Best for: Solving connection problems**
+
+13. **[Live Integration Guide](LIVE_INTEGRATION_GUIDE.md)** 🚀
+    - Integrating IBKR with strategy engine
+    - Live data and execution
+    - Adapter pattern implementation
+    - **Best for: Developers integrating live trading**
+
+14. **[Live Market Data Guide](live_market_data_guide.md)** 📡
+    - Real-time market data streaming
+    - Historical data downloads
+    - Subscription management
+    - **Best for: Working with market data**
+
 ### For UI Features
 
 For understanding the Streamlit UI features:
 
-9. **[LLM Strategy Generation](llm_strategy_generation.md)** 🤖
-   - LLM-based strategy creation
-   - Natural language to signal logic
-   - Security safeguards
-   - Setup and configuration
-   - Best for: Internal users generating strategies with AI
+15. **[LLM Strategy Generation](llm_strategy_generation.md)** 🤖
+    - LLM-based strategy creation
+    - Natural language to signal logic
+    - Security safeguards
+    - Setup and configuration
+    - Best for: Internal users generating strategies with AI
 
-10. **[LLM Quick Start](llm_quickstart.md)** ⚡
+16. **[LLM Quick Start](llm_quickstart.md)** ⚡
     - Quick overview of LLM features
     - Step-by-step demo
     - Example strategies
@@ -122,7 +158,8 @@ For understanding the Streamlit UI features:
 → Read [Design Decisions](design_decisions.md)
 
 ### "I want to set up live/paper trading with Interactive Brokers"
-→ Read [Interactive Brokers Setup Guide](ibkr_setup_guide.md)
+→ Start with [IBKR Comprehensive Guide](IBKR_COMPREHENSIVE_GUIDE.md) for complete setup
+→ Or see [Interactive Brokers Setup Guide](ibkr_setup_guide.md) for technical details
 
 ## 📋 Core Concepts
 
@@ -199,12 +236,12 @@ Stores backtest outcomes and performance metrics.
 - [Test Examples](quick_reference.md#testing-quick-reference)
 
 ### Live Trading
-- [IBKR Setup Guide](ibkr_setup_guide.md) - Complete Interactive Brokers setup
-- [Paper Trading Setup](ibkr_setup_guide.md#paper-trading-vs-live-trading)
-- [API Configuration](ibkr_setup_guide.md#api-connection-settings)
-- [Security Best Practices](ibkr_setup_guide.md#security-best-practices)
-- [Connection Examples](ibkr_setup_guide.md#connection-code-examples)
-- [Troubleshooting](ibkr_setup_guide.md#troubleshooting)
+- [🎯 IBKR Comprehensive Guide](IBKR_COMPREHENSIVE_GUIDE.md) - **START HERE** - Complete setup from scratch
+- [IBKR Setup Guide](ibkr_setup_guide.md) - Detailed technical reference
+- [IBKR Connection Manager](IBKR_CONNECTION_MANAGER.md) - Connection management API
+- [IBKR Troubleshooting](IBKR_CONNECTION_TROUBLESHOOTING.md) - Solving connection issues
+- [Live Integration Guide](LIVE_INTEGRATION_GUIDE.md) - Strategy integration with live trading
+- [Live Market Data Guide](live_market_data_guide.md) - Real-time data streaming
 
 ## 📈 Example Strategies
 
